@@ -1,0 +1,1732 @@
+// =========================================================================
+// ADVANCED TRANSFORMER MODEL WITH MOE AND DYNAMIC FEATURES
+// =========================================================================
+
+Model {
+  model = TransformerMoE
+  desc = "Transformer with Mixture of Experts, dynamic attention, and control flow"
+}
+
+// =========================================================================
+// REUSABLE BLOCKS
+// =========================================================================
+
+Block {
+  block = attention_block
+  block_type = attention
+  model = TransformerMoE
+  layers = mha_layer
+  parameters = num_heads_param
+  desc = "Multi-head attention block"
+}
+
+BlockParam {
+  param = num_heads_param
+  parent = attention_block
+  param_type = int
+  default = 8
+  desc = "Number of attention heads"
+}
+
+BlockParam {
+  param = head_dim_param
+  parent = attention_block
+  param_type = int
+  default = 64
+  desc = "Dimension per attention head"
+}
+
+Block {
+  block = ffn_block
+  block_type = sequential
+  model = TransformerMoE
+  layers = ffn_layer
+  parameters = hidden_dim_param
+  desc = "Feed-forward network block"
+}
+
+BlockParam {
+  param = hidden_dim_param
+  parent = ffn_block
+  param_type = int
+  default = 2048
+  desc = "Hidden dimension size"
+}
+
+Block {
+  block = expert_block
+  block_type = parallel
+  model = TransformerMoE
+  layers = expert_ffn
+  parameters = expert_capacity_param
+  desc = "Individual expert network"
+}
+
+BlockParam {
+  param = expert_capacity_param
+  parent = expert_block
+  param_type = int
+  default = 512
+  desc = "Expert capacity"
+}
+
+// =========================================================================
+// LAYERS AND OPERATIONS
+// =========================================================================
+
+// Input Embedding Layer
+Layer {
+  layer = input_embed
+  parent = TransformerMoE
+  type = embedding
+  desc = "Token and position embeddings"
+}
+
+Op {
+  op = token_embed
+  parent = input_embed
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = token_embed
+  role = input
+  tensor = input_tokens
+}
+
+Arg {
+  arg = output
+  parent = token_embed
+  role = output
+  tensor = token_embeddings
+}
+
+Arg {
+  arg = weights
+  parent = token_embed
+  role = param
+  tensor = embed_weights
+}
+
+Op {
+  op = pos_embed_add
+  parent = input_embed
+  kernel = add_cuda
+  kernel_op = add_dispatch
+}
+
+Arg {
+  arg = input1
+  parent = pos_embed_add
+  role = input
+  tensor = token_embeddings
+}
+
+Arg {
+  arg = input2
+  parent = pos_embed_add
+  role = input
+  tensor = pos_embeddings
+}
+
+Arg {
+  arg = output
+  parent = pos_embed_add
+  role = output
+  tensor = embedded_input
+}
+
+// Multi-Head Attention Layer with Dynamic Sequences
+Layer {
+  layer = mha_layer
+  parent = TransformerMoE
+  type = attention
+  desc = "Multi-head self-attention with dynamic sequence length"
+}
+
+BlockInstance {
+  instance = attn_block_inst
+  parent = mha_layer
+  block = attention_block
+  repeat = 1
+  desc = "Attention block instance"
+}
+
+ParamValue {
+  param = num_heads_param
+  parent = attn_block_inst
+  value = 12
+  desc = "12 attention heads"
+}
+
+ParamValue {
+  param = head_dim_param
+  parent = attn_block_inst
+  value = 64
+  desc = "64 dims per head"
+}
+
+Op {
+  op = qkv_projection
+  parent = mha_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = qkv_projection
+  role = input
+  tensor = embedded_input
+}
+
+Arg {
+  arg = output
+  parent = qkv_projection
+  role = output
+  tensor = qkv_projected
+}
+
+Arg {
+  arg = weights
+  parent = qkv_projection
+  role = param
+  tensor = qkv_weights
+}
+
+Op {
+  op = self_attention
+  parent = mha_layer
+  op_rule = attention
+  kernel = attention_cuda
+  kernel_op = attention_dispatch
+  desc = "Causal multi-head self-attention"
+}
+
+AttentionOp {
+  attn_op = self_attention
+  parent = self_attention
+  attn_type = multi_head
+  num_heads = 12
+  head_dim = 64
+  causal = true
+  desc = "Causal multi-head self-attention"
+}
+
+// Query argument
+Arg {
+  arg = query
+  parent = self_attention
+  role = query
+  model = TransformerMoE
+  tensor = query_tensor
+}
+
+Arg {
+  arg = key
+  parent = self_attention
+  role = key
+  model = TransformerMoE
+  tensor = key_tensor
+}
+
+Arg {
+  arg = value
+  parent = self_attention
+  role = value
+  model = TransformerMoE
+  tensor = value_tensor
+}
+
+Arg {
+  arg = mask
+  parent = self_attention
+  role = mask
+  model = TransformerMoE
+  tensor = attention_mask
+}
+
+Arg {
+  arg = qkv_input
+  parent = self_attention
+  role = input
+  tensor = qkv_projected
+}
+
+Arg {
+  arg = attn_output
+  parent = self_attention
+  role = output
+  tensor = attention_output
+}
+
+Op {
+  op = output_projection
+  parent = mha_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = output_projection
+  role = input
+  tensor = attention_output
+}
+
+Arg {
+  arg = output
+  parent = output_projection
+  role = output
+  tensor = mha_output
+}
+
+Arg {
+  arg = weights
+  parent = output_projection
+  role = param
+  tensor = output_proj_weights
+}
+
+Op {
+  op = residual_add_1
+  parent = mha_layer
+  kernel = add_cuda
+  kernel_op = add_dispatch
+}
+
+Arg {
+  arg = input1
+  parent = residual_add_1
+  role = input
+  tensor = mha_output
+}
+
+Arg {
+  arg = input2
+  parent = residual_add_1
+  role = input
+  tensor = embedded_input
+  desc = "Residual connection"
+}
+
+Arg {
+  arg = output
+  parent = residual_add_1
+  role = output
+  tensor = mha_residual
+}
+
+Op {
+  op = layer_norm_1
+  parent = mha_layer
+  kernel = layernorm_cuda
+  kernel_op = layernorm_dispatch
+}
+
+Arg {
+  arg = input
+  parent = layer_norm_1
+  role = input
+  tensor = mha_residual
+}
+
+Arg {
+  arg = output
+  parent = layer_norm_1
+  role = output
+  tensor = ln1_output
+}
+
+Arg {
+  arg = gamma
+  parent = layer_norm_1
+  role = param
+  tensor = ln1_gamma
+}
+
+Arg {
+  arg = beta
+  parent = layer_norm_1
+  role = param
+  tensor = ln1_beta
+}
+
+//
+
+// Feed-Forward Network Layer
+Layer {
+  layer = ffn_layer
+  parent = TransformerMoE
+  type = dense
+  desc = "Feed-forward network with up-projection, activation, and down-projection"
+}
+
+Op {
+  op = ffn_up_proj
+  parent = ffn_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = ffn_up_proj
+  role = input
+  tensor = ffn_input
+}
+
+Arg {
+  arg = output
+  parent = ffn_up_proj
+  role = output
+  tensor = ffn_hidden
+}
+
+Arg {
+  arg = weights
+  parent = ffn_up_proj
+  role = param
+  tensor = ffn_up_weights
+}
+
+Op {
+  op = ffn_activation
+  parent = ffn_layer
+  kernel = gelu_cuda
+  kernel_op = gelu_dispatch
+}
+
+Arg {
+  arg = input
+  parent = ffn_activation
+  role = input
+  tensor = ffn_hidden
+}
+
+Arg {
+  arg = output
+  parent = ffn_activation
+  role = output
+  tensor = ffn_activated
+}
+
+Op {
+  op = ffn_down_proj
+  parent = ffn_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = ffn_down_proj
+  role = input
+  tensor = ffn_activated
+}
+
+Arg {
+  arg = output
+  parent = ffn_down_proj
+  role = output
+  tensor = ffn_output
+}
+
+Arg {
+  arg = weights
+  parent = ffn_down_proj
+  role = param
+  tensor = ffn_down_weights
+}
+```
+
+You'll also need to add the corresponding tensors to the tensor definitions section:
+```
+// FFN Tensors
+Tensor {
+  tensor = ffn_input
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "FFN input"
+}
+
+Tensor {
+  tensor = ffn_hidden
+  parent = TransformerMoE
+  shape = [1, 512, 2048]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "FFN hidden layer (expanded)"
+}
+
+Tensor {
+  tensor = ffn_activated
+  parent = TransformerMoE
+  shape = [1, 512, 2048]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "FFN after GELU activation"
+}
+
+Tensor {
+  tensor = ffn_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "FFN output (projected back)"
+}
+
+Tensor {
+  tensor = ffn_up_weights
+  parent = TransformerMoE
+  shape = [768, 2048]
+  layout = oi
+  dtype = fp32
+  desc = "FFN up-projection weights"
+}
+
+Tensor {
+  tensor = ffn_down_weights
+  parent = TransformerMoE
+  shape = [2048, 768]
+  layout = oi
+  dtype = fp32
+  desc = "FFN down-projection weights"
+}
+
+// Mixture of Experts Layer with Routing
+Layer {
+  layer = moe_layer
+  parent = TransformerMoE
+  type = mixture_of_experts
+  desc = "Sparse mixture of experts with top-k routing"
+}
+
+
+
+Op {
+  op = weighted_combine
+  parent = moe_layer
+  op_rule = expert_routing
+  kernel = weighted_sum_cuda
+  kernel_op = weighted_sum_dispatch
+}
+
+ExpertRoutingOp {
+  expert_op = moe_router
+  parent = weighted_combine
+  num_experts = 8
+  top_k = 2
+  model2 = TransformerMoE
+  experts = expert_ffn
+  load_balance = token_choice
+  desc = "Route each token to top-2 experts"
+}
+
+ExpertRoutingOp_x {
+  router = moe_router
+  parent = weighted_combine
+  num_experts = 8
+  top_k = 2
+  gate_tensor = gate_logits
+  experts = expert_ffn
+  load_balance = token_choice
+  desc = "Route each token to top-2 experts"
+}
+
+Arg {
+  arg = expert_outs
+  parent = weighted_combine
+  role = expert_output
+  model = TransformerMoE
+  tensor = expert_output
+}
+
+Arg {
+  arg = gate_weights
+  parent = weighted_combine
+  role = gate_tensor
+  model = TransformerMoE
+  tensor = gate_logits
+}
+
+Arg {
+  arg = output
+  parent = weighted_combine
+  role = output
+  model = TransformerMoE
+  tensor = moe_output
+}
+
+Arg_x {
+  arg = expert_outs
+  parent = weighted_combine
+  role = input
+  tensor = expert_output
+}
+
+Arg_x {
+  arg = gate_weights
+  parent = weighted_combine
+  role = input
+  tensor = gate_logits
+}
+
+Arg_x {
+  arg = output
+  parent = weighted_combine
+  role = output
+  tensor = moe_output
+}
+
+Op {
+  op = residual_add_2
+  parent = moe_layer
+  kernel = add_cuda
+  kernel_op = add_dispatch
+}
+
+Arg {
+  arg = input1
+  parent = residual_add_2
+  role = input
+  tensor = moe_output
+}
+
+Arg {
+  arg = input2
+  parent = residual_add_2
+  role = input
+  tensor = ln1_output
+  desc = "Residual connection"
+}
+
+Arg {
+  arg = output
+  parent = residual_add_2
+  role = output
+  tensor = moe_residual
+}
+
+Op {
+  op = layer_norm_2
+  parent = moe_layer
+  kernel = layernorm_cuda
+  kernel_op = layernorm_dispatch
+}
+
+Arg {
+  arg = input
+  parent = layer_norm_2
+  role = input
+  tensor = moe_residual
+}
+
+Arg {
+  arg = output
+  parent = layer_norm_2
+  role = output
+  tensor = ln2_output
+}
+
+Arg {
+  arg = gamma
+  parent = layer_norm_2
+  role = param
+  tensor = ln2_gamma
+}
+
+Arg {
+  arg = beta
+  parent = layer_norm_2
+  role = param
+  tensor = ln2_beta
+}
+
+Op {
+  op = gating_network
+  parent = moe_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = gating_network
+  role = input
+  tensor = ln1_output
+}
+
+Arg {
+  arg = output
+  parent = gating_network
+  role = output
+  tensor = gate_logits
+}
+
+Arg {
+  arg = weights
+  parent = gating_network
+  role = param
+  tensor = gate_weights
+}
+
+// Expert Networks (8 parallel experts)
+Layer {
+  layer = expert_ffn
+  parent = TransformerMoE
+  type = dense
+  desc = "Individual expert feed-forward network"
+}
+
+BlockInstance {
+  instance = expert_block_inst
+  parent = expert_ffn
+  block = expert_block
+  repeat = 8
+  desc = "8 expert instances"
+}
+
+ParamValue {
+  param = expert_capacity_param
+  parent = expert_block_inst
+  value = 512
+  desc = "Expert hidden dim 512"
+}
+
+Op {
+  op = expert_up_proj
+  parent = expert_ffn
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = expert_up_proj
+  role = input
+  tensor = ln1_output
+}
+
+Arg {
+  arg = output
+  parent = expert_up_proj
+  role = output
+  tensor = expert_hidden
+}
+
+Arg {
+  arg = weights
+  parent = expert_up_proj
+  role = param
+  tensor = expert_up_weights
+}
+
+Op {
+  op = expert_activation
+  parent = expert_ffn
+  kernel = gelu_cuda
+  kernel_op = gelu_dispatch
+}
+
+Arg {
+  arg = input
+  parent = expert_activation
+  role = input
+  tensor = expert_hidden
+}
+
+Arg {
+  arg = output
+  parent = expert_activation
+  role = output
+  tensor = expert_activated
+}
+
+Op {
+  op = expert_down_proj
+  parent = expert_ffn
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = expert_down_proj
+  role = input
+  tensor = expert_activated
+}
+
+Arg {
+  arg = output
+  parent = expert_down_proj
+  role = output
+  tensor = expert_output
+}
+
+Arg {
+  arg = weights
+  parent = expert_down_proj
+  role = param
+  tensor = expert_down_weights
+}
+
+// LSTM State Management Layer
+Layer {
+  layer = state_layer
+  parent = TransformerMoE
+  type = recurrent
+  desc = "LSTM with state persistence"
+}
+
+Op {
+  op = lstm_cell
+  parent = state_layer
+  op_rule = stateful
+  kernel = lstm_cuda
+  kernel_op = lstm_dispatch
+}
+
+StatefulOp {
+  state_op = lstm_cell
+  parent = lstm_cell
+  state_type = lstm
+  sequence_dim = 1
+  stateful = true
+  desc = "LSTM cell with persistent state"
+}
+
+
+Arg {
+  arg = input
+  parent = lstm_cell
+  role = input
+  model = TransformerMoE
+  tensor = ln2_output
+}
+
+Arg {
+  arg = hidden_state
+  parent = lstm_cell
+  role = hidden_state
+  model = TransformerMoE
+  tensor = lstm_hidden
+}
+
+Arg {
+  arg = cell_state
+  parent = lstm_cell
+  role = cell_state
+  model = TransformerMoE
+  tensor = lstm_cell_state
+}
+
+Arg {
+  arg = hidden_out
+  parent = lstm_cell
+  role = output
+  model = TransformerMoE
+  tensor = lstm_output
+}
+
+
+
+Arg_x {
+  arg = hidden_state
+  parent = lstm_cell
+  role = param
+  tensor = lstm_hidden
+}
+
+Arg_x {
+  arg = cell_state
+  parent = lstm_cell
+  role = param
+  tensor = lstm_cell_state
+}
+
+Arg_x {
+  arg = weights
+  parent = lstm_cell
+  role = param
+  tensor = lstm_weights
+}
+
+// Graph Neural Network Layer
+Layer {
+  layer = gnn_layer
+  parent = TransformerMoE
+  type = graph
+  desc = "Graph attention network for structured data"
+}
+
+Op {
+  op = graph_attention
+  parent = gnn_layer
+  kernel = gat_cuda
+  kernel_op = gat_dispatch
+}
+
+GraphOp {
+  graph_op = graph_attention
+  parent = graph_attention
+  gnn_type = gat  // comment
+  aggregation = attention
+  num_layers = 2
+  desc = "2-layer graph attention"
+}
+
+Arg {
+  arg = node_input
+  parent = graph_attention
+  role = node_features
+  model = TransformerMoE
+  tensor = input_graph_nodes
+}
+
+Arg {
+  arg = adjacency
+  parent = graph_attention
+  role = adjacency
+  model = TransformerMoE
+  tensor = graph_adjacency
+}
+
+Arg {
+  arg = node_output
+  parent = graph_attention
+  role = node_output
+  model = TransformerMoE
+  tensor = output_graph_nodes
+}
+
+Arg_x {
+  arg = node_input
+  parent = graph_attention
+  role = input
+  tensor = input_graph_nodes
+}
+
+Arg_x {
+  arg = edge_input
+  parent = graph_attention
+  role = input
+  tensor = input_graph_edges
+}
+
+Arg_x {
+  arg = adjacency
+  parent = graph_attention
+  role = input
+  tensor = graph_adjacency
+}
+
+Arg_x {
+  arg = node_output
+  parent = graph_attention
+  role = output
+  tensor = output_graph_nodes
+}
+
+Arg_x {
+  arg = weights
+  parent = graph_attention
+  role = param
+  tensor = gat_weights
+}
+
+// Neural ODE Layer
+Layer {
+  layer = ode_layer
+  parent = TransformerMoE
+  type = continuous
+  desc = "Neural ODE with continuous depth"
+}
+
+ContinuousLayer {
+  cont_layer = ode_layer
+  parent = TransformerMoE
+  solver = dopri5
+  time_steps = 10
+  t_start = 0
+  t_end = 1
+  adaptive = true
+  dynamics = ode_dynamics
+  tolerance = 0.001
+  desc = "Adaptive ODE solver"
+}
+Op {
+  op = ode_integrate
+  parent = ode_layer
+  op_rule = ode
+  kernel = ode_solver_cuda
+  kernel_op = ode_dispatch
+}
+
+ODEOp {
+  ode_op = ode_integrate
+  parent = ode_integrate
+  integration = dopri5
+  solver = dopri5
+  adjoint = true
+}
+ODEOp_x {
+  ode_op = ode_integrate
+  parent = ode_integrate
+  integration = dopri5
+  state_input = ode_state_input
+  state_output = ode_state_output
+  time_tensor = time_points
+  adjoint = true
+  desc = "ODE integration with adjoint backprop"
+}
+
+Arg {
+  arg = state_in
+  parent = ode_integrate
+  role = state_input
+  model = TransformerMoE
+  tensor = ode_state_input
+}
+
+Arg {
+  arg = state_out
+  parent = ode_integrate
+  role = state_output
+  model = TransformerMoE
+  tensor = ode_state_output
+}
+
+Arg {
+  arg = time_pts
+  parent = ode_integrate
+  role = time_tensor
+  model = TransformerMoE
+  tensor = time_points
+}
+
+Arg_x {
+  arg = state_in
+  parent = ode_integrate
+  role = input
+  tensor = ode_state_input
+}
+
+Arg_x {
+  arg = state_out
+  parent = ode_integrate
+  role = output
+  tensor = ode_state_output
+}
+
+Arg_x {
+  arg = time_pts
+  parent = ode_integrate
+  role = input
+  tensor = time_points
+}
+
+Layer {
+  layer = ode_dynamics
+  parent = TransformerMoE
+  type = dense
+  desc = "Dynamics function for ODE"
+}
+
+Op {
+  op = dynamics_forward
+  parent = ode_dynamics
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = dynamics_forward
+  role = input
+  tensor = ode_state_input
+}
+
+Arg {
+  arg = output
+  parent = dynamics_forward
+  role = output
+  tensor = ode_state_output
+}
+
+Arg {
+  arg = weights
+  parent = dynamics_forward
+  role = param
+  tensor = ode_weights
+}
+
+
+// Output Layer
+Layer {
+  layer = output_layer
+  parent = TransformerMoE
+  type = dense
+  desc = "Final output projection"
+}
+
+Op {
+  op = final_projection
+  parent = output_layer
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = final_projection
+  role = input
+  tensor = ode_state_output
+}
+
+Arg {
+  arg = output
+  parent = final_projection
+  role = output
+  tensor = final_logits
+}
+
+Arg {
+  arg = weights
+  parent = final_projection
+  role = param
+  tensor = output_weights
+}
+
+// =========================================================================
+// TENSORS
+// =========================================================================
+
+// Input/Output Tensors (with dynamic dimensions)
+Tensor {
+  tensor = input_tokens
+  parent = TransformerMoE
+  shape = [1, 512]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = nc
+  dtype = int32
+  desc = "Input token IDs, dynamic sequence length"
+}
+
+Tensor {
+  tensor = token_embeddings
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Token embeddings"
+}
+
+Tensor {
+  tensor = pos_embeddings
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  layout = ncd
+  dtype = fp32
+  desc = "Positional embeddings"
+}
+
+Tensor {
+  tensor = embedded_input
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Input + positional embeddings"
+}
+
+// Attention Tensors
+Tensor {
+  tensor = qkv_projected
+  parent = TransformerMoE
+  shape = [1, 512, 2304]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "QKV projection (768*3)"
+}
+
+Tensor {
+  tensor = query_tensor
+  parent = TransformerMoE
+  shape = [1, 12, 512, 64]
+  shape_type = dynamic
+  dyn_dims = 2
+  layout = nhcd
+  dtype = fp32
+  desc = "Query tensor"
+}
+
+Tensor {
+  tensor = key_tensor
+  parent = TransformerMoE
+  shape = [1, 12, 512, 64]
+  shape_type = dynamic
+  dyn_dims = 2
+  layout = nhcd
+  dtype = fp32
+  desc = "Key tensor"
+}
+
+Tensor {
+  tensor = value_tensor
+  parent = TransformerMoE
+  shape = [1, 12, 512, 64]
+  shape_type = dynamic
+  dyn_dims = 2
+  layout = nhcd
+  dtype = fp32
+  desc = "Value tensor"
+}
+
+Tensor {
+  tensor = attention_mask
+  parent = TransformerMoE
+  shape = [1, 1, 512, 512]
+  shape_type = dynamic
+  dyn_dims = 2,3
+  layout = nhwc
+  dtype = fp32
+  desc = "Causal attention mask"
+}
+
+Tensor {
+  tensor = attention_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Attention output"
+}
+
+Tensor {
+  tensor = mha_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Multi-head attention output"
+}
+
+Tensor {
+  tensor = mha_residual
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "After attention residual"
+}
+
+Tensor {
+  tensor = ln1_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "After layer norm 1"
+}
+
+// MoE Tensors
+Tensor {
+  tensor = gate_logits
+  parent = TransformerMoE
+  shape = [1, 512, 8]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Gating network logits for 8 experts"
+}
+
+Tensor {
+  tensor = expert_hidden
+  parent = TransformerMoE
+  shape = [1, 512, 512]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Expert hidden activations"
+}
+
+Tensor {
+  tensor = expert_activated
+  parent = TransformerMoE
+  shape = [1, 512, 512]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "After GELU activation"
+}
+
+Tensor {
+  tensor = expert_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Expert outputs"
+}
+
+Tensor {
+  tensor = moe_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Weighted combination of expert outputs"
+}
+
+Tensor {
+  tensor = moe_residual
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "After MoE residual"
+}
+
+Tensor {
+  tensor = ln2_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "After layer norm 2"
+}
+
+// LSTM State Tensors
+Tensor {
+  tensor = lstm_hidden
+  parent = TransformerMoE
+  shape = [1, 768]
+  layout = nc
+  dtype = fp32
+  desc = "LSTM hidden state"
+}
+
+Tensor {
+  tensor = lstm_cell_state
+  parent = TransformerMoE
+  shape = [1, 768]
+  layout = nc
+  dtype = fp32
+  desc = "LSTM cell state"
+}
+
+Tensor {
+  tensor = lstm_output
+  parent = TransformerMoE
+  shape = [1, 512, 768]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "LSTM output"
+}
+
+// Graph Tensors
+GraphTensor {
+  graph_tensor = input_graph_nodes
+  parent = TransformerMoE
+  graph_type = node_features
+  num_nodes = 1000
+  feature_dim = 768
+  sparse_format = csr
+  dtype = fp32
+  desc = "Input graph node features"
+}
+
+GraphTensor {
+  graph_tensor = input_graph_edges
+  parent = TransformerMoE
+  graph_type = edge_features
+  num_edges = 5000
+  feature_dim = 64
+  sparse_format = coo
+  dtype = fp32
+  desc = "Input graph edge features"
+}
+
+GraphTensor {
+  graph_tensor = graph_adjacency
+  parent = TransformerMoE
+  graph_type = adjacency
+  num_nodes = 1000
+  num_edges = 5000
+  sparse_format = csr
+  dtype = fp32
+  desc = "Graph adjacency matrix"
+}
+
+GraphTensor {
+  graph_tensor = output_graph_nodes
+  parent = TransformerMoE
+  graph_type = node_features
+  num_nodes = 1000
+  feature_dim = 768
+  sparse_format = csr
+  dtype = fp32
+  desc = "Output graph node features"
+}
+
+// ODE Tensors
+Tensor {
+  tensor = ode_state_input
+  parent = TransformerMoE
+  shape = [1, 768]
+  layout = nc
+  dtype = fp32
+  desc = "ODE initial state"
+}
+
+Tensor {
+  tensor = ode_state_output
+  parent = TransformerMoE
+  shape = [1, 768]
+  layout = nc
+  dtype = fp32
+  desc = "ODE final state"
+}
+
+Tensor {
+  tensor = time_points
+  parent = TransformerMoE
+  shape = [10]
+  layout = c
+  dtype = fp32
+  desc = "Time evaluation points"
+}
+
+// Output Tensors
+Tensor {
+  tensor = final_logits
+  parent = TransformerMoE
+  shape = [1, 512, 50257]
+  shape_type = dynamic
+  dyn_dims = 1
+  layout = ncd
+  dtype = fp32
+  desc = "Final output logits"
+}
+
+// Weight Tensors
+Tensor {
+  tensor = embed_weights
+  parent = TransformerMoE
+  shape = [50257, 768]
+  layout = oi
+  dtype = fp32
+  desc = "Token embedding weights"
+}
+
+Tensor {
+  tensor = qkv_weights
+  parent = TransformerMoE
+  shape = [768, 2304]
+  layout = oi
+  dtype = fp32
+  desc = "QKV projection weights"
+}
+
+Tensor {
+  tensor = output_proj_weights
+  parent = TransformerMoE
+  shape = [768, 768]
+  layout = oi
+  dtype = fp32
+  desc = "Attention output projection weights"
+}
+
+Tensor {
+  tensor = ln1_gamma
+  parent = TransformerMoE
+  shape = [768]
+  layout = c
+  dtype = fp32
+  desc = "Layer norm 1 scale"
+}
+
+Tensor {
+  tensor = ln1_beta
+  parent = TransformerMoE
+  shape = [768]
+  layout = c
+  dtype = fp32
+  desc = "Layer norm 1 shift"
+}
+
+Tensor {
+  tensor = gate_weights
+  parent = TransformerMoE
+  shape = [768, 8]
+  layout = oi
+  dtype = fp32
+  desc = "MoE gating network weights"
+}
+
+Tensor {
+  tensor = expert_up_weights
+  parent = TransformerMoE
+  shape = [768, 512, 8]
+  layout = oic
+  dtype = fp32
+  desc = "Expert up-projection weights (per expert)"
+}
+
+Tensor {
+  tensor = expert_down_weights
+  parent = TransformerMoE
+  shape = [512, 768, 8]
+  layout = oic
+  dtype = fp32
+  desc = "Expert down-projection weights (per expert)"
+}
+
+Tensor {
+  tensor = ln2_gamma
+  parent = TransformerMoE
+  shape = [768]
+  layout = c
+  dtype = fp32
+  desc = "Layer norm 2 scale"
+}
+
+Tensor {
+  tensor = ln2_beta
+  parent = TransformerMoE
+  shape = [768]
+  layout = c
+  dtype = fp32
+  desc = "Layer norm 2 shift"
+}
+
+Tensor {
+  tensor = lstm_weights
+  parent = TransformerMoE
+  shape = [768, 3072]
+  layout = oi
+  dtype = fp32
+  desc = "LSTM weights (4 gates)"
+}
+
+Tensor {
+  tensor = gat_weights
+  parent = TransformerMoE
+  shape = [768, 768, 2]
+  layout = oic
+  dtype = fp32
+  desc = "Graph attention weights (2 layers)"
+}
+
+Tensor {
+  tensor = ode_weights
+  parent = TransformerMoE
+  shape = [768, 768]
+  layout = oi
+  dtype = fp32
+  desc = "ODE dynamics weights"
+}
+
+Tensor {
+  tensor = output_weights
+  parent = TransformerMoE
+  shape = [768, 50257]
+  layout = oi
+  dtype = fp32
+  desc = "Final output projection weights"
+}
+
+Tensor {
+  tensor = input_graph_nodes
+  parent = TransformerMoE
+  shape = [1000, 768]
+  layout = nc
+  dtype = fp32
+  desc = "Input graph node features (tensor view)"
+}
+
+Tensor {
+  tensor = input_graph_edges
+  parent = TransformerMoE
+  shape = [5000, 64]
+  layout = nc
+  dtype = fp32
+  desc = "Input graph edge features (tensor view)"
+}
+
+Tensor {
+  tensor = graph_adjacency
+  parent = TransformerMoE
+  shape = [1000, 1000]
+  layout = nc
+  dtype = fp32
+  desc = "Graph adjacency matrix (tensor view)"
+}
+
+Tensor {
+  tensor = output_graph_nodes
+  parent = TransformerMoE
+  shape = [1000, 768]
+  layout = nc
+  dtype = fp32
+  desc = "Output graph node features (tensor view)"
+}
+
+// =========================================================================
+// CONFIGURATIONS WITH CONTROL FLOW
+// =========================================================================
+
+Config {
+  config = inference_adaptive
+  parent = TransformerMoE
+  target = gpu_a100
+  batch = 1
+  opt_flags = [fused_ops, fp16_mixed, sparse_attention]
+  desc = "Adaptive inference with dynamic routing"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_adaptive
+  layer = input_embed
+  op = token_embed
+  desc = "Token embedding"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_adaptive
+  layer = input_embed
+  op = pos_embed_add
+  desc = "Add positional embeddings"
+}
+
+Schedule {
+  seq = 3
+  parent = inference_adaptive
+  layer = mha_layer
+  op = qkv_projection
+  desc = "QKV projection"
+}
+
+Schedule {
+  seq = 4
+  parent = inference_adaptive
+  layer = mha_layer
+  op = self_attention
+  desc = "Multi-head self-attention"
+}
+
+Schedule {
+  seq = 5
+  parent = inference_adaptive
+  layer = mha_layer
+  op = output_projection
+  desc = "Attention output projection"
+}
+
+Schedule {
+  seq = 6
+  parent = inference_adaptive
+  layer = mha_layer
+  op = residual_add_1
+  desc = "Residual connection 1"
+}
+
+Schedule {
+  seq = 7
+  parent = inference_adaptive
+  layer = mha_layer
+  op = layer_norm_1
+  desc = "Layer normalization 1"
+}
+
+Schedule {
+  seq = 8
+  parent = inference_adaptive
+  layer = moe_layer
+  op = gating_network
+  control = adaptive_routing
+  desc = "MoE gating (conditional execution)"
+}
+
+Schedule {
+  seq = 9
+  parent = inference_adaptive
+  layer = moe_layer
+  op = weighted_combine
+  control = adaptive_routing
+  desc = "Combine expert outputs"
+}
+
+Schedule {
+  seq = 10
+  parent = inference_adaptive
+  layer = moe_layer
+  op = residual_add_2
+  desc = "Residual connection 2"
+}
+
+// Schedule {
+//   seq = 11
+//   parent = inference_adaptive
+// }
+
+ControlFlow {
+  control = adaptive_routing
+  parent = TransformerMoE
+  type = conditional
+  desc = "Adaptive expert routing based on input"
+}
+
+Condition {
+  condition = should_route
+  parent = adaptive_routing
+  predicate = threshold
+  input = gate_logits
+  threshold = 0.5
+}
+
+

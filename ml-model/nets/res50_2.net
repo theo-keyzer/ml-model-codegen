@@ -1,0 +1,770 @@
+// =========================================================================
+// ML MODEL SPECIFICATION
+// =========================================================================
+
+Model {
+  model = ResNet50
+  desc = "ResNet-50 image classification model"
+}
+
+// =========================================================================
+// LAYERS AND THEIR OPERATIONS
+// =========================================================================
+
+Layer {
+  layer = conv1
+  parent = ResNet50
+  type = conv
+  desc = "Initial convolution layer"
+}
+
+Op {
+  op = im2col_conv
+  parent = conv1
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = im2col_conv
+  role = input
+  tensor = input_img
+}
+
+Arg {
+  arg = output
+  parent = im2col_conv
+  role = output
+  tensor = conv1_output
+}
+
+Arg {
+  arg = weights
+  parent = im2col_conv
+  role = param
+  tensor = weights_conv1
+}
+
+Op {
+  op = batch_norm
+  parent = conv1
+  kernel = bn_cuda
+}
+
+Arg {
+  arg = input
+  parent = batch_norm
+  role = input
+  tensor = conv1_output
+}
+
+Arg {
+  arg = output
+  parent = batch_norm
+  role = output
+  tensor = bn_output
+}
+
+Arg {
+  arg = mean
+  parent = batch_norm
+  role = param
+  tensor = mean_conv1
+}
+
+Arg {
+  arg = variance
+  parent = batch_norm
+  role = param
+  tensor = var_conv1
+}
+
+Arg {
+  arg = gamma
+  parent = batch_norm
+  role = param
+  tensor = gamma_conv1
+}
+
+Arg {
+  arg = beta
+  parent = batch_norm
+  role = param
+  tensor = beta_conv1
+}
+
+Layer {
+  layer = res_block1
+  parent = ResNet50
+  type = residual
+  desc = "Residual block 1"
+}
+
+Op {
+  op = matmul
+  parent = res_block1
+  kernel = matmul_cuda
+}
+
+Arg {
+  arg = input
+  parent = matmul
+  role = input
+  tensor = bn_output
+}
+
+Arg {
+  arg = output
+  parent = matmul
+  role = output
+  tensor = res1_output
+}
+
+Arg {
+  arg = weights
+  parent = matmul
+  role = param
+  tensor = weights_res1
+}
+
+Op {
+  op = add
+  parent = res_block1
+  kernel = add_cuda
+}
+
+Arg {
+  arg = input1
+  parent = add
+  role = input
+  tensor = res1_output
+}
+
+Arg {
+  arg = input2
+  parent = add
+  role = input
+  tensor = bn_output
+  desc = "Residual connection"
+}
+
+Arg {
+  arg = output
+  parent = add
+  role = output
+  tensor = res1_added
+}
+
+Layer {
+  layer = avgpool
+  parent = ResNet50
+  type = pool
+  desc = "Global average pooling"
+}
+
+Op {
+  op = pool
+  parent = avgpool
+  kernel = avgpool_cuda
+}
+
+Arg {
+  arg = input
+  parent = pool
+  role = input
+  tensor = res1_added
+}
+
+Arg {
+  arg = output
+  parent = pool
+  role = output
+  tensor = pool_output
+}
+
+Layer {
+  layer = classifier
+  parent = ResNet50
+  type = dense
+  desc = "Classification layer"
+}
+
+Op {
+  op = matmul
+  parent = classifier
+  kernel = matmul_cuda
+  kernel_op = matmul_dispatch
+}
+
+Arg {
+  arg = input
+  parent = matmul
+  role = input
+  tensor = pool_output
+}
+
+Arg {
+  arg = output
+  parent = matmul
+  role = output
+  tensor = logits
+}
+
+Arg {
+  arg = weights
+  parent = matmul
+  role = param
+  tensor = weights_classifier
+}
+
+Layer {
+  layer = fused_conv1
+  parent = ResNet50
+  type = fused
+  desc = "Fused conv+bn+relu"
+}
+
+Op {
+  op = conv_bn_relu
+  parent = fused_conv1
+  kernel = fused_conv_bn_relu_cuda
+}
+
+Arg {
+  arg = input
+  parent = conv_bn_relu
+  role = input
+  tensor = input_img
+}
+
+Arg {
+  arg = output
+  parent = conv_bn_relu
+  role = output
+  tensor = bn_output_fused
+}
+
+Arg {
+  arg = weights
+  parent = conv_bn_relu
+  role = param
+  tensor = weights_conv1
+}
+
+Arg {
+  arg = mean
+  parent = conv_bn_relu
+  role = param
+  tensor = mean_conv1
+}
+
+Arg {
+  arg = variance
+  parent = conv_bn_relu
+  role = param
+  tensor = var_conv1
+}
+
+Arg {
+  arg = gamma
+  parent = conv_bn_relu
+  role = param
+  tensor = gamma_conv1
+}
+
+Arg {
+  arg = beta
+  parent = conv_bn_relu
+  role = param
+  tensor = beta_conv1
+}
+
+// =========================================================================
+// TENSORS
+// =========================================================================
+
+// Input/Output Tensors
+Tensor {
+  tensor = input_img
+  parent = ResNet50
+  shape = [1, 224, 224, 3]
+  dtype = fp32
+  layout = nhwc
+  desc = "Input image batch=1, H=224, W=224, C=3"
+}
+
+Tensor {
+  tensor = logits
+  parent = ResNet50
+  shape = [1, 1000]
+  dtype = fp32
+  layout = nchw
+  desc = "Output classification logits"
+}
+
+// Conv1 Tensors
+Tensor {
+  tensor = conv1_output
+  parent = ResNet50
+  shape = [1, 112, 112, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "After conv1 (stride=2)"
+}
+
+Tensor {
+  tensor = bn_output
+  parent = ResNet50
+  shape = [1, 112, 112, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "After batch norm"
+}
+
+Tensor {
+  tensor = bn_output_fused
+  parent = ResNet50
+  shape = [1, 112, 112, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "From fused layer"
+}
+
+// Residual Block Tensors
+Tensor {
+  tensor = res1_output
+  parent = ResNet50
+  shape = [1, 56, 56, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "Residual block output"
+}
+
+Tensor {
+  tensor = res1_added
+  parent = ResNet50
+  shape = [1, 56, 56, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "After residual addition"
+}
+
+// Pooling Tensor
+Tensor {
+  tensor = pool_output
+  parent = ResNet50
+  shape = [1, 1, 1, 64]
+  dtype = fp32
+  layout = nhwc
+  desc = "After global average pooling"
+}
+
+// Weight Tensors
+Tensor {
+  tensor = weights_conv1
+  parent = ResNet50
+  shape = [64, 3, 7, 7]
+  dtype = fp32
+  layout = oihw
+  desc = "Conv1 weights (64 filters, 3x7x7)"
+}
+
+Tensor {
+  tensor = weights_res1
+  parent = ResNet50
+  shape = [64, 64, 3, 3]
+  dtype = fp32
+  layout = oihw
+  desc = "Residual block weights"
+}
+
+Tensor {
+  tensor = weights_classifier
+  parent = ResNet50
+  shape = [1000, 64]
+  dtype = fp32
+  layout = oi
+  desc = "Classifier weights"
+}
+
+// Batch Norm Parameters
+Tensor {
+  tensor = mean_conv1
+  parent = ResNet50
+  shape = [64]
+  dtype = fp32
+  layout = c
+  desc = "Batch norm means"
+}
+
+Tensor {
+  tensor = var_conv1
+  parent = ResNet50
+  shape = [64]
+  dtype = fp32
+  layout = c
+  desc = "Batch norm variances"
+}
+
+Tensor {
+  tensor = gamma_conv1
+  parent = ResNet50
+  shape = [64]
+  dtype = fp32
+  layout = c
+  desc = "Batch norm scale"
+}
+
+Tensor {
+  tensor = beta_conv1
+  parent = ResNet50
+  shape = [64]
+  dtype = fp32
+  layout = c
+  desc = "Batch norm shift"
+}
+
+// =========================================================================
+// CONFIGURATIONS
+// =========================================================================
+
+Config {
+  config = inference_a100
+  parent = ResNet50
+  target = gpu_a100
+  batch = 1
+  opt_flags = [fused_ops, fp16_mixed]
+  desc = "A100 optimized"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_a100
+  layer = fused_conv1
+  op = conv_bn_relu
+  desc = "Execute fused Conv/BN/ReLU"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_a100
+  layer = res_block1
+  op = matmul
+  desc = "Execute residual matmul"
+}
+
+Schedule {
+  seq = 3
+  parent = inference_a100
+  layer = res_block1
+  op = add
+  desc = "Execute residual addition"
+}
+
+Schedule {
+  seq = 4
+  parent = inference_a100
+  layer = avgpool
+  op = pool
+  desc = "Execute global average pooling"
+}
+
+Schedule {
+  seq = 5
+  parent = inference_a100
+  layer = classifier
+  op = matmul
+  desc = "Execute classification"
+}
+
+Config {
+  config = inference_mobile
+  parent = ResNet50
+  target = gpu_mobile
+  batch = 1
+  opt_flags = [int8_quantize, memory_optimize]
+  desc = "Mobile optimized"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_mobile
+  layer = conv1
+  op = im2col_conv
+  desc = "Execute initial convolution"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_mobile
+  layer = conv1
+  op = batch_norm
+  desc = "Execute batch normalization"
+}
+
+Schedule {
+  seq = 3
+  parent = inference_mobile
+  layer = res_block1
+  op = matmul
+  desc = "Execute residual matmul"
+}
+
+Schedule {
+  seq = 4
+  parent = inference_mobile
+  layer = res_block1
+  op = add
+  desc = "Execute residual addition"
+}
+
+Schedule {
+  seq = 5
+  parent = inference_mobile
+  layer = avgpool
+  op = pool
+  desc = "Execute global average pooling"
+}
+
+Schedule {
+  seq = 6
+  parent = inference_mobile
+  layer = classifier
+  op = matmul
+  desc = "Execute classification"
+}
+
+// =========================================================================
+// DOMAIN KNOWLEDGE - CUDA KERNELS
+// =========================================================================
+
+Domain_ {
+  name = cuda_kernels
+  version = "1.0.0"
+  desc = "CUDA kernel implementations for ML operations"
+}
+
+Kernel {
+  kernel = matmul_cuda
+  parent = cuda_kernels
+  backend = cuda
+  desc = "Matrix multiplication kernel"
+  signature = "void matmul_kernel(T* A, T* B, T* C, int M, int N, int K);"
+  body = """
+    template<typename T>
+    __global__ void matmul_kernel(T* A, T* B, T* C, int M, int N, int K) {
+        int row = blockIdx.y * blockDim.y + threadIdx.y;
+        int col = blockIdx.x * blockDim.x + threadIdx.x;
+        
+        if (row < M && col < N) {
+            T sum = 0;
+            for (int i = 0; i < K; i++) {
+                sum += A[row * K + i] * B[i * N + col];
+            }
+            C[row * N + col] = sum;
+        }
+    }
+  """
+}
+
+KernelOp {
+  op = matmul_dispatch
+  parent = matmul_cuda
+  desc = "Matrix multiplication operation dispatch"
+  input_rank = 2
+  output_rank = 2
+  dimension_calc = "M = input_shape[0]; N = weights_shape[1]; K = input_shape[1];"
+  block_size = 256
+  grid_calc = "(M * N + block_size - 1) / block_size"
+}
+
+KernelParam {
+  param = M
+  parent = matmul_cuda
+  type = "int"
+  calculation = "input_shape[0]"
+}
+
+KernelParam {
+  param = N
+  parent = matmul_cuda
+  type = "int"
+  calculation = "output_shape[1]"
+}
+
+KernelParam {
+  param = K
+  parent = matmul_cuda
+  type = "int"
+  calculation = "input_shape[1]"
+}
+
+Kernel {
+  kernel = bn_cuda
+  parent = cuda_kernels
+  backend = cuda
+  desc = "Batch normalization kernel"
+  signature = "void batch_norm_kernel();"
+  body = """
+    template<typename T>
+    __global__ void batch_norm_kernel(
+        T* input, T* output, T* mean, T* variance, 
+        T* gamma, T* beta, int N, int C, int H, int W, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = N * C * H * W;
+        
+        if (idx < total) {
+            int c = (idx / (H * W)) % C;
+            T normalized = (input[idx] - mean[c]) / sqrt(variance[c] + eps);
+            output[idx] = gamma[c] * normalized + beta[c];
+        }
+    }
+  """
+}
+
+Kernel {
+  kernel = add_cuda
+  parent = cuda_kernels
+  backend = cuda
+  desc = "Element-wise addition kernel"
+  signature = "void add_kernel(T* input1, T* input2, T* output, int size);"
+  body = """
+    template<typename T>
+    __global__ void add_kernel(T* input1, T* input2, T* output, int size) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < size) {
+            output[idx] = input1[idx] + input2[idx];
+        }
+    }
+  """
+}
+
+Kernel {
+  kernel = avgpool_cuda
+  parent = cuda_kernels
+  backend = cuda
+  desc = "Global average pooling kernel"
+  signature = "void avgpool_kernel(T* input, T* output, int N, int C, int H, int W);"
+  body = """
+    template<typename T>
+    __global__ void avgpool_kernel(T* input, T* output, int N, int C, int H, int W) {
+        int n = blockIdx.x;
+        int c = threadIdx.x;
+        
+        if (n < N && c < C) {
+            T sum = 0;
+            for (int h = 0; h < H; h++) {
+                for (int w = 0; w < W; w++) {
+                    sum += input[((n * C + c) * H + h) * W + w];
+                }
+            }
+            output[n * C + c] = sum / (H * W);
+        }
+    }
+  """
+}
+
+Kernel {
+  kernel = fused_conv_bn_relu_cuda
+  parent = cuda_kernels
+  backend = cuda
+  desc = "Fused convolution + batch norm + ReLU kernel"
+  signature = "void fused_conv_bn_relu_kernel();"
+  body = """
+    template<typename T>
+    __global__ void fused_conv_bn_relu_kernel(
+        T* input, T* output, T* weights, T* mean, T* variance,
+        T* gamma, T* beta, int N, int C_in, int C_out, int H, int W,
+        int KH, int KW, int stride, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int H_out = (H - KH) / stride + 1;
+        int W_out = (W - KW) / stride + 1;
+        int total = N * C_out * H_out * W_out;
+        
+        if (idx < total) {
+            int w_out = idx % W_out;
+            int h_out = (idx / W_out) % H_out;
+            int c_out = (idx / (W_out * H_out)) % C_out;
+            int n = idx / (W_out * H_out * C_out);
+            
+            // Convolution
+            T sum = 0;
+            for (int c_in = 0; c_in < C_in; c_in++) {
+                for (int kh = 0; kh < KH; kh++) {
+                    for (int kw = 0; kw < KW; kw++) {
+                        int h_in = h_out * stride + kh;
+                        int w_in = w_out * stride + kw;
+                        sum += input[((n * C_in + c_in) * H + h_in) * W + w_in] *
+                               weights[((c_out * C_in + c_in) * KH + kh) * KW + kw];
+                    }
+                }
+            }
+            
+            // Batch norm
+            T normalized = (sum - mean[c_out]) / sqrt(variance[c_out] + eps);
+            T bn_output = gamma[c_out] * normalized + beta[c_out];
+            
+            // ReLU
+            output[idx] = bn_output > 0 ? bn_output : 0;
+        }
+    }
+  """
+}
+
+
+// =========================================================================
+// ENUMERATION RULES
+// =========================================================================
+
+TargetRule {
+  target = gpu_a100
+  arch = ampere
+  vendor = nvidia
+}
+
+TargetRule {
+  target = gpu_mobile
+  arch = mali
+  vendor = arm
+}
+
+DtypeRule {
+  dtype = fp32
+  bits = 32
+  type = float
+}
+
+DtypeRule {
+  dtype = fp16
+  bits = 16
+  type = float
+}
+
+DtypeRule {
+  dtype = int8
+  bits = 8
+  type = int
+}
+
+FlagRule {
+  flag = fused_ops
+  desc = "Enable operation fusion optimizations"
+}
+
+FlagRule {
+  flag = fp16_mixed
+  desc = "Use mixed precision FP16/FP32"
+}
+
+FlagRule {
+  flag = int8_quantize
+  desc = "Quantize to INT8"
+}
+
+FlagRule {
+  flag = memory_optimize
+  desc = "Optimize for memory usage"
+}

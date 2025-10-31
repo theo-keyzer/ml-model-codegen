@@ -1,0 +1,1364 @@
+// Generated CUDA inference code for TransformerMoE
+// WARNING: Auto-generated file, do not edit manually
+
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
+#include <cusparse.h>
+#include <stdio.h>
+#include <math.h>
+
+// =========================================================================
+// 1. Tensor Declarations
+// =========================================================================
+extern float* input_graph_nodes; // Graph: node_features, format: csr, nodes: 1000, edges: dynamic
+extern float* input_graph_edges; // Graph: edge_features, format: coo, nodes: dynamic, edges: 5000
+extern float* graph_adjacency; // Graph: adjacency, format: csr, nodes: 1000, edges: 5000
+extern float* output_graph_nodes; // Graph: node_features, format: csr, nodes: 1000, edges: dynamic
+extern float* ffn_input; // 1, 512, 768 ncd fp32 dynamic
+extern float* ffn_hidden; // 1, 512, 2048 ncd fp32 dynamic
+extern float* ffn_activated; // 1, 512, 2048 ncd fp32 dynamic
+extern float* ffn_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* ffn_up_weights; // 768, 2048 oi fp32 static
+extern float* ffn_down_weights; // 2048, 768 oi fp32 static
+extern float* input_tokens; // 1, 512 nc int32 dynamic
+extern float* token_embeddings; // 1, 512, 768 ncd fp32 dynamic
+extern float* pos_embeddings; // 1, 512, 768 ncd fp32 static
+extern float* embedded_input; // 1, 512, 768 ncd fp32 dynamic
+extern float* qkv_projected; // 1, 512, 2304 ncd fp32 dynamic
+extern float* query_tensor; // 1, 12, 512, 64 nhcd fp32 dynamic
+extern float* key_tensor; // 1, 12, 512, 64 nhcd fp32 dynamic
+extern float* value_tensor; // 1, 12, 512, 64 nhcd fp32 dynamic
+extern float* attention_mask; // 1, 1, 512, 512 nhwc fp32 dynamic
+extern float* attention_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* mha_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* mha_residual; // 1, 512, 768 ncd fp32 dynamic
+extern float* ln1_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* gate_logits; // 1, 512, 8 ncd fp32 dynamic
+extern float* expert_hidden; // 1, 512, 512 ncd fp32 dynamic
+extern float* expert_activated; // 1, 512, 512 ncd fp32 dynamic
+extern float* expert_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* moe_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* moe_residual; // 1, 512, 768 ncd fp32 dynamic
+extern float* ln2_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* lstm_hidden; // 1, 768 nc fp32 static
+extern float* lstm_cell_state; // 1, 768 nc fp32 static
+extern float* lstm_output; // 1, 512, 768 ncd fp32 dynamic
+extern float* ode_state_input; // 1, 768 nc fp32 static
+extern float* ode_state_output; // 1, 768 nc fp32 static
+extern float* time_points; // 10 c fp32 static
+extern float* final_logits; // 1, 512, 50257 ncd fp32 dynamic
+extern float* embed_weights; // 50257, 768 oi fp32 static
+extern float* qkv_weights; // 768, 2304 oi fp32 static
+extern float* output_proj_weights; // 768, 768 oi fp32 static
+extern float* ln1_gamma; // 768 c fp32 static
+extern float* ln1_beta; // 768 c fp32 static
+extern float* gate_weights; // 768, 8 oi fp32 static
+extern float* expert_up_weights; // 768, 512, 8 oic fp32 static
+extern float* expert_down_weights; // 512, 768, 8 oic fp32 static
+extern float* ln2_gamma; // 768 c fp32 static
+extern float* ln2_beta; // 768 c fp32 static
+extern float* lstm_weights; // 768, 3072 oi fp32 static
+extern float* gat_weights; // 768, 768, 2 oic fp32 static
+extern float* ode_weights; // 768, 768 oi fp32 static
+extern float* output_weights; // 768, 50257 oi fp32 static
+
+// =========================================================================
+// 2. Kernel Forward Declarations
+// =========================================================================
+// Kernel: add_cuda
+void add_kernel(T* input1, T* input2, T* output, int size);
+// Kernel: matmul_cuda
+void matmul_kernel(T* A, T* B, T* C, int M, int N, int K);
+// Kernel: gelu_cuda
+void gelu_kernel(T* input, T* output, int size);
+// Kernel: layernorm_cuda
+void layernorm_kernel(T* input, T* output, T* gamma, T* beta, int batch, int seq_len, int hidden_dim, float eps);
+// Kernel: bn_cuda
+void batch_norm_kernel();
+// Kernel: attention_cuda
+void attention_kernel(T* query, T* key, T* value, T* output, T* mask, int batch, int num_heads, int seq_len, int head_dim, bool causal);
+// Kernel: lstm_cuda
+void lstm_kernel(T* input, T* hidden, T* cell, T* output, T* weights, int batch, int seq_len, int hidden_dim);
+// Kernel: gat_cuda
+void gat_kernel(T* node_features, T* edge_features, T* adjacency, T* output, T* weights, int num_nodes, int num_edges, int feature_dim);
+// Kernel: ode_solver_cuda
+void ode_solver_kernel(T* state_in, T* state_out, T* time_points, T* dynamics_weights, float t_start, float t_end, int state_dim, int num_steps, bool adjoint);
+// Kernel: weighted_sum_cuda
+void weighted_sum_kernel(T* expert_outputs, T* gate_weights, T* output, int batch, int seq_len, int hidden_dim, int num_experts);
+// Kernel: avgpool_cuda
+void avgpool_kernel(T* input, T* output, int N, int C, int H, int W);
+// Kernel: fused_conv_bn_relu_cuda
+void fused_conv_bn_relu_kernel();
+// Kernel: threshold_eval_cuda
+bool evaluate_threshold(float* tensor, float threshold);
+// Kernel: expert_routing_cuda
+void expert_routing_kernel(float* gate_logits, int num_experts, int top_k);
+
+// =========================================================================
+// 3. Operation Forward Declarations
+// =========================================================================
+void op_input_embed_token_embed_forward(void* stream);
+void op_input_embed_pos_embed_add_forward(void* stream);
+void op_mha_layer_qkv_projection_forward(void* stream);
+void op_mha_layer_self_attention_forward(void* stream);
+void op_mha_layer_output_projection_forward(void* stream);
+void op_mha_layer_residual_add_1_forward(void* stream);
+void op_mha_layer_layer_norm_1_forward(void* stream);
+void op_ffn_layer_ffn_up_proj_forward(void* stream);
+void op_ffn_layer_ffn_activation_forward(void* stream);
+void op_ffn_layer_ffn_down_proj_forward(void* stream);
+void op_moe_layer_weighted_combine_forward(void* stream);
+void op_moe_layer_residual_add_2_forward(void* stream);
+void op_moe_layer_layer_norm_2_forward(void* stream);
+void op_moe_layer_gating_network_forward(void* stream);
+void op_expert_ffn_expert_up_proj_forward(void* stream);
+void op_expert_ffn_expert_activation_forward(void* stream);
+void op_expert_ffn_expert_down_proj_forward(void* stream);
+void op_state_layer_lstm_cell_forward(void* stream);
+void op_gnn_layer_graph_attention_forward(void* stream);
+void op_ode_layer_ode_integrate_forward(void* stream);
+void op_ode_dynamics_dynamics_forward_forward(void* stream);
+void op_output_layer_final_projection_forward(void* stream);
+void attention_op_self_attention_forward(void* stream);
+void graph_op_graph_attention_forward(void* stream, void* cusparse_handle);
+void stateful_op_lstm_cell_forward(void* stream, bool reset_state);
+void ode_op_ode_integrate_forward(void* stream, float t_start, float t_end);
+
+// =========================================================================
+// 4. Block Definitions
+// =========================================================================
+
+// ============ Block: attention_block ============
+// Type: attention
+// Description: Multi-head attention block
+// Parameters:
+// From: moe.net:14, moe2.act:171
+
+//   num_heads_param: int = 8
+//   head_dim_param: int = 64
+
+
+// ============ Block: ffn_block ============
+// Type: sequential
+// Description: Feed-forward network block
+// Parameters:
+// From: moe.net:39, moe2.act:171
+
+//   hidden_dim_param: int = 2048
+
+
+// ============ Block: expert_block ============
+// Type: parallel
+// Description: Individual expert network
+// Parameters:
+// From: moe.net:56, moe2.act:171
+
+//   expert_capacity_param: int = 512
+
+
+// =========================================================================
+// 5. Kernel Implementations
+// =========================================================================
+
+// ============ add_cuda ============
+// Backend: cuda
+// Description: Element-wise addition kernel
+// From: kernel2.net:15, moe2.act:188
+
+    template<typename T>
+    __global__ void add_kernel(T* input1, T* input2, T* output, int size) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < size) {
+            output[idx] = input1[idx] + input2[idx];
+        }
+    }
+
+
+// ============ matmul_cuda ============
+// Backend: cuda
+// Description: Matrix multiplication kernel
+// From: kernel2.net:47, moe2.act:188
+
+    template<typename T>
+    __global__ void matmul_kernel(T* A, T* B, T* C, int M, int N, int K) {
+        int row = blockIdx.y * blockDim.y + threadIdx.y;
+        int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (row < M && col < N) {
+            T sum = 0;
+            for (int i = 0; i < K; i++) {
+                sum += A[row * K + i] * B[i * N + col];
+            }
+            C[row * N + col] = sum;
+        }
+    }
+
+
+// ============ gelu_cuda ============
+// Backend: cuda
+// Description: GELU activation kernel
+// From: kernel2.net:106, moe2.act:188
+
+    template<typename T>
+    __global__ void gelu_kernel(T* input, T* output, int size) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < size) {
+            T x = input[idx];
+            // GELU approximation: 0.5 * x * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
+            T x_cubed = x * x * x;
+            T inner = 0.7978845608f * (x + 0.044715f * x_cubed);
+            output[idx] = 0.5f * x * (1.0f + tanh(inner));
+        }
+    }
+
+
+// ============ layernorm_cuda ============
+// Backend: cuda
+// Description: Layer normalization kernel
+// From: kernel2.net:142, moe2.act:188
+
+    template<typename T>
+    __global__ void layernorm_kernel(
+        T* input, T* output, T* gamma, T* beta,
+        int batch, int seq_len, int hidden_dim, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total_tokens = batch * seq_len;
+
+        if (idx < total_tokens) {
+            T* token_input = input + idx * hidden_dim;
+            T* token_output = output + idx * hidden_dim;
+
+            // Compute mean
+            T sum = 0;
+            for (int i = 0; i < hidden_dim; i++) {
+                sum += token_input[i];
+            }
+            T mean = sum / hidden_dim;
+
+            // Compute variance
+            T var_sum = 0;
+            for (int i = 0; i < hidden_dim; i++) {
+                T diff = token_input[i] - mean;
+                var_sum += diff * diff;
+            }
+            T variance = var_sum / hidden_dim;
+            T inv_std = rsqrt(variance + eps);
+
+            // Normalize and scale
+            for (int i = 0; i < hidden_dim; i++) {
+                T normalized = (token_input[i] - mean) * inv_std;
+                token_output[i] = gamma[i] * normalized + beta[i];
+            }
+        }
+    }
+
+
+// ============ bn_cuda ============
+// Backend: cuda
+// Description: Batch normalization kernel
+// From: kernel2.net:198, moe2.act:188
+
+    template<typename T>
+    __global__ void batch_norm_kernel(
+        T* input, T* output, T* mean, T* variance,
+        T* gamma, T* beta, int N, int C, int H, int W, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = N * C * H * W;
+
+        if (idx < total) {
+            int c = (idx / (H * W)) % C;
+            T normalized = (input[idx] - mean[c]) / sqrt(variance[c] + eps);
+            output[idx] = gamma[c] * normalized + beta[c];
+        }
+    }
+
+
+// ============ attention_cuda ============
+// Backend: cuda
+// Description: Multi-head attention kernel
+// From: kernel2.net:226, moe2.act:188
+
+    template<typename T>
+    __global__ void attention_kernel(
+        T* query, T* key, T* value, T* output, T* mask,
+        int batch, int num_heads, int seq_len, int head_dim, bool causal
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = batch * num_heads * seq_len * seq_len;
+
+        if (idx < total) {
+            int q_pos = idx % seq_len;
+            int head = (idx / seq_len) % num_heads;
+            int b = idx / (seq_len * num_heads);
+
+            // Compute attention scores
+            T scale = rsqrt((T)head_dim);
+
+            for (int k_pos = 0; k_pos < seq_len; k_pos++) {
+                if (causal && k_pos > q_pos) break;
+
+                T score = 0;
+                int q_offset = ((b * num_heads + head) * seq_len + q_pos) * head_dim;
+                int k_offset = ((b * num_heads + head) * seq_len + k_pos) * head_dim;
+
+                for (int d = 0; d < head_dim; d++) {
+                    score += query[q_offset + d] * key[k_offset + d];
+                }
+                score *= scale;
+
+                if (mask != NULL) {
+                    score += mask[b * seq_len * seq_len + q_pos * seq_len + k_pos];
+                }
+
+                // Softmax and weighted sum handled in separate pass
+            }
+        }
+    }
+
+
+// ============ lstm_cuda ============
+// Backend: cuda
+// Description: LSTM cell kernel
+// From: kernel2.net:287, moe2.act:188
+
+    template<typename T>
+    __global__ void lstm_kernel(
+        T* input, T* hidden, T* cell, T* output, T* weights,
+        int batch, int seq_len, int hidden_dim
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = batch * hidden_dim;
+
+        if (idx < total) {
+            int b = idx / hidden_dim;
+            int h = idx % hidden_dim;
+
+            // LSTM gates: input, forget, cell, output
+            // This is a simplified version - full implementation would be more complex
+            T i_gate = 0, f_gate = 0, c_gate = 0, o_gate = 0;
+
+            // Compute gates (simplified)
+            for (int t = 0; t < seq_len; t++) {
+                // Gate computations would go here
+            }
+
+            // Update cell and hidden state
+            cell[b * hidden_dim + h] = f_gate * cell[b * hidden_dim + h] + i_gate * c_gate;
+            hidden[b * hidden_dim + h] = o_gate * tanh(cell[b * hidden_dim + h]);
+            output[b * seq_len * hidden_dim + h] = hidden[b * hidden_dim + h];
+        }
+    }
+
+
+// ============ gat_cuda ============
+// Backend: cuda
+// Description: Graph Attention Network kernel
+// From: kernel2.net:339, moe2.act:188
+
+    template<typename T>
+    __global__ void gat_kernel(
+        T* node_features, T* edge_features, T* adjacency, T* output, T* weights,
+        int num_nodes, int num_edges, int feature_dim
+    ) {
+        int node_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (node_id < num_nodes) {
+            // Aggregate features from neighbors with attention
+            for (int f = 0; f < feature_dim; f++) {
+                T aggregated = 0;
+                T attention_sum = 0;
+
+                // Iterate through neighbors (simplified - assumes dense adjacency)
+                for (int neighbor = 0; neighbor < num_nodes; neighbor++) {
+                    T edge_weight = adjacency[node_id * num_nodes + neighbor];
+                    if (edge_weight > 0) {
+                        // Compute attention score
+                        T attention = exp(edge_weight); // Simplified
+                        attention_sum += attention;
+                        aggregated += attention * node_features[neighbor * feature_dim + f];
+                    }
+                }
+
+                // Normalize and write output
+                if (attention_sum > 0) {
+                    output[node_id * feature_dim + f] = aggregated / attention_sum;
+                }
+            }
+        }
+    }
+
+
+// ============ ode_solver_cuda ============
+// Backend: cuda
+// Description: ODE solver kernel (Dormand-Prince RK45)
+// From: kernel2.net:395, moe2.act:188
+
+    template<typename T>
+    __global__ void ode_solver_kernel(
+        T* state_in, T* state_out, T* time_points, T* dynamics_weights,
+        float t_start, float t_end, int state_dim, int num_steps, bool adjoint
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (idx < state_dim) {
+            T state = state_in[idx];
+            float dt = (t_end - t_start) / num_steps;
+
+            // Simplified Euler integration (full DOPRI5 would be more complex)
+            for (int step = 0; step < num_steps; step++) {
+                float t = t_start + step * dt;
+
+                // Compute derivative f(state, t)
+                T derivative = 0;
+                for (int j = 0; j < state_dim; j++) {
+                    derivative += dynamics_weights[idx * state_dim + j] * state_in[j];
+                }
+
+                // Euler step: state += dt * f(state, t)
+                state += dt * derivative;
+            }
+
+            state_out[idx] = state;
+        }
+    }
+
+
+// ============ weighted_sum_cuda ============
+// Backend: cuda
+// Description: Weighted sum for expert combination
+// From: kernel2.net:448, moe2.act:188
+
+    template<typename T>
+    __global__ void weighted_sum_kernel(
+        T* expert_outputs, T* gate_weights, T* output,
+        int batch, int seq_len, int hidden_dim, int num_experts
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = batch * seq_len * hidden_dim;
+
+        if (idx < total) {
+            int token_id = idx / hidden_dim;
+            int feat_id = idx % hidden_dim;
+
+            T weighted_sum = 0;
+            for (int expert = 0; expert < num_experts; expert++) {
+                T weight = gate_weights[token_id * num_experts + expert];
+                T expert_out = expert_outputs[expert * batch * seq_len * hidden_dim + idx];
+                weighted_sum += weight * expert_out;
+            }
+
+            output[idx] = weighted_sum;
+        }
+    }
+
+
+// ============ avgpool_cuda ============
+// Backend: cuda
+// Description: Global average pooling kernel
+// From: kernel2.net:495, moe2.act:188
+
+    template<typename T>
+    __global__ void avgpool_kernel(T* input, T* output, int N, int C, int H, int W) {
+        int n = blockIdx.x;
+        int c = threadIdx.x;
+
+        if (n < N && c < C) {
+            T sum = 0;
+            for (int h = 0; h < H; h++) {
+                for (int w = 0; w < W; w++) {
+                    sum += input[((n * C + c) * H + h) * W + w];
+                }
+            }
+            output[n * C + c] = sum / (H * W);
+        }
+    }
+
+
+// ============ fused_conv_bn_relu_cuda ============
+// Backend: cuda
+// Description: Fused convolution + batch norm + ReLU kernel
+// From: kernel2.net:524, moe2.act:188
+
+    template<typename T>
+    __global__ void fused_conv_bn_relu_kernel(
+        T* input, T* output, T* weights, T* mean, T* variance,
+        T* gamma, T* beta, int N, int C_in, int C_out, int H, int W,
+        int KH, int KW, int stride, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int H_out = (H - KH) / stride + 1;
+        int W_out = (W - KW) / stride + 1;
+        int total = N * C_out * H_out * W_out;
+
+        if (idx < total) {
+            int w_out = idx % W_out;
+            int h_out = (idx / W_out) % H_out;
+            int c_out = (idx / (W_out * H_out)) % C_out;
+            int n = idx / (W_out * H_out * C_out);
+
+            // Convolution
+            T sum = 0;
+            for (int c_in = 0; c_in < C_in; c_in++) {
+                for (int kh = 0; kh < KH; kh++) {
+                    for (int kw = 0; kw < KW; kw++) {
+                        int h_in = h_out * stride + kh;
+                        int w_in = w_out * stride + kw;
+                        sum += input[((n * C_in + c_in) * H + h_in) * W + w_in] *
+                               weights[((c_out * C_in + c_in) * KH + kh) * KW + kw];
+                    }
+                }
+            }
+
+            // Batch norm
+            T normalized = (sum - mean[c_out]) / sqrt(variance[c_out] + eps);
+            T bn_output = gamma[c_out] * normalized + beta[c_out];
+
+            // ReLU
+            output[idx] = bn_output > 0 ? bn_output : 0;
+        }
+    }
+
+
+// ============ threshold_eval_cuda ============
+// Backend: cuda
+// Description: Evaluate threshold kernel
+// From: kernel2.net:572, moe2.act:188
+
+    __device__ bool evaluate_threshold(float* tensor, float threshold) {
+        // Simple threshold evaluation - can be made more sophisticated
+        return tensor[0] > threshold;
+    }
+
+
+// ============ expert_routing_cuda ============
+// Backend: cuda
+// Description: Expert routing kernel
+// From: kernel2.net:586, moe2.act:188
+
+    __global__ void expert_routing_kernel(float* gate_logits, int num_experts, int top_k) {
+        int token_id = blockIdx.x * blockDim.x + threadIdx.x;
+        // Top-K selection logic here
+        // ... implementation ...
+    }
+
+
+// =========================================================================
+// 6. Operation Implementations
+// =========================================================================
+
+void op_input_embed_token_embed_forward(void* stream) {
+    // Operation: token_embed
+    // Kernel: matmul_cuda
+    // Layer: input_embed
+    // From: moe.net:85, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        input_tokens, token_embeddings, embed_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_input_embed_pos_embed_add_forward(void* stream) {
+    // Operation: pos_embed_add
+    // Kernel: add_cuda
+    // Layer: input_embed
+    // From: moe.net:113, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int size = input1_shape[0] * input1_shape[1] * input1_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((size + 255) / 256);
+
+    // 3. Kernel Launch
+    add_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        token_embeddings, pos_embeddings, embedded_input
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_mha_layer_qkv_projection_forward(void* stream) {
+    // Operation: qkv_projection
+    // Kernel: matmul_cuda
+    // Layer: mha_layer
+    // From: moe.net:171, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        embedded_input, qkv_projected, qkv_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_mha_layer_self_attention_forward(void* stream) {
+    // Operation: self_attention
+    // Kernel: attention_cuda
+    // Layer: mha_layer
+    // From: moe.net:199, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int batch = query_shape[0]; int num_heads = query_shape[1]; int seq_len = query_shape[2]; int head_dim = query_shape[3];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((batch * num_heads * seq_len + 255) / 256);
+
+    // 3. Kernel Launch
+    attention_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        query_tensor, key_tensor, value_tensor, attention_mask, qkv_projected, attention_output
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_mha_layer_output_projection_forward(void* stream) {
+    // Operation: output_projection
+    // Kernel: matmul_cuda
+    // Layer: mha_layer
+    // From: moe.net:265, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        attention_output, mha_output, output_proj_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_mha_layer_residual_add_1_forward(void* stream) {
+    // Operation: residual_add_1
+    // Kernel: add_cuda
+    // Layer: mha_layer
+    // From: moe.net:293, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int size = input1_shape[0] * input1_shape[1] * input1_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((size + 255) / 256);
+
+    // 3. Kernel Launch
+    add_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        mha_output, embedded_input, mha_residual
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_mha_layer_layer_norm_1_forward(void* stream) {
+    // Operation: layer_norm_1
+    // Kernel: layernorm_cuda
+    // Layer: mha_layer
+    // From: moe.net:322, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int batch = input_shape[0]; int seq_len = input_shape[1]; int hidden_dim = input_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((batch * seq_len + 255) / 256);
+
+    // 3. Kernel Launch
+    layernorm_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        mha_residual, ln1_output, ln1_gamma, ln1_beta
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_ffn_layer_ffn_up_proj_forward(void* stream) {
+    // Operation: ffn_up_proj
+    // Kernel: matmul_cuda
+    // Layer: ffn_layer
+    // From: moe.net:367, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ffn_input, ffn_hidden, ffn_up_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_ffn_layer_ffn_activation_forward(void* stream) {
+    // Operation: ffn_activation
+    // Kernel: gelu_cuda
+    // Layer: ffn_layer
+    // From: moe.net:395, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int size = input_shape[0] * input_shape[1] * input_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((size + 255) / 256);
+
+    // 3. Kernel Launch
+    gelu_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ffn_hidden, ffn_activated
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_ffn_layer_ffn_down_proj_forward(void* stream) {
+    // Operation: ffn_down_proj
+    // Kernel: matmul_cuda
+    // Layer: ffn_layer
+    // From: moe.net:416, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ffn_activated, ffn_output, ffn_down_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_moe_layer_weighted_combine_forward(void* stream) {
+    // Operation: weighted_combine
+    // Kernel: weighted_sum_cuda
+    // Layer: moe_layer
+    // From: moe.net:520, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int batch = expert_outputs_shape[0]; int seq_len = expert_outputs_shape[1]; int hidden_dim = expert_outputs_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((batch * seq_len * hidden_dim + 255) / 256);
+
+    // 3. Kernel Launch
+    weighted_sum_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        expert_output, gate_logits, moe_output
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_moe_layer_residual_add_2_forward(void* stream) {
+    // Operation: residual_add_2
+    // Kernel: add_cuda
+    // Layer: moe_layer
+    // From: moe.net:595, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int size = input1_shape[0] * input1_shape[1] * input1_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((size + 255) / 256);
+
+    // 3. Kernel Launch
+    add_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        moe_output, ln1_output, moe_residual
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_moe_layer_layer_norm_2_forward(void* stream) {
+    // Operation: layer_norm_2
+    // Kernel: layernorm_cuda
+    // Layer: moe_layer
+    // From: moe.net:624, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int batch = input_shape[0]; int seq_len = input_shape[1]; int hidden_dim = input_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((batch * seq_len + 255) / 256);
+
+    // 3. Kernel Launch
+    layernorm_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        moe_residual, ln2_output, ln2_gamma, ln2_beta
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_moe_layer_gating_network_forward(void* stream) {
+    // Operation: gating_network
+    // Kernel: matmul_cuda
+    // Layer: moe_layer
+    // From: moe.net:659, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ln1_output, gate_logits, gate_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_expert_ffn_expert_up_proj_forward(void* stream) {
+    // Operation: expert_up_proj
+    // Kernel: matmul_cuda
+    // Layer: expert_ffn
+    // From: moe.net:710, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ln1_output, expert_hidden, expert_up_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_expert_ffn_expert_activation_forward(void* stream) {
+    // Operation: expert_activation
+    // Kernel: gelu_cuda
+    // Layer: expert_ffn
+    // From: moe.net:738, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int size = input_shape[0] * input_shape[1] * input_shape[2];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((size + 255) / 256);
+
+    // 3. Kernel Launch
+    gelu_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        expert_hidden, expert_activated
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_expert_ffn_expert_down_proj_forward(void* stream) {
+    // Operation: expert_down_proj
+    // Kernel: matmul_cuda
+    // Layer: expert_ffn
+    // From: moe.net:759, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        expert_activated, expert_output, expert_down_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_state_layer_lstm_cell_forward(void* stream) {
+    // Operation: lstm_cell
+    // Kernel: lstm_cuda
+    // Layer: state_layer
+    // From: moe.net:795, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int batch = input_shape[0]; int seq_len = input_shape[1]; int hidden_dim = hidden_state_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((batch * hidden_dim + 255) / 256);
+
+    // 3. Kernel Launch
+    lstm_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ln2_output, lstm_hidden, lstm_cell_state, lstm_output
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_gnn_layer_graph_attention_forward(void* stream) {
+    // Operation: graph_attention
+    // Kernel: gat_cuda
+    // Layer: gnn_layer
+    // From: moe.net:876, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int num_nodes = node_features_shape[0]; int feature_dim = node_features_shape[1]; int num_edges = adjacency_num_edges;
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((num_nodes + 255) / 256);
+
+    // 3. Kernel Launch
+    gat_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        input_graph_nodes, graph_adjacency, output_graph_nodes
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_ode_layer_ode_integrate_forward(void* stream) {
+    // Operation: ode_integrate
+    // Kernel: ode_solver_cuda
+    // Layer: ode_layer
+    // From: moe.net:971, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int state_dim = state_input_shape[1]; int num_steps = 10;
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((state_dim + 255) / 256);
+
+    // 3. Kernel Launch
+    ode_solver_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ode_state_input, ode_state_output, time_points
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_ode_dynamics_dynamics_forward_forward(void* stream) {
+    // Operation: dynamics_forward
+    // Kernel: matmul_cuda
+    // Layer: ode_dynamics
+    // From: moe.net:1049, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ode_state_input, ode_state_output, ode_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_output_layer_final_projection_forward(void* stream) {
+    // Operation: final_projection
+    // Kernel: matmul_cuda
+    // Layer: output_layer
+    // From: moe.net:1086, moe2.act:228
+
+    // 1. Get Operation Dimensions (from KernelOp)
+    int M = input_shape[0]; int N = weights_shape[1]; int K = input_shape[1];
+
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        ode_state_output, final_logits, output_weights
+    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void attention_op_self_attention_forward(void* stream) {
+    // Attention Operation: self_attention
+    // Type: multi_head
+    // Num Heads: 12
+    // Head Dim: 64
+    // Causal: true
+    // From: moe.net:208, moe2.act:263
+
+    // Query, Key, Value tensors
+    float* query = query_tensor;
+    float* key = key_tensor;
+    float* value = value_tensor;
+    float* output = attention_output;
+
+    // Launch multi-head attention kernel
+    int batch = 1;
+    int seq_len = 512; // TODO: Extract from tensor shape
+    int num_heads = 12;
+    int head_dim = 64;
+    
+    dim3 block(256);
+    dim3 grid((batch * num_heads * seq_len + 255) / 256);
+
+    attention_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        query, key, value, mask,         output,        batch, num_heads, seq_len, head_dim, true
+    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: attention_op_self_attention\\n");
+}
+
+void graph_op_graph_attention_forward(void* stream, void* cusparse_handle) {
+    // Graph Operation: graph_attention
+    // GNN Type: gat
+    // Aggregation: attention
+    // Num Layers: 2
+    // From: moe.net:883, moe2.act:317
+
+    float* node_feats = input_graph_nodes;
+    int num_nodes = 1000;
+    int feature_dim =  768;
+    float* adjacency = graph_adjacency;
+    int num_edges =  1000;
+    float* output = output_graph_nodes;
+
+    // Perform sparse matrix operations using cuSPARSE
+    printf("Executing graph operation: gat with attention aggregation\\n");
+
+    // Launch graph kernel
+    for (int layer = 0; layer < 2; layer++) {
+        dim3 block(256);
+        dim3 grid((num_nodes + 255) / 256);
+
+        gat_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+            node_feats,             adjacency, output,            num_nodes, num_edges, feature_dim, layer
+        );
+    }
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: graph_op_graph_attention\\n");
+}
+
+void stateful_op_lstm_cell_forward(void* stream, bool reset_state) {
+    // Stateful Operation: lstm_cell
+    // State Type: lstm
+    // Stateful: true
+    // From: moe.net:803, moe2.act:371
+
+    // State tensors
+    float* input = ln2_output;
+    static float* hidden_state = lstm_hidden;
+    int hidden_size =  768;
+    static float* cell_state = lstm_cell_state;
+    float* output = lstm_output;
+
+    if (reset_state) {
+        // Reset states to zero
+        cudaMemsetAsync(hidden_state, 0, sizeof(float) * hidden_size, (cudaStream_t)stream);
+        cudaMemsetAsync(cell_state, 0, sizeof(float) * hidden_size, (cudaStream_t)stream);
+        printf("State reset for lstm_cell\\n");
+    }
+
+    // Launch LSTM/GRU kernel
+    int batch = 1;
+    int seq_len = 512; // TODO: Extract from input tensor
+    int hidden_dim = hidden_size;
+    
+    dim3 block(256);
+    dim3 grid((batch * hidden_dim + 255) / 256);
+
+    lstm_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+               input, hidden_state, cell_state, output, 
+        batch, seq_len, hidden_dim
+    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: stateful_op_lstm_cell\\n");
+}
+
+void ode_op_ode_integrate_forward(void* stream, float t_start, float t_end) {
+    // ODE Operation: ode_integrate
+    // Integration Method: dopri5
+    // Adjoint: true
+    // From: moe.net:979, moe2.act:444
+
+    float* state_in = ode_state_input;
+    int state_dim =  768;
+    float* state_out = ode_state_output;
+    float* time_pts = time_points;
+
+    // Launch ODE solver kernel
+    int num_steps = 10; // TODO: Extract from ODE config
+    
+    dim3 block(256);
+    dim3 grid((state_dim + 255) / 256);
+
+    printf("Solving ODE from t=%.2f to t=%.2f using dopri5\\n", t_start, t_end);
+
+    ode_solver_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        state_in, state_out, time_pts, 
+        t_start, t_end, state_dim, num_steps, true
+    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: ode_op_ode_integrate\\n");
+}
+
+// =========================================================================
+// 7. Expert Router Implementation
+// =========================================================================
+
+// ============ Expert Router: moe_router ============
+// Num Experts: 8
+// Top-K: 2
+// Load Balance: token_choice
+// From: moe.net:528, moe2.act:493
+
+void router_moe_router_forward(void* stream) {
+    float* gate_tensor = gate_logits;
+    
+    // Compute top-k experts per token
+    int num_experts = 8;
+    int top_k = 2;
+    int batch = 1;
+    int seq_len = 512; // TODO: Extract from tensor
+    
+    dim3 block(256);
+    dim3 grid((batch * seq_len + 255) / 256);
+    
+    printf("Routing to top-%d of %d experts\\n", top_k, num_experts);
+    
+    expert_routing_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+        gate_tensor, num_experts, top_k
+    );
+    
+    // Execute selected experts (all experts for now)
+    // Execute expert layer: expert_ffn
+    op_expert_ffn_expert_up_proj_forward(stream);
+    op_expert_ffn_expert_activation_forward(stream);
+    op_expert_ffn_expert_down_proj_forward(stream);
+    
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Expert routing complete: moe_router\\n");
+}
+
+
+// =========================================================================
+// 8. Control Flow Implementation
+// =========================================================================
+
+// ============ Control Flow: adaptive_routing ============
+// Type: conditional
+// Description: Adaptive expert routing based on input
+// From: moe.net:1717, moe2.act:540
+
+void control_adaptive_routing_execute(void* stream) {
+    printf("Executing control flow: adaptive_routing (conditional)\\n");
+    
+    // Evaluate condition
+    // Condition: should_route
+    // Predicate: threshold
+    float* input_tensor = gate_logits;
+    float threshold_val = 0.5;
+    
+    // Evaluate predicate
+    bool condition_result = evaluate_threshold(input_tensor, threshold_val);
+    printf("Condition should_route: %s\\n", condition_result ? "true" : "false");
+    
+    // Execute branches based on condition
+    
+    printf("Control flow complete: adaptive_routing\\n");
+}
+
+
+// =========================================================================
+// 9. State Management
+// =========================================================================
+
+// =========================================================================
+// 10. Continuous Layer (Neural ODE)
+// =========================================================================
+
+// ============ Continuous Layer: ode_layer ============
+// Solver: dopri5
+// Time Range: [0, 1]
+// Time Steps: 10
+// Adaptive: true
+// Tolerance: 0.001
+// From: moe.net:959, moe2.act:639
+
+void continuous_layer_ode_layer_forward(void* stream) {
+    printf("Neural ODE: dopri5 solver, t=[0, 1]\\n");
+    
+    float t_start = 0;
+    float t_end = 1;
+    int time_steps = 10;
+    float dt = (t_end - t_start) / time_steps;
+    bool adaptive = true;
+    
+    if (adaptive) {
+        printf("Using adaptive stepping with tolerance 0.001\\n");
+    }
+
+    // Execute dynamics function iteratively
+    // Dynamics function: ode_dynamics
+    for (int step = 0; step < time_steps; step++) {
+        float t = t_start + step * dt;
+        op_ode_dynamics_dynamics_forward_forward(stream);
+        printf("ODE step %d, t=%.4f\\n", step, t);
+    }
+    
+    printf("Neural ODE complete: ode_layer\\n");
+}
+
+
+// =========================================================================
+// 11. Inference Configurations
+// =========================================================================
+
+// ============ Configuration: inference_adaptive ============
+// Target: gpu_a100
+// Batch: 1
+// Optimization: fused_ops, fp16_mixed, sparse_attention
+// Description: Adaptive inference with dynamic routing
+// From: moe.net:1621, moe2.act:683
+
+void inference_inference_adaptive(float* input, float* output, void* stream) {
+    printf("Starting inference: inference_adaptive\\n");
+    printf("Target: gpu_a100, Batch: 1\\n");
+    
+    // Initialize any stateful components
+    // Initialize stateful op: lstm_cell
+    stateful_op_lstm_cell_forward(stream, true);
+    
+    // Execute schedule
+    // Step 1: Token embedding
+    // Execute all ops in layer: input_embed
+    op_input_embed_token_embed_forward(stream);
+    op_input_embed_pos_embed_add_forward(stream);
+    op_input_embed_token_embed_forward(stream);
+    // Step 2: Add positional embeddings
+    // Execute all ops in layer: input_embed
+    op_input_embed_token_embed_forward(stream);
+    op_input_embed_pos_embed_add_forward(stream);
+    op_input_embed_pos_embed_add_forward(stream);
+    // Step 3: QKV projection
+    // Execute all ops in layer: mha_layer
+    op_mha_layer_qkv_projection_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    op_mha_layer_qkv_projection_forward(stream);
+    // Step 4: Multi-head self-attention
+    // Execute all ops in layer: mha_layer
+    op_mha_layer_qkv_projection_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    // Step 5: Attention output projection
+    // Execute all ops in layer: mha_layer
+    op_mha_layer_qkv_projection_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    // Step 6: Residual connection 1
+    // Execute all ops in layer: mha_layer
+    op_mha_layer_qkv_projection_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    // Step 7: Layer normalization 1
+    // Execute all ops in layer: mha_layer
+    op_mha_layer_qkv_projection_forward(stream);
+    op_mha_layer_self_attention_forward(stream);
+    op_mha_layer_output_projection_forward(stream);
+    op_mha_layer_residual_add_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    op_mha_layer_layer_norm_1_forward(stream);
+    // Step 8: MoE gating (conditional execution)
+    control_adaptive_routing_execute(stream);
+    // Step 9: Combine expert outputs
+    control_adaptive_routing_execute(stream);
+    // Step 10: Residual connection 2
+    // Execute all ops in layer: moe_layer
+    op_moe_layer_weighted_combine_forward(stream);
+    op_moe_layer_residual_add_2_forward(stream);
+    op_moe_layer_layer_norm_2_forward(stream);
+    op_moe_layer_gating_network_forward(stream);
+    op_moe_layer_residual_add_2_forward(stream);
+    
+    printf("Inference complete: inference_adaptive\\n");
+}
+
+// =========================================================================
+// 12. Main Inference Entry Point
+// =========================================================================
+
+int main() {
+    printf("Generated inference code for TransformerMoE\\n");
+    
+    // Initialize CUDA context
+    cudaSetDevice(0);
+    
+    // Create CUDA stream
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+    
+    // Initialize cuBLAS and cuSPARSE handles
+    cublasHandle_t cublas_handle;
+    cublasCreate(&cublas_handle);
+    cublasSetStream(cublas_handle, stream);
+    
+    cusparseHandle_t cusparse_handle;
+    cusparseCreate(&cusparse_handle);
+    cusparseSetStream(cusparse_handle, stream);
+    
+    printf("CUDA context initialized\\n");
+    
+    // Cleanup
+    cusparseDestroy(cusparse_handle);
+    cublasDestroy(cublas_handle);
+    cudaStreamDestroy(stream);
+    
+    return 0;
+}

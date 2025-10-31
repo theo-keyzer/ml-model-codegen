@@ -1,0 +1,246 @@
+// =========================================================================
+// CUDA CODE GENERATION ACTOR SCRIPT (V3 - Simplified)
+// =========================================================================
+
+Actor main
+All Model generate_model_files
+
+// =========================================================================
+// MODEL FILE GENERATION
+// =========================================================================
+
+Actor generate_model_files Model
+C // Generated CUDA inference code for ${model}
+C // WARNING: Auto-generated file, do not edit manually
+C
+C #include <cuda_runtime.h>
+C #include <cublas_v2.h>
+C #include <stdio.h>
+C
+C // =========================================================================
+C // 1. Tensor Declarations
+C // =========================================================================
+Its Tensor declare_tensor
+C
+C // =========================================================================
+C // 2. Kernel Forward Declarations
+C // =========================================================================
+All Kernel declare_kernel_forward
+C
+C // =========================================================================
+C // 3. Operation Forward Declarations
+C // =========================================================================
+All Op declare_op_forward
+C
+C // =========================================================================
+C // 4. Kernel Implementations
+C // =========================================================================
+All Kernel generate_kernel_implementation
+C
+C // =========================================================================
+C // 5. Operation Implementations
+C // =========================================================================
+All Op generate_op_implementation
+C
+C // =========================================================================
+C // 6. Inference Configurations
+C // =========================================================================
+Its Config generate_config_implementation
+C
+C // =========================================================================
+C // 7. Main Inference Entry Point
+C // =========================================================================
+C
+C int main() {
+C     printf("Generated inference code for ${model}\\n");
+C     return 0;
+C }
+
+// =========================================================================
+// TENSOR DECLARATIONS
+// =========================================================================
+
+Actor declare_tensor Tensor
+C extern float* ${tensor:l}; // ${shape} ${layout} ${dtype}
+
+// =========================================================================
+// KERNEL FORWARD DECLARATIONS
+// =========================================================================
+
+Actor declare_kernel_forward Kernel
+C // Kernel: ${kernel}
+C ${signature}
+
+// =========================================================================
+// OPERATION FORWARD DECLARATIONS
+// =========================================================================
+
+Actor declare_op_forward Op
+C void op_${parent.layer:l}_${op:l}_forward(void* stream);
+
+// =========================================================================
+// KERNEL IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_kernel_implementation Kernel
+C
+C // ============ ${kernel} ============
+C // Backend: ${backend}
+C // Description: ${desc}
+C
+C ${body}
+C
+
+// =========================================================================
+// OPERATION IMPLEMENTATIONS
+// =========================================================================
+
+-Actor declare_op_forward Op
+-C void op_${parent.layer:l}_${op:l}_forward(void* stream);
+
+Actor generate_op_implementation Op kernel_op ??
+C
+C void op_${parent.layer:l}_${op:l}_forward(void* stream) {
+C     // Operation: ${op}
+C     // Kernel: ${kernel}
+C     // Layer: ${parent.layer}
+C
+C     // Kernel launch configuration
+C     int block_size = 256;
+C     int num_elements = 1; // TODO: Calculate from tensor shapes
+C     dim3 block(block_size);
+C     dim3 grid((num_elements + block_size - 1) / block_size);
+C
+C     // Kernel launch
+C     ${kernel:l}_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+Its Arg generate_kernel_args
+C     );
+C
+C     cudaStreamSynchronize((cudaStream_t)stream);
+C     printf("Executed: ${parent.layer}.${op}\\n");
+C }
+Break
+
+Actor generate_op_implementation Op
+C
+C void op_${parent.layer:l}_${op:l}_forward(void* stream) {
+C     // Operation: ${op}
+C     // Kernel: ${kernel}
+C     // Layer: ${parent.layer}
+C
+C     // 1. Get Operation Dimensions (from KernelOp)
+Cs ${kernel_op.dimension_calc}
+C
+C     // 2. Setup Launch Configuration (from KernelOp)
+C     int block_size = ${kernel_op.block_size};
+C     dim3 block(block_size);
+C     dim3 grid(${kernel_op.grid_calc});
+C
+C     // 3. Kernel Launch
+C     ${kernel:l}_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+Its Arg generate_kernel_args
+C     );
+C     cudaStreamSynchronize((cudaStream_t)stream);
+C }
+Break
+
+Actor generate_kernel_args Arg
+Cs ${.1.,} ${tensor.tensor:l}
+
+// =========================================================================
+// CONFIGURATION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_config_implementation Config
+C
+C // ============ Configuration: ${config} ============
+C // Target: ${target}
+C // Batch: ${batch}
+C // Optimization: ${opt_flags}
+C // Description: ${desc}
+C
+C void inference_${config:l}(float* input, float* output, void* stream) {
+C     printf("Starting inference: ${config}\\n");
+C     
+Its Schedule generate_schedule_call
+C     
+C     printf("Inference complete: ${config}\\n");
+C }
+
+Actor generate_schedule_call Schedule
+C     // Step ${seq}: ${desc}
+C     op_${layer:l}_${op:l}_forward(stream);
+
+// =========================================================================
+// DOMAIN KNOWLEDGE GENERATION (Expert Knowledge Export)
+// =========================================================================
+
+Actor main_domain
+All Kernel generate_kernel_docs
+
+Actor generate_kernel_docs Kernel
+C
+C // =========================================================================
+C // KERNEL: ${kernel} (Backend: ${backend})
+C // =========================================================================
+C
+C ${desc}
+C
+C Signature:
+C ${signature}
+C
+C Parameters:
+Its KernelParam generate_param_docs
+C
+C Operations:
+Its KernelOp generate_kernelop_docs
+
+Actor generate_param_docs KernelParam
+C //   ${param}: ${type} = ${calculation}
+
+Actor generate_kernelop_docs KernelOp
+C //   ${op}: ${desc} (in_rank=${input_rank}, out_rank=${output_rank})
+C //     block_size=${block_size}, grid_calc=${grid_calc}
+C //     dim_calc: ${dimension_calc}
+
+// =========================================================================
+// VALIDATION AND SCHEMA CHECKING
+// =========================================================================
+
+Actor main_validate
+All Model validate_model
+
+Actor validate_model Model
+C
+C // Validating model: ${model}
+C
+Its Layer validate_layer
+Its Tensor validate_tensor
+Its Config validate_config
+
+C // Model validation complete
+
+Actor validate_layer Layer
+C // Layer: ${layer} (${type})
+C //   Operations:
+Its Op validate_op
+
+Actor validate_op Op
+C //   Operation: ${op}
+C //     Kernel: ${kernel} 
+C //     Arguments:
+Its Arg validate_arg
+
+Actor validate_arg Arg
+C //     - ${arg}: ${role} -> ${tensor.tensor} (${dtype})
+
+Actor validate_tensor Tensor
+C // Tensor: ${tensor} [${shape}] ${layout} ${dtype}
+
+Actor validate_config Config
+C // Config: ${config} (target: ${target}, batch: ${batch})
+C //   Schedule:
+Its Schedule validate_schedule
+
+Actor validate_schedule Schedule
+C //   Step ${seq}: ${layer}.${op}

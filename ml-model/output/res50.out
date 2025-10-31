@@ -1,0 +1,367 @@
+// Generated CUDA inference code for ResNet50
+// WARNING: Auto-generated file, do not edit manually
+
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
+#include <stdio.h>
+
+// =========================================================================
+// 1. Tensor Declarations
+// =========================================================================
+extern float* input_img; // 1, 224, 224, 3 nhwc fp32
+extern float* logits; // 1, 1000 nchw fp32
+extern float* conv1_output; // 1, 112, 112, 64 nhwc fp32
+extern float* bn_output; // 1, 112, 112, 64 nhwc fp32
+extern float* bn_output_fused; // 1, 112, 112, 64 nhwc fp32
+extern float* res1_output; // 1, 56, 56, 64 nhwc fp32
+extern float* res1_added; // 1, 56, 56, 64 nhwc fp32
+extern float* pool_output; // 1, 1, 1, 64 nhwc fp32
+extern float* weights_conv1; // 64, 3, 7, 7 oihw fp32
+extern float* weights_res1; // 64, 64, 3, 3 oihw fp32
+extern float* weights_classifier; // 1000, 64 oi fp32
+extern float* mean_conv1; // 64 c fp32
+extern float* var_conv1; // 64 c fp32
+extern float* gamma_conv1; // 64 c fp32
+extern float* beta_conv1; // 64 c fp32
+
+// =========================================================================
+// 2. Kernel Forward Declarations
+// =========================================================================
+// Kernel: matmul_cuda
+void matmul_kernel(T* A, T* B, T* C, int M, int N, int K);
+// Kernel: bn_cuda
+void batch_norm_kernel();
+// Kernel: add_cuda
+void add_kernel(T* input1, T* input2, T* output, int size);
+// Kernel: avgpool_cuda
+void avgpool_kernel(T* input, T* output, int N, int C, int H, int W);
+// Kernel: fused_conv_bn_relu_cuda
+void fused_conv_bn_relu_kernel();
+
+// =========================================================================
+// 3. Operation Forward Declarations
+// =========================================================================
+void op_conv1_im2col_conv_forward(void* stream);
+void op_conv1_batch_norm_forward(void* stream);
+void op_res_block1_matmul_forward(void* stream);
+void op_res_block1_add_forward(void* stream);
+void op_avgpool_pool_forward(void* stream);
+void op_classifier_matmul_forward(void* stream);
+void op_fused_conv1_conv_bn_relu_forward(void* stream);
+
+// =========================================================================
+// 4. Kernel Implementations
+// =========================================================================
+
+// ============ matmul_cuda ============
+// Backend: cuda
+// Description: Matrix multiplication kernel
+
+    template<typename T>
+    __global__ void matmul_kernel(T* A, T* B, T* C, int M, int N, int K) {
+        int row = blockIdx.y * blockDim.y + threadIdx.y;
+        int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (row < M && col < N) {
+            T sum = 0;
+            for (int i = 0; i < K; i++) {
+                sum += A[row * K + i] * B[i * N + col];
+            }
+            C[row * N + col] = sum;
+        }
+    }
+
+
+// ============ bn_cuda ============
+// Backend: cuda
+// Description: Batch normalization kernel
+
+    template<typename T>
+    __global__ void batch_norm_kernel(
+        T* input, T* output, T* mean, T* variance,
+        T* gamma, T* beta, int N, int C, int H, int W, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int total = N * C * H * W;
+
+        if (idx < total) {
+            int c = (idx / (H * W)) % C;
+            T normalized = (input[idx] - mean[c]) / sqrt(variance[c] + eps);
+            output[idx] = gamma[c] * normalized + beta[c];
+        }
+    }
+
+
+// ============ add_cuda ============
+// Backend: cuda
+// Description: Element-wise addition kernel
+
+    template<typename T>
+    __global__ void add_kernel(T* input1, T* input2, T* output, int size) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < size) {
+            output[idx] = input1[idx] + input2[idx];
+        }
+    }
+
+
+// ============ avgpool_cuda ============
+// Backend: cuda
+// Description: Global average pooling kernel
+
+    template<typename T>
+    __global__ void avgpool_kernel(T* input, T* output, int N, int C, int H, int W) {
+        int n = blockIdx.x;
+        int c = threadIdx.x;
+
+        if (n < N && c < C) {
+            T sum = 0;
+            for (int h = 0; h < H; h++) {
+                for (int w = 0; w < W; w++) {
+                    sum += input[((n * C + c) * H + h) * W + w];
+                }
+            }
+            output[n * C + c] = sum / (H * W);
+        }
+    }
+
+
+// ============ fused_conv_bn_relu_cuda ============
+// Backend: cuda
+// Description: Fused convolution + batch norm + ReLU kernel
+
+    template<typename T>
+    __global__ void fused_conv_bn_relu_kernel(
+        T* input, T* output, T* weights, T* mean, T* variance,
+        T* gamma, T* beta, int N, int C_in, int C_out, int H, int W,
+        int KH, int KW, int stride, float eps = 1e-5f
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int H_out = (H - KH) / stride + 1;
+        int W_out = (W - KW) / stride + 1;
+        int total = N * C_out * H_out * W_out;
+
+        if (idx < total) {
+            int w_out = idx % W_out;
+            int h_out = (idx / W_out) % H_out;
+            int c_out = (idx / (W_out * H_out)) % C_out;
+            int n = idx / (W_out * H_out * C_out);
+
+            // Convolution
+            T sum = 0;
+            for (int c_in = 0; c_in < C_in; c_in++) {
+                for (int kh = 0; kh < KH; kh++) {
+                    for (int kw = 0; kw < KW; kw++) {
+                        int h_in = h_out * stride + kh;
+                        int w_in = w_out * stride + kw;
+                        sum += input[((n * C_in + c_in) * H + h_in) * W + w_in] *
+                               weights[((c_out * C_in + c_in) * KH + kh) * KW + kw];
+                    }
+                }
+            }
+
+            // Batch norm
+            T normalized = (sum - mean[c_out]) / sqrt(variance[c_out] + eps);
+            T bn_output = gamma[c_out] * normalized + beta[c_out];
+
+            // ReLU
+            output[idx] = bn_output > 0 ? bn_output : 0;
+        }
+    }
+
+
+// =========================================================================
+// 5. Operation Implementations
+// =========================================================================
+
+void op_conv1_im2col_conv_forward(void* stream) {
+    // Operation: im2col_conv
+    // Kernel: matmul_cuda
+    // Layer: conv1
+
+    // 1. Get Operation Dimensions (from KernelOp)
+M = input_shape[0]; N = weights_shape[1]; K = input_shape[1];
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ input_img, conv1_output, weights_conv1    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_conv1_batch_norm_forward(void* stream) {
+    // Operation: batch_norm
+    // Kernel: bn_cuda
+    // Layer: conv1
+
+    // Kernel launch configuration
+    int block_size = 256;
+    int num_elements = 1; // TODO: Calculate from tensor shapes
+    dim3 block(block_size);
+    dim3 grid((num_elements + block_size - 1) / block_size);
+
+    // Kernel launch
+    bn_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ conv1_output, bn_output, mean_conv1, var_conv1, gamma_conv1, beta_conv1    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: conv1.batch_norm\\n");
+}
+
+void op_res_block1_matmul_forward(void* stream) {
+    // Operation: matmul
+    // Kernel: matmul_cuda
+    // Layer: res_block1
+
+    // Kernel launch configuration
+    int block_size = 256;
+    int num_elements = 1; // TODO: Calculate from tensor shapes
+    dim3 block(block_size);
+    dim3 grid((num_elements + block_size - 1) / block_size);
+
+    // Kernel launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ bn_output, res1_output, weights_res1    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: res_block1.matmul\\n");
+}
+
+void op_res_block1_add_forward(void* stream) {
+    // Operation: add
+    // Kernel: add_cuda
+    // Layer: res_block1
+
+    // Kernel launch configuration
+    int block_size = 256;
+    int num_elements = 1; // TODO: Calculate from tensor shapes
+    dim3 block(block_size);
+    dim3 grid((num_elements + block_size - 1) / block_size);
+
+    // Kernel launch
+    add_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ res1_output, bn_output, res1_added    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: res_block1.add\\n");
+}
+
+void op_avgpool_pool_forward(void* stream) {
+    // Operation: pool
+    // Kernel: avgpool_cuda
+    // Layer: avgpool
+
+    // Kernel launch configuration
+    int block_size = 256;
+    int num_elements = 1; // TODO: Calculate from tensor shapes
+    dim3 block(block_size);
+    dim3 grid((num_elements + block_size - 1) / block_size);
+
+    // Kernel launch
+    avgpool_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ res1_added, pool_output    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: avgpool.pool\\n");
+}
+
+void op_classifier_matmul_forward(void* stream) {
+    // Operation: matmul
+    // Kernel: matmul_cuda
+    // Layer: classifier
+
+    // 1. Get Operation Dimensions (from KernelOp)
+M = input_shape[0]; N = weights_shape[1]; K = input_shape[1];
+    // 2. Setup Launch Configuration (from KernelOp)
+    int block_size = 256;
+    dim3 block(block_size);
+    dim3 grid((M * N + block_size - 1) / block_size);
+
+    // 3. Kernel Launch
+    matmul_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ pool_output, logits, weights_classifier    );
+    cudaStreamSynchronize((cudaStream_t)stream);
+}
+
+void op_fused_conv1_conv_bn_relu_forward(void* stream) {
+    // Operation: conv_bn_relu
+    // Kernel: fused_conv_bn_relu_cuda
+    // Layer: fused_conv1
+
+    // Kernel launch configuration
+    int block_size = 256;
+    int num_elements = 1; // TODO: Calculate from tensor shapes
+    dim3 block(block_size);
+    dim3 grid((num_elements + block_size - 1) / block_size);
+
+    // Kernel launch
+    fused_conv_bn_relu_cuda_kernel<<<grid, block, 0, (cudaStream_t)stream>>>(
+ input_img, bn_output_fused, weights_conv1, mean_conv1, var_conv1, gamma_conv1, beta_conv1    );
+
+    cudaStreamSynchronize((cudaStream_t)stream);
+    printf("Executed: fused_conv1.conv_bn_relu\\n");
+}
+
+// =========================================================================
+// 6. Inference Configurations
+// =========================================================================
+
+// ============ Configuration: inference_a100 ============
+// Target: gpu_a100
+// Batch: 1
+// Optimization: fused_ops, fp16_mixed
+// Description: A100 optimized
+
+void inference_inference_a100(float* input, float* output, void* stream) {
+    printf("Starting inference: inference_a100\\n");
+    
+    // Step 1: Execute fused Conv/BN/ReLU
+    op_fused_conv1_conv_bn_relu_forward(stream);
+    // Step 2: Execute residual matmul
+    op_res_block1_matmul_forward(stream);
+    // Step 3: Execute residual addition
+    op_res_block1_add_forward(stream);
+    // Step 4: Execute global average pooling
+    op_avgpool_pool_forward(stream);
+    // Step 5: Execute classification
+    op_classifier_matmul_forward(stream);
+    
+    printf("Inference complete: inference_a100\\n");
+}
+
+// ============ Configuration: inference_mobile ============
+// Target: gpu_mobile
+// Batch: 1
+// Optimization: int8_quantize, memory_optimize
+// Description: Mobile optimized
+
+void inference_inference_mobile(float* input, float* output, void* stream) {
+    printf("Starting inference: inference_mobile\\n");
+    
+    // Step 1: Execute initial convolution
+    op_conv1_im2col_conv_forward(stream);
+    // Step 2: Execute batch normalization
+    op_conv1_batch_norm_forward(stream);
+    // Step 3: Execute residual matmul
+    op_res_block1_matmul_forward(stream);
+    // Step 4: Execute residual addition
+    op_res_block1_add_forward(stream);
+    // Step 5: Execute global average pooling
+    op_avgpool_pool_forward(stream);
+    // Step 6: Execute classification
+    op_classifier_matmul_forward(stream);
+    
+    printf("Inference complete: inference_mobile\\n");
+}
+
+// =========================================================================
+// 7. Main Inference Entry Point
+// =========================================================================
+
+int main() {
+    printf("Generated inference code for ResNet50\\n");
+    return 0;
+}
