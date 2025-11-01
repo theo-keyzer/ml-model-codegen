@@ -1,0 +1,446 @@
+
+### 🛠 Overview of `net7.unit`
+This schema:
+- ✅ **Preserves all from `net5.unit`** (assumed base)
+- ✅ **Extends `net6.unit`** with advanced research domains
+- ✅ **Adds brand-new components** for:
+  - 🧠 Spiking & Plasticity
+  - 💾 Memristive Arrays & Analog Ops
+  - 🧬 Evolution, Genotype-Phenotype
+  - 🔄 Meta-dynamic reconfiguration
+  - 🔬 Hybrid Simulation & Validation
+- ✅ Supports **actor-driven codegen** (like `moe2.act`) for custom backends (Loihi, memristor sims, evolution runners)
+
+---
+
+```unit
+// ================================================================
+// net7.unit — NEXT-GEN RESEARCH DSL: NEUROMORPHIC, MEMRISTIVE, EVOLUTIONARY
+// Extends net5.unit and net6.unit
+// ================================================================
+
+// ================================================================
+// DOMAIN KNOWLEDGE COMPONENTS (Expert-defined HOW)
+// ================================================================
+
+Comp Domain parent . Find
+----------------------------------------------------------------
+* Domain knowledge repository for ML/research operations
+----------------------------------------------------------------
+	Element name          key   . + Domain name (e.g., neuromorphic, continual)
+	Element desc          text  . * Description
+	Element version       word  . + Schema version (e.g., 2.0.0)
+
+Comp Hardware parent . Find
+----------------------------------------------------------------
+* Neuromorphic, analog, memristive, or research hardware target
+----------------------------------------------------------------
+	Element hardware      key   . + Identifier (e.g., loihi, crossbar_4x4, photonic)
+	Element backend       word  . + spiking, analog, optical, fpga
+	Element emulation     word  . * true/false for software emulation support
+	Element constraints   text  . * Hardware limits: e.g., max_neurons=1M, power=5W
+	Element energy_model  text  . * Energy equation, e.g., $E = \sum C V^2 f$
+	Element latency_model text  . * Latency: e.g., $t_{prop} = 5\mu s$
+	Element desc          text  . * Description
+
+Comp Kernel parent Domain FindIn
+----------------------------------------------------------------
+* Kernel implementation for research domains
+----------------------------------------------------------------
+	Element kernel        key   . + Unique name (e.g., stdp_learn_kernel)
+	Element hardware      ref   Hardware + Target hardware
+	Element desc          text  . * Description
+	Element signature     text  . + C/CUDA-like signature
+	Element body          text  . + Code template (C++, SPI, custom DSL for ASIC)
+	Element stochastic    word  . * true/false
+	Element dynamic_dims  word  . * true/false
+
+Comp Optimization parent Domain FindIn
+----------------------------------------------------------------
+* Target-specific optimization strategies
+----------------------------------------------------------------
+	Element target        ref   Hardware + Target hardware
+	Element type          word  . + quantization, pruning, energy_aware, sparsity
+	Element params        text  . * JSON-like: bits=4, sparsity=0.7, voltage_scale=0.8
+	Element desc          text  . * Description
+
+Comp Fusion parent Domain FindIn
+----------------------------------------------------------------
+* Operation fusion for efficiency
+----------------------------------------------------------------
+	Element fusion        key   . + Pattern name (e.g., conv+spike)
+	Element pattern       text  . + Ops to fuse (e.g., dense + threshold_fire)
+	Element fused_kernel  ref   Kernel * Fused kernel reference
+
+// ================================================================
+// USER ML SPECIFICATION COMPONENTS (User-defined WHAT)
+// ================================================================
+
+Comp Model parent . Find
+----------------------------------------------------------------
+* User-defined research model (SNN, continual, evolvable)
+----------------------------------------------------------------
+	Element model         key   . + Model name
+	Element type          word  . + static, spiking, continual, evolvable, meta_dynamic
+	Element hardware      ref   Hardware * Target deployment platform
+	Element desc          text  . * Model description
+
+Comp Block parent Model FindIn
+----------------------------------------------------------------
+* Reusable block with research semantics (spiking layer, plastic module)
+----------------------------------------------------------------
+	Element block         key   . + Block identifier
+	Element block_type    word  . + sequential, residual, spiking, evolvable
+	Element params        text  . * Config string: neuron_count=100, time_step=0.1ms
+	Element desc          text  . * Description
+
+Comp Tensor parent Model FindIn
+----------------------------------------------------------------
+* Enhanced tensor with event-based or analog semantics
+----------------------------------------------------------------
+	Element tensor        key   . + Tensor identifier
+	Element shape         word  . + Logical shape (e.g., batch,time,features)
+	Element dtype         word  . + Data type: fp32, event_based, binary_spike, analog_voltage
+	Element layout        word  . + Memory layout: sparse_event, dense, crossbar, 1d_flat
+	Element desc          text  . * Description
+
+Comp Layer parent Model FindIn
+----------------------------------------------------------------
+* Layer with neuromorphic or evolvable behavior
+----------------------------------------------------------------
+	Element layer         key   . + Layer identifier
+	Element type          word  . + spiking, memristive, evolvable, static, recurrent
+	Element desc          text  . * Description
+
+// ================================================================
+// RESEARCH OPERATIONS (NEW FOR NET7)
+// ================================================================
+
+// -----------------------------
+// 1. SPIKING NEURAL NETWORKS
+// -----------------------------
+
+Comp SpikingNeuron parent Layer FindIn
+----------------------------------------------------------------
+* Biologically plausible spiking neuron layer
+----------------------------------------------------------------
+	Element neuron        key   . + Neuron ID
+	Element model_type    word  . + lif, alif, izhikevich, hodgkin_huxley
+	Element time_step     word  . + Simulation step (e.g., 0.1ms)
+	Element threshold     word  . * Firing threshold (e.g., 1.0)
+	Element reset_val     word  . * Reset potential
+	Element refractory    word  . * Refractory period (ms)
+	Element leak          word  . * Leak rate (for LIF)
+	Element spike_encoding word . + rate, latency, population, temporal
+	Element synapse_model word . + exponential, alpha, stdp
+	Element dendritic_comp word . * Enable dendritic inputs
+	Element axon_delay    word  . + Axonal conduction delay (ms)
+	Element desc          text  . * Description
+
+Comp PlasticityRule parent SpikingNeuron FindIn
+----------------------------------------------------------------
+* STDP or Hebbian learning rule
+----------------------------------------------------------------
+	Element rule_name     key   . + stdp_exp, oja, hebbian
+	Element time_window   text  . + ±20ms
+	Element A_plus        word  . + Potentiation strength
+	Element A_minus       word  . + Depression strength
+	Element tau_plus      word  . + ms: decay time constant (potentiation)
+	Element tau_minus     word  . + ms: decay constant (depression)
+	Element weight_dependence word . + additive, multiplicative
+	Element spike_pairing word . + all_to_all, nearest_spike
+	Element homeostasis   word  . + target_rate=5Hz
+	Element desc          text  . * Description
+
+// -----------------------------
+// 2. MEMRISTIVE HARDWARE & COMPUTE
+// -----------------------------
+
+Comp MemristorArray parent Hardware FindIn
+----------------------------------------------------------------
+* Physical memristor crossbar array
+----------------------------------------------------------------
+	Element array         key   . + Array ID (e.g., W1_array)
+	Element cols          word  . + Input dimension (e.g., 128)
+	Element rows          word  . + Output dimension (e.g., 64)
+	Element precision     word  . + Analog precision (e.g., 4-bit)
+	Element endurance     word  . * Max write cycles (e.g., 1e9)
+	Element variability   text  . * Conductance noise model
+	Element nonlinearity  word  . * symmetric_write, saturation
+	Element update_mode   word  . + filamentary, incremental_write
+	Element read_noise    word  . + Noise level (µV, or SNR)
+	Element cell_type     word  . + OxRAM, CBRAM, PCM
+	Element layout        word  . + Crossbar, 1T1R
+	Element desc          text  . * Description
+
+Comp MemristiveOp parent Op FindIn
+----------------------------------------------------------------
+* Operation using memristor array for in-memory compute
+----------------------------------------------------------------
+	Element op_name       key   . + Operation name
+	Element crossbar      ref   MemristorArray + Target array
+	Element mode          word  . + inference, update, tune
+	Element input_tensor  ref   Tensor + Pre-synaptic vector
+	Element output_tensor ref   Tensor + Output (current/voltage)
+	Element weight_update word  . * true/false (e.g., RPU or STDP)
+	Element adc_dac       word  . * ADC/DAC settings (e.g., 8-bit)
+	Element non_ideal     word  . * Include drift, noise, saturation
+	Element temporal_steps word . * Pulses per step (for pulse-based)
+	Element desc          text  . * Description
+
+// -----------------------------
+// 3. EVOLUTION & MORPHOGENESIS
+// -----------------------------
+
+Comp Genotype parent Model FindIn
+----------------------------------------------------------------
+* Evolvable model blueprint (digital genome)
+----------------------------------------------------------------
+	Element genome_id     key   . + Genome ID
+	Element encoding      word  . + direct, indirect, cppn, grammar
+	Element mutation_rate word  . + e.g., 0.01
+	Element crossover     word  . + single_point, uniform
+	Element constraints   text  . * e.g., max_layers=10, fanout=4
+	Element developmental_function text . * e.g., L_system(expr), grow_neurons(cond)
+	Element fitness_metric word  . + accuracy, energy_eff, sparsity
+	Element desc          text  . * Description
+
+Comp Phenotype parent Model FindIn
+----------------------------------------------------------------
+* Realized model from genotype
+----------------------------------------------------------------
+	Element phenotype_id  key   . + ID
+	Element genome_ref    ref   Genotype + Source genome
+	Element realization_log text  . * Trace of structural decisions
+	Element age           word  . + Generation count
+	Element fitness_score number . + Evaluated score
+	Element validated     word  . + true/false (passed constraints)
+	Element desc          text  . * Description
+
+Comp EvolutionaryOp parent Op FindIn
+----------------------------------------------------------------
+* Operation subject to evolutionary modification
+----------------------------------------------------------------
+	Element evo_op        key   . + Operation name
+	Element mutable       word  . + true/false (can be pruned/grown)
+	Element plasticity    word  . + structural, functional, dynamic_routing
+	Element env_trigger   word  . * e.g., input_entropy > 0.9
+	Element energy_cost   text  . * e.g., $P = 1.5 \times 10^{-3}\,W$
+	Element redundancy    word  . + Replicas for fault tolerance
+	Element desc          text  . * Description
+
+Comp MorphogeneticLayer parent Layer FindIn
+----------------------------------------------------------------
+* Layer that grows or prunes over time
+----------------------------------------------------------------
+	Element layer_id      key   . + ID
+	Element growth_rule   text  . + "if activation_entropy > 0.8 then grow_neurons(5)"
+	Element pruning_rule  text  . + "if weight < 0.01 then remove"
+	Element self_heal     word  . + true/false
+	Element max_capacity  word  . + Max neuron count
+	Element emergence_log text  . * Record of structural changes
+	Element desc          text  . * Description
+
+// -----------------------------
+// 4. META-DYNAMIC RECONFIGURATION
+// -----------------------------
+
+Comp MetaDynamicOp parent Op FindIn
+----------------------------------------------------------------
+* Operation that reconfigures its type at runtime
+----------------------------------------------------------------
+	Element dyn_op        key   . + Operation ID
+	Element base_type     word  . + dense, conv, spiking_dense
+	Element morph_targets text  . + Allowed types: e.g., "dense → spiking_dense"
+	Element trigger       word  . + e.g., time_step=100, loss_increases
+	Element reconfig_time word  . + µs or ms to switch (e.g., 50µs for FPGA)
+	Element stateful_remap word . + true/false (retain hidden state)
+	Element desc          text  . * Description
+
+// -----------------------------
+// 5. HYBRID & NEURO-MEMRISTIVE KERNELS
+// -----------------------------
+
+Comp NeuromorphicKernel parent Kernel FindIn
+----------------------------------------------------------------
+* Kernel for neuromorphic-hardware co-design
+----------------------------------------------------------------
+	Element kernel        key   . + e.g., loihi_crossbar_snn
+	Element hardware      ref   Hardware + e.g., loihi_chip
+	Element compute_type  word  . + event_driven, analog_accumulate, pulse_freq
+	Element spike_protocol word . + aerc, ttfs, rate_coded
+	Element memristor     ref   MemristorArray * Optional array
+	Element weight_update_protocol word . + rpu, stdp_pulse_train
+	Element t_ref         word  . + Reference time step (e.g., 0.1ms)
+	Element energy_model  text  . * e.g., $E = \sum V_i I_i \Delta t$
+	Element latency_model text  . * Delay model
+	Element desc          text  . * Description
+
+// ================================================================
+// SIMULATION & VALIDATION (NEW)
+// ================================================================
+
+Comp HybridSimulation parent Model FindIn
+----------------------------------------------------------------
+* Multi-physics simulator (digital + analog + spiking)
+----------------------------------------------------------------
+	Element sim_id        key   . + ID
+	Element components    text  . + e.g., spiking_layers, memristor_arrays
+	Element time_scale    word  . + e.g., 0.1ms
+	Element solver        word  . + event_driven, ode, quasi_static
+	Element energy_tracker word . + true
+	Element fault_injection text . * "10% stuck-at-fault at step 5000"
+	Element desc          text  . * Description
+
+Comp SystemConstraint parent Validation FindIn
+----------------------------------------------------------------
+* Cross-domain constraint (spike rate, power, endurance)
+----------------------------------------------------------------
+	Element constraint    key   . + Constraint ID
+	Element target        ref   Comp + Affected component
+	Element condition     text  . + e.g., "spike_rate < 100Hz", "endurance > 1e6"
+	Element severity      word  . + warning, error, halt
+	Element temporal      word  . + static, per_step, cumulative
+	Element simulator_only word . + true if not enforced on hardware
+	Element desc          text  . * Description
+
+// ================================================================
+// ENUMERATION RULES (NEW)
+// ================================================================
+
+Comp SpikingRule parent . Find
+----------------------------------------------------------------
+* Spiking-related enumerations
+----------------------------------------------------------------
+	Element spike_enc     key   . + rate, latency, population, phase
+	Element neuron_model  key   . + lif, alif, izhikevich, hodgkin_huxley
+	Element learning      key   . + stdp, hebbian, oja, rstdp
+	Element desc          text  . * Description
+
+Comp MemristiveModeRule parent . Find
+----------------------------------------------------------------
+* Memristor operational modes
+----------------------------------------------------------------
+	Element mode          key   . + inference, update, restore, isolate
+	Element requires_adc_dac word . + true/false
+	Element power_model   text  . * e.g., $P = \frac{V^2}{R_{eff}} \times N$
+	Element desc          text  . * Description
+
+Comp EvolutionaryStrategyRule parent . Find
+----------------------------------------------------------------
+* Evolution strategies
+----------------------------------------------------------------
+	Element strategy      key   . + neuroevolution, cmaes, genetic_programming, developmental
+	Element encoding      text  . * Genome encoding required
+	Element parallel      word  . + true/false
+	Element desc          text  . * Description
+
+// ================================================================
+// EXTENSIBILITY
+// ================================================================
+
+Comp Extension parent Domain FindIn
+----------------------------------------------------------------
+* User-defined extension (e.g., quantum, photonic)
+----------------------------------------------------------------
+	Element ext_name      key   . + Extension name
+	Element base          ref   Comp + Base to extend
+	Element new_fields    text  . * e.g., "gate_type=word, coherence_time=word"
+	Element desc          text  . * Description
+
+
+// ================================================================
+// EXAMPLE INSTANTIATION (Optional — for testing)
+// ================================================================
+
+Domain neuromorphic_memristive_evo
+  desc "Neuromorphic + memristive + evolutionary co-design"
+  version 2.0.0
+
+Hardware loihi_chip
+  backend spiking
+  emulation true
+  constraints "max_neurons=128k, power=1W"
+  desc "Intel Loihi 2 processor"
+
+Hardware crossbar_128x64
+  backend analog
+  emulation false
+  constraints "endurance=1e9, precision=4-bit"
+  desc "128x64 memristor crossbar array"
+  MemristorArray W1_array
+    cols 128
+    rows 64
+    precision "4-bit"
+    endurance 1000000000
+    cell_type OxRAM
+    layout Crossbar
+
+Model evolvable_snn_memristor
+  type evolvable
+  hardware loihi_chip
+  desc "Self-growing spiking net with in-memory weight learning"
+
+  Genotype brain_genome
+    encoding indirect
+    mutation_rate 0.01
+    developmental_function "L_system(grow_branch_if_entropy_high)"
+    fitness_metric "accuracy + 0.1 * sparsity - 0.05 * energy"
+
+  Phenotype functional_brain
+    genome_ref brain_genome
+    age 34
+    fitness_score 0.92
+
+  Layer input_spiking
+    SpikingNeuron neuron_input
+      model_type lif
+      threshold 1.0
+      refractory 2ms
+      time_step 0.1ms
+      spike_encoding rate
+
+  Layer mem_dense
+    type memristive
+    MemristiveOp mem_op1
+      op_name mem_convolve
+      crossbar W1_array
+      mode inference
+      input_tensor spikes_in
+      output_tensor current_out
+      weight_update true
+      non_ideal true
+
+  HybridSimulation hsim
+    components "spiking_layers, memristor_arrays"
+    time_scale 0.1ms
+    solver event_driven
+    energy_tracker true
+
+  SystemConstraint spike_cap
+    target neuron_input
+    condition "avg_spike_rate < 80Hz"
+    severity warning
+    temporal per_step
+
+  SystemConstraint mem_wear
+    target W1_array
+    condition "endurance_remaining > 5%"
+    severity error
+    temporal cumulative
+```
+
+---
+
+### ✅ Integration Notes
+
+- This **does not redefine `Op`, `Layer`, `Arg`, etc.** — they are assumed from `net5.unit`.
+- It **adds only new research-level components** to support neuromorphic, memristive, evolutionary, and self-organizing models.
+- Works with your **actor system** — e.g., you can now write:
+  ```actor
+  All MemristiveOp generate_memristive_kernel
+  All SpikingNeuron generate_spike_update_code
+  All Genotype evolve_next_generation
+  ```
+
+

@@ -1,0 +1,203 @@
+// ================================================================
+// DOMAIN KNOWLEDGE COMPONENTS (Expert-defined HOW)
+// ================================================================
+
+Comp Domain parent . Find
+----------------------------------------------------------------
+* Domain knowledge repository for ML/research operations
+----------------------------------------------------------------
+
+	Element name          key   . + Domain name (e.g., neuromorphic, continual)
+	Element desc          text  . * Description
+	Element version       word  . + Schema version (e.g., 1.0.0)
+
+Comp Hardware parent . Find
+----------------------------------------------------------------
+* Hardware targets with limited tooling (e.g., neuromorphic chips)
+----------------------------------------------------------------
+
+	Element hardware      key   . + Identifier (e.g., loihi, truenorth, photonic)
+	Element backend       word  . + Backend type (spiking, analog, optical)
+	Element emulation     word  . * true/false for built-in emulator support
+	Element constraints   text  . * Hardware limits (e.g., max_neurons=1M, power=5W)
+	Element desc          text  . * Description
+
+Comp Kernel parent Domain FindIn
+----------------------------------------------------------------
+* Kernel implementation for research/hardware
+----------------------------------------------------------------
+
+	Element kernel        key   . + Unique name
+	Element hardware      ref   Hardware + Target hardware
+	Element desc          text  . * Description
+	Element signature     text  . + Kernel signature
+	Element body          text  . + Implementation template (e.g., C++ for custom ASIC)
+	Element stochastic    word  . * true/false
+	Element dynamic_dims  word  . * true/false
+
+Comp Optimization parent Domain FindIn
+----------------------------------------------------------------
+* Hardware-specific optimizations
+----------------------------------------------------------------
+
+	Element target        ref   Hardware + Target hardware
+	Element type          word  . + quantization, pruning, energy_aware
+	Element params        text  . * Parameters (e.g., bits=4, sparsity=0.7)
+	Element desc          text  . * Description
+
+Comp Fusion parent Domain FindIn
+----------------------------------------------------------------
+* Operation fusion for efficiency
+----------------------------------------------------------------
+
+	Element fusion        key   . + Pattern name
+	Element pattern       text  . + Ops to fuse (e.g., conv+relu)
+	Element fused_kernel  ref   Kernel * Fused kernel reference
+
+// ================================================================
+// USER ML SPECIFICATION COMPONENTS (User-defined WHAT)
+// ================================================================
+
+Comp Model parent . Find
+----------------------------------------------------------------
+* User-defined research model
+----------------------------------------------------------------
+
+	Element model         key   . + Name
+	Element type          word  . + static, dynamic, spiking, continual
+	Element hardware      ref   Hardware * Target hardware
+	Element desc          text  . * Description
+
+Comp Block parent Model FindIn
+----------------------------------------------------------------
+* Reusable block (e.g., spiking layer)
+----------------------------------------------------------------
+
+	Element block         key   . + Identifier
+	Element block_type    word  . + sequential, residual, spiking
+	Element params        text  . * Parameters (e.g., neuron_count=100)
+	Element desc          text  . * Description
+
+Comp Tensor parent Model FindIn
+----------------------------------------------------------------
+* Tensors with research extensions (e.g., sparse for spiking)
+----------------------------------------------------------------
+
+	Element tensor        key   . + Identifier
+	Element shape         word  . + Shape (e.g., batch,time,features)
+	Element dtype         word  . + Data type (e.g., event_based for spiking)
+	Element layout        word  . + (e.g., sparse_event)
+	Element desc          text  . * Description
+
+Comp Layer parent Model FindIn
+----------------------------------------------------------------
+* Layer with research focus
+----------------------------------------------------------------
+
+	Element layer         key   . + Identifier
+	Element type          word  . + conv, recurrent, spiking
+	Element desc          text  . * Description
+
+// ================================================================
+// RESEARCH OPERATIONS (New for active research domains)
+// ================================================================
+
+Comp SpikingOp parent Op FindIn  // Op is assumed from Net5 base, or define if needed
+----------------------------------------------------------------
+* Spiking neural network operations
+----------------------------------------------------------------
+
+	Element spike_type    word  . + lif (leaky integrate-fire), izhikevich
+	Element threshold     word  . * Firing threshold
+	Element refractory    word  . * Refractory period
+	Element synapse       word  . * Synapse model (e.g., stdp for learning)
+	Element desc          text  . * Description
+
+Comp ContinualOp parent Op FindIn
+----------------------------------------------------------------
+* Continual/lifelong learning operations
+----------------------------------------------------------------
+
+	Element continual_type word  . + replay, ewc (elastic weight consolidation)
+	Element memory_size   word  . * Replay buffer size
+	Element regularization word . * Lambda for forgetting prevention
+	Element desc          text  . * Description
+
+Comp HyperdimOp parent Op FindIn
+----------------------------------------------------------------
+* Hyperdimensional computing operations
+----------------------------------------------------------------
+
+	Element hd_type       word  . + bind, bundle, permute
+	Element dim           word  . * Vector dimensionality (e.g., 10000)
+	Element encoding      word  . * Encoding scheme (e.g., random_projection)
+	Element desc          text  . * Description
+
+// ================================================================
+// SIMULATION AND VALIDATION
+// ================================================================
+
+Comp Simulation parent Model FindIn
+----------------------------------------------------------------
+* Simulation for hardware with limited tooling
+----------------------------------------------------------------
+
+	Element sim_type      word  . + symbolic, event_driven, energy_estimate
+	Element hardware      ref   Hardware + Emulated hardware
+	Element steps         word  . * Simulation steps
+	Element desc          text  . * Description
+
+Comp Validation parent . Find
+----------------------------------------------------------------
+* Validation rules for research specs
+----------------------------------------------------------------
+
+	Element rule          key   . + Name
+	Element target        ref   Model * Model/Layer to validate
+	Element condition     text  . + Validation logic (e.g., spike_rate < 100Hz)
+	Element desc          text  . * Description
+
+// ================================================================
+// EXTENSIBILITY
+// ================================================================
+
+Comp Extension parent Domain FindIn
+----------------------------------------------------------------
+* User-defined extensions for active research
+----------------------------------------------------------------
+
+	Element ext_name      key   . + Name
+	Element base          ref   Comp + Base component to extend
+	Element new_fields    text  . * New elements (e.g., quantum_gate=word)
+	Element desc          text  . * Description
+
+E_O_F
+
+Domain neuromorphic_research
+  desc "Spiking models for Loihi chip"
+
+Hardware loihi_chip
+  backend spiking
+  emulation true
+  constraints max_neurons=128k, power=1W
+  desc "Intel Loihi neuromorphic processor"
+
+Model spiking_vision_net
+  type spiking
+  hardware loihi_chip
+  desc "SNN for edge vision"
+
+Layer input_layer
+  type spiking
+  SpikingOp lif_input
+    spike_type lif
+    threshold 0.5
+
+Simulation loihi_sim
+  sim_type event_driven
+  hardware loihi_chip
+  steps 1000
+
+Validation spike_rate_check
+  target spiking_vision_net
+  condition average_spikes < 50Hz
