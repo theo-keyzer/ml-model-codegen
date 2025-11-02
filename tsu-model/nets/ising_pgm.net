@@ -1,0 +1,735 @@
+// =========================================================================
+// ML MODEL SPECIFICATION - ISING MODEL WITH TSU - tsu-model
+// =========================================================================
+
+Model {
+  model = IsingPGM
+  type = energy_based
+  framework = thrml_jax
+  pgm_schema = ising_2d_lattice
+  tsu_use = required
+  desc = "2D Ising model with THRML/JAX and TSU offload"
+}
+
+// =========================================================================
+// PGM SCHEMA DEFINITION
+// =========================================================================
+
+PGMSchema {
+  schema = ising_2d_lattice
+  variables = "s_0, s_1, ..., s_1023"
+  domains = "binary"
+  factors = "pairwise: J_ij * s_i * s_j + h_i * s_i"
+  graph_sparsity = sparse
+  factor_graph = true
+  energy_based = true
+  tsu_suitable = true
+  desc = "32x32 Ising lattice with nearest-neighbor coupling"
+}
+
+// =========================================================================
+// LAYERS AND THEIR OPERATIONS
+// =========================================================================
+
+Layer {
+  layer = spin_lattice_layer
+  type = sampling
+  desc = "Spin lattice with Block Gibbs sampling"
+}
+
+Op {
+  op = block_gibbs_update
+  parent = spin_lattice_layer
+  kernel = tsu_gibbs_kernel
+}
+
+Arg {
+  arg = spins
+  parent = block_gibbs_update
+  role = input
+  tensor = spin_state
+}
+
+Arg {
+  arg = variable
+  parent = block_gibbs_update
+  role = input
+  tensor = spin_state
+}
+
+Arg {
+  arg = coupling
+  parent = block_gibbs_update
+  role = param
+  tensor = J_matrix
+}
+
+Arg {
+  arg = field
+  parent = block_gibbs_update
+  role = param
+  tensor = h_vector
+}
+
+Arg {
+  arg = updated_spins
+  parent = block_gibbs_update
+  role = output
+  tensor = spin_state_out
+}
+
+SamplingOp {
+  sampling_op = gibbs_sweep
+  parent = block_gibbs_update
+  distribution = boltzmann
+  temperature = 1.0
+  algorithm = block_gibbs
+  tsu_hint = force_tsu
+  energy_fn = ising_energy
+  desc = "Block Gibbs sweep over lattice"
+}
+
+BlockGibbsOp {
+  block_op = lattice_block_32
+  parent = gibbs_sweep
+  factor_subset = "nearest_neighbor_pairs"
+  resampling = async
+  thrml_kernel = "apply_block_gibbs_ising"
+  jitted = true
+  energy_cost = "1.2 kT per flip"
+  desc = "Sample 32x32 block in parallel"
+}
+
+Layer {
+  layer = energy_computation
+  type = energy
+  desc = "Compute system energy"
+}
+
+Op {
+  op = energy_eval
+  parent = energy_computation
+  kernel = energy_cuda
+}
+
+Arg {
+  arg = spins
+  parent = energy_eval
+  role = input
+  tensor = spin_state
+}
+
+Arg {
+  arg = coupling
+  parent = energy_eval
+  role = param
+  tensor = J_matrix
+}
+
+Arg {
+  arg = field
+  parent = energy_eval
+  role = param
+  tensor = h_vector
+}
+
+Arg {
+  arg = energy
+  parent = energy_eval
+  role = output
+  tensor = system_energy
+}
+
+Layer {
+  layer = tsu_sampling_layer
+  type = sampling
+  desc = "Direct TSU sampling via hardware"
+}
+
+Op {
+  op = tsu_native_sample
+  parent = tsu_sampling_layer
+}
+
+Arg {
+  arg = energy_params
+  parent = tsu_native_sample
+  role = input
+  tensor = J_matrix
+}
+
+Arg {
+  arg = samples
+  parent = tsu_native_sample
+  role = output
+  tensor = tsu_samples
+}
+
+Arg {
+  arg = tsu
+  parent = tsu_native_sample
+  role = param
+  tensor = J_matrix
+}
+
+
+SamplingOp {
+  sampling_op = gibbs_direct
+  parent = tsu_native_sample
+  distribution = boltzmann
+  temperature = 1.0
+  algorithm = block_gibbs
+  tsu_hint = force_tsu
+  energy_fn = ising_energy
+  desc = "Not sure"
+}
+
+TSUSamplingOp {
+  tsu_op = tsu_direct_gibbs
+  parent = gibbs_direct
+  hardware = tsu_extropic_1
+  tsu_device = tsu0
+  sample_shape = "batch=1,spins=1024"
+  control_lines = "V_ctrl[0:63] = map_coupling(J_matrix)"
+  calibration = per_inference
+  desc = "Native TSU sampling bypassing CPU"
+}
+
+// =========================================================================
+// ENERGY FUNCTION
+// =========================================================================
+
+EnergyFunction {
+  energy_fn = ising_energy
+  expression = "E(s) = -sum_{<i,j>} J_ij * s_i * s_j - sum_i h_i * s_i"
+  variables = "s"
+  params = J_matrix, h_vector
+  source = symbolic
+  desc = "Standard Ising model energy"
+}
+
+EnergyFactor {
+  factor = pairwise_coupling
+  type = pairwise
+  variables = spin_state
+  potential = "phi(s_i, s_j) = J_ij * s_i * s_j"
+  learned = false
+  param_tensor = J_matrix
+  sparse = true
+  tsu_native = true
+  desc = "Nearest-neighbor spin coupling"
+}
+
+EnergyFactor {
+  factor = external_field
+  parent = IsingPGM
+  type = unary
+  variables = spin_state
+  potential = "phi(s_i) = h_i * s_i"
+  learned = false
+  param_tensor = h_vector
+  sparse = false
+  tsu_native = true
+  desc = "External magnetic field"
+}
+
+// =========================================================================
+// TENSORS
+// =========================================================================
+
+// State Tensors
+Tensor {
+  tensor = spin_state
+  parent = IsingPGM
+  shape = [1, 1024]
+  dtype = binary
+  layout = dense
+  role = latent
+  pgm_node = true
+  distribution = boltzmann
+  desc = "Spin configuration: +1 or -1"
+}
+
+Tensor {
+  tensor = spin_state_out
+  parent = IsingPGM
+  shape = [1, 1024]
+  dtype = binary
+  layout = dense
+  role = latent
+  pgm_node = true
+  desc = "Updated spin configuration"
+}
+
+Tensor {
+  tensor = tsu_samples
+  parent = IsingPGM
+  shape = [32, 1024]
+  dtype = binary
+  layout = dense
+  role = latent
+  desc = "Batch of 32 samples from TSU"
+}
+
+// Parameter Tensors
+Tensor {
+  tensor = J_matrix
+  parent = IsingPGM
+  shape = [1024, 1024]
+  dtype = fp32
+  layout = sparse_csr
+  role = factor_param
+  desc = "Coupling matrix (sparse: only nearest neighbors)"
+}
+
+Tensor {
+  tensor = h_vector
+  parent = IsingPGM
+  shape = [1024]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "External field vector"
+}
+
+// Output Tensors
+Tensor {
+  tensor = system_energy
+  parent = IsingPGM
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  desc = "Total system energy"
+}
+
+// =========================================================================
+// TSU HARDWARE DEFINITION
+// =========================================================================
+
+Hardware {
+  hardware = tsu_extropic_1
+  backend = tsu
+  emulation = false
+  constraints = "sample_rate=1e12/s, T=300K, max_vars=10000"
+  energy_model = "E_sample = kT * ln(2) * complexity"
+  latency_model = "t_sample = 10ns"
+  desc = "Extropic TSU chip for native sampling"
+}
+
+TSU {
+  tsu_id = tsu0
+  parent = tsu_extropic_1
+  process_node = 3nm
+  operating_T = 300
+  sample_rate = 1000000000000
+  entropy_budget = "dS/dt <= 1e-12 W/K"
+  precision = 8
+  connectivity = CXL-3
+  programmable_energy = true
+  physical_implementation = CMOS-stochastic
+  desc = "Single TSU core for Ising sampling"
+}
+
+// =========================================================================
+// TSU COMPILATION PLAN
+// =========================================================================
+
+TSUCompilation {
+  plan_id = ising_to_tsu0
+  source = IsingPGM
+  hardware = tsu_extropic_1
+  target = tsu0
+  mapping = "spin_state -> physical_spins[1024], J_matrix -> control_voltages[0:63]"
+  clocking = event_driven
+  control_bus = 64
+  calibration = "background_stochastic_calibration"
+  fidelity = "99.7%"
+  desc = "Map 2D Ising lattice to TSU substrate"
+}
+
+TSUSubstrateModel {
+  substrate = extropic_substrate
+  max_vars = 10000
+  max_factors = 50000
+  connectivity = sparse
+  interaction = Ising
+  kT_per_step = "1.2 kT"
+  min_energy_gap = "0.5 kT"
+  desc = "Physical capability model for TSU"
+}
+
+// =========================================================================
+// FRAMEWORK DEFINITION
+// =========================================================================
+
+Framework {
+  framework = thrml_jax
+  language = jax
+  paradigm = energy_based
+  runtime = gpu
+  desc = "THRML library on JAX with GPU acceleration"
+}
+
+THRML {
+  thrml_id = thrml_v0_3
+  parent = thrml_jax
+  version = "0.3.1"
+  features = "block_gibbs, sparse_factors, energy_potentials, tsu_offload"
+  hardware_accel = gpu
+  tsu_emulation = noisy
+  jit_compile = true
+  control_flow = scan
+  desc = "THRML v0.3 with TSU hardware support"
+}
+
+// =========================================================================
+// CONFIGURATIONS
+// =========================================================================
+
+Config {
+  config = inference_tsu
+  target = tsu_extropic_1
+  batch = 32
+  sample_budget = 1000000
+  desc = "TSU-native sampling configuration"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_tsu
+  layer = tsu_sampling_layer
+  op = tsu_native_sample
+  desc = "Direct TSU sampling (native hardware)"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_tsu
+  layer = energy_computation
+  op = energy_eval
+  desc = "Compute energy on GPU for validation"
+}
+
+Config {
+  config = inference_gpu_emulated
+  parent = IsingPGM
+  target = gpu_a100
+  batch = 32
+  sample_budget = 100000
+  desc = "GPU-emulated THRML sampling (no TSU)"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_gpu_emulated
+  layer = spin_lattice_layer
+  op = block_gibbs_update
+  desc = "Block Gibbs on GPU (THRML)"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_gpu_emulated
+  layer = energy_computation
+  op = energy_eval
+  desc = "Compute energy"
+}
+
+Config {
+  config = inference_cpu_sim
+  parent = IsingPGM
+  target = cpu_x86
+  batch = 4
+  sample_budget = 10000
+  desc = "CPU simulation (slow but accurate)"
+}
+
+// =========================================================================
+// SIMULATION & VALIDATION
+// =========================================================================
+
+ThermodynamicSimulation {
+  sim_id = tsu_thermo_sim
+  parent = IsingPGM
+  T = 300
+  kT = "4.11e-21"
+  entropy_traced = true
+  landauer_limit = "2.85e-21 J/bit"
+  desc = "Track thermodynamic cost of sampling"
+}
+
+Validation {
+  rule = spin_convergence
+  target = IsingPGM
+  condition = "autocorrelation < 0.01 after 100 sweeps"
+  desc = "Ensure MCMC convergence"
+}
+
+PhysicalConstraint {
+  constraint = tsu_power_cap
+  parent = spin_convergence
+  target = tsu0
+  condition = "power_dissipation < 3W"
+  severity = error
+  thermodynamic = true
+  desc = "TSU power constraint"
+}
+
+PhysicalConstraint {
+  constraint = landauer_bound
+  parent = spin_convergence
+  target = block_gibbs_update
+  condition = "energy_per_sample >= kT * ln(2)"
+  severity = warning
+  thermodynamic = true
+  desc = "Cannot violate Landauer limit"
+}
+
+// =========================================================================
+// DOMAIN KNOWLEDGE - TSU KERNELS
+// =========================================================================
+
+Domain {
+  name = tsu_kernels
+  version = "1.0.0"
+  desc = "TSU kernel implementations for probabilistic sampling"
+}
+
+Kernel {
+  kernel = tsu_gibbs_kernel
+  hardware = tsu_extropic_1
+  desc = "TSU-native Gibbs sampling kernel"
+  signature = "void tsu_gibbs(TSUDevice* dev, SpinState* s, CouplingMatrix* J);"
+  body = """
+    // TSU Configuration:
+    // 1. Program energy landscape via control voltages
+    // 2. Let system thermalize naturally
+    // 3. Read out equilibrium state
+    
+    void tsu_gibbs_sample(
+        TSUDevice* device,
+        float* J_matrix,      // Coupling matrix
+        float* h_vector,      // External field
+        int8_t* spin_output,  // Output spins
+        int num_spins,
+        int num_samples
+    ) {
+        // Map J_matrix to control voltages
+        for (int i = 0; i < num_spins; i++) {
+            for (int j = 0; j < num_spins; j++) {
+                device->set_coupling(i, j, J_matrix[i * num_spins + j]);
+            }
+            device->set_field(i, h_vector[i]);
+        }
+        
+        // Thermalize (physical process)
+        device->thermalize(/*time_ns=*/1000);
+        
+        // Read samples (native stochastic output)
+        for (int s = 0; s < num_samples; s++) {
+            device->read_state(&spin_output[s * num_spins], num_spins);
+            device->perturb();  // Small kick for next sample
+        }
+    }
+  """
+  thermodynamic = true
+  energy_fn = "E(s) = -sum J_ij s_i s_j - sum h_i s_i"
+}
+
+TSUKernel {
+  tsu_kernel = tsu_ising_native
+  parent = tsu_gibbs_kernel
+  tsu_target = tsu0
+  energy_fn = "E(s) = -sum_{<i,j>} J_ij * s_i * s_j"
+  sample_shape = "batch=32,spins=1024"
+  thermal_relax = "tau = 100ns"
+  control_voltage = "V = 0.8V nominal"
+  desc = "Native Ising model kernel on TSU substrate"
+}
+
+Kernel {
+  kernel = energy_cuda
+  hardware = gpu_a100
+  desc = "GPU kernel for energy computation (validation)"
+  signature = "void compute_energy(int8_t* spins, float* J, float* h, float* E_out);"
+  body = """
+    __global__ void ising_energy_kernel(
+        int8_t* spins,
+        float* J_matrix,
+        float* h_vector,
+        float* energy_out,
+        int num_spins
+    ) {
+        __shared__ float partial_sums[256];
+        int tid = threadIdx.x;
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        
+        float local_energy = 0.0f;
+        
+        // Pairwise terms
+        if (idx < num_spins) {
+            for (int j = 0; j < num_spins; j++) {
+                local_energy -= J_matrix[idx * num_spins + j] * 
+                               spins[idx] * spins[j];
+            }
+            // Field terms
+            local_energy -= h_vector[idx] * spins[idx];
+        }
+        
+        partial_sums[tid] = local_energy;
+        __syncthreads();
+        
+        // Reduce
+        for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+            if (tid < s) {
+                partial_sums[tid] += partial_sums[tid + s];
+            }
+            __syncthreads();
+        }
+        
+        if (tid == 0) {
+            atomicAdd(energy_out, partial_sums[0] / 2.0f);  // Divide by 2 for double-counting
+        }
+    }
+  """
+}
+
+// =========================================================================
+// OPTIMIZATION RULES
+// =========================================================================
+
+Optimization {
+  target = tsu_extropic_1
+  type = thermodynamic_fusion
+  params = "merge_spin_blocks=true, parallel_chains=32"
+  desc = "Fuse multiple Gibbs sweeps into single TSU operation"
+}
+
+Fusion {
+  fusion = gibbs_energy_fusion
+  pattern = "block_gibbs + energy_eval"
+  fused_kernel = tsu_gibbs_kernel
+  hardware = tsu_extropic_1
+  desc = "Compute energy during sampling on TSU"
+}
+
+// =========================================================================
+// ENUMERATION RULES
+// =========================================================================
+
+DistributionRule {
+  distribution = boltzmann
+  params = "energy_fn, temperature"
+  reparam = false
+  tsu_native = true
+  energy_based = true
+  desc = "Boltzmann distribution p(x) ∝ exp(-E(x)/kT)"
+}
+
+SamplingAlgorithmRule {
+  algorithm = block_gibbs
+  discrete = true
+  tsu_accel = true
+  jax_pattern = "lax.scan"
+  desc = "Block Gibbs sampling with TSU acceleration"
+}
+
+BackendRule {
+  backend = tsu
+  execution = thermodynamic
+  desc = "Thermodynamic Sampling Unit execution"
+}
+
+HardwareRule {
+  hardware = tsu_extropic_1
+  vendor = extropic
+  arch = thermodynamic_3nm
+  desc = "Extropic TSU chip"
+}
+
+Project {
+  project = IsingMultiTarget
+  domain = tsu_kernels
+  model = IsingPGM
+  desc = "Generate for TSU hardware + GPU simulation + validation"
+}
+
+// Target 1: Production TSU hardware
+TargetConfig {
+  target_id = tsu_production
+  parent = IsingMultiTarget
+  hardware = tsu_extropic_1
+  mode = production
+  config = inference_tsu
+  codegen = true
+  priority = primary
+  desc = "Production deployment on TSU chip"
+}
+
+// Target 2: GPU emulation (THRML/JAX)
+TargetConfig {
+  target_id = gpu_emulation
+  parent = IsingMultiTarget
+  hardware = gpu_a100
+  mode = emulation
+  config = inference_gpu_emulated
+  codegen = true
+  priority = validation
+  desc = "GPU-based TSU emulation for testing"
+}
+
+// Target 3: CPU simulation (slow, high-fidelity)
+TargetConfig {
+  target_id = cpu_simulation
+  parent = IsingMultiTarget
+  hardware = cpu_x86
+  mode = simulation
+  config = inference_cpu_sim
+  codegen = true
+  priority = fallback
+  desc = "CPU simulation for debugging"
+}
+
+// Build rule: Generate all targets
+BuildRule {
+  build_id = generate_all
+  parent = IsingMultiTarget
+  targets = "tsu_production,gpu_emulation,cpu_simulation"
+  output_dir = "./build/ising_multi"
+  template = multi_target
+  validate_against = gpu_emulation
+  desc = "Generate code for all targets, validate TSU against GPU"
+}
+
+// Build rule: TSU-only fast build
+BuildRule {
+  build_id = tsu_only
+  parent = IsingMultiTarget
+  targets = "tsu_production"
+  output_dir = "./build/ising_tsu"
+  template = tsu
+  desc = "Fast TSU-only build for iteration"
+}
+
+// ================================================================
+// HARDWARE DEFINITIONS FOR MULTI-TARGET
+// ================================================================
+
+
+Hardware {
+  hardware = gpu_a100
+  backend = gpu
+  emulation = false
+  desc = "GPU for TSU emulation via THRML"
+}
+
+Hardware {
+  hardware = cpu_x86
+  backend = cpu
+  emulation = false
+  desc = "CPU simulation baseline"
+}
+
+
+
+

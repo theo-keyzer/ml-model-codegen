@@ -1,0 +1,391 @@
+# Generated Python/JAX inference code for IsingPGM
+# WARNING: Auto-generated file, do not edit manually
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any
+
+# =========================================================================
+# 1. Tensor Declarations
+# =========================================================================
+# spin_state: 1, 1024 dense binary static
+# spin_state_out: 1, 1024 dense binary static
+# tsu_samples: 32, 1024 dense binary static
+# j_matrix: 1024, 1024 sparse_csr fp32 static
+# h_vector: 1024 dense fp32 static
+# system_energy: 1 dense fp32 static
+
+# =========================================================================
+# 2. Operation Forward Declarations
+# =========================================================================
+def op_spin_lattice_layer_block_gibbs_update(state: jnp.ndarray) -> jnp.ndarray:
+    pass
+def op_energy_computation_energy_eval(state: jnp.ndarray) -> jnp.ndarray:
+    pass
+def op_tsu_sampling_layer_tsu_native_sample(state: jnp.ndarray) -> jnp.ndarray:
+    pass
+def sampling_op_gibbs_sweep(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+    pass
+def sampling_op_gibbs_direct(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+    pass
+def energy_function_ising_energy(state: jnp.ndarray, params: Dict) -> float:
+    pass
+
+# =========================================================================
+# 3. Operation Implementations
+# =========================================================================
+
+def op_spin_lattice_layer_block_gibbs_update(state: jnp.ndarray) -> jnp.ndarray:
+    # Operation: block_gibbs_update
+    # Layer: spin_lattice_layer
+    # From: ising_pgm.net:40, tsu.act:95
+    
+    # Apply operation
+    "return state"
+    
+    return state
+
+def op_energy_computation_energy_eval(state: jnp.ndarray) -> jnp.ndarray:
+    # Operation: energy_eval
+    # Layer: energy_computation
+    # From: ising_pgm.net:109, tsu.act:95
+    
+    # Apply operation
+    "return state"
+    
+    return state
+
+def op_tsu_sampling_layer_tsu_native_sample(state: jnp.ndarray) -> jnp.ndarray:
+    # Operation: tsu_native_sample
+    # Layer: tsu_sampling_layer
+    # From: ising_pgm.net:149, tsu.act:95
+    
+    # Apply operation
+    "return state"
+    
+    return state
+
+def sampling_op_gibbs_sweep(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+    # Sampling Operation: gibbs_sweep
+    # Algorithm: block_gibbs
+    # From: ising_pgm.net:81, tsu.act:111
+    
+    batch_size = params.get('batch', 32)
+    sample_budget = params.get('sample_budget', 1000000)
+    temperature = params.get('temperature', 1.0)
+    
+    # Perform sampling
+    for i in range(sample_budget // batch_size):
+        key, subkey = jax.random.split(key)
+        # Simple Metropolis sampling as placeholder
+        indices = jax.random.randint(subkey, (batch_size,), 0, state.size)
+        flat_state = state.flatten()
+        updates = jax.random.choice(subkey, jnp.array([-1., 1.]), shape=(batch_size,))
+        flat_state = flat_state.at[indices].set(updates)
+        state = flat_state.reshape(state.shape)
+    
+    return state
+
+def sampling_op_gibbs_direct(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+    # Sampling Operation: gibbs_direct
+    # Algorithm: block_gibbs
+    # From: ising_pgm.net:176, tsu.act:111
+    
+    batch_size = params.get('batch', 32)
+    sample_budget = params.get('sample_budget', 1000000)
+    temperature = params.get('temperature', 1.0)
+    
+    # Perform sampling
+    for i in range(sample_budget // batch_size):
+        key, subkey = jax.random.split(key)
+        # Simple Metropolis sampling as placeholder
+        indices = jax.random.randint(subkey, (batch_size,), 0, state.size)
+        flat_state = state.flatten()
+        updates = jax.random.choice(subkey, jnp.array([-1., 1.]), shape=(batch_size,))
+        flat_state = flat_state.at[indices].set(updates)
+        state = flat_state.reshape(state.shape)
+    
+    return state
+
+def energy_function_ising_energy(state: jnp.ndarray, params: Dict) -> float:
+    # Energy Function: ising_energy
+    # Expression: E(s) = -sum_{<i,j>} J_ij * s_i * s_j - sum_i h_i * s_i
+    # From: ising_pgm.net:202, tsu.act:138
+    
+    # Compute Ising energy (nearest neighbor interactions)
+    # Horizontal interactions
+    horizontal_energy = jnp.sum(state[:, :-1] * state[:, 1:])
+    # Vertical interactions
+    vertical_energy = jnp.sum(state[:-1, :] * state[1:, :])
+    energy = -(horizontal_energy + vertical_energy)
+    
+    return float(energy)
+
+# =========================================================================
+# 4. Inference Configurations
+# =========================================================================
+
+# ============ Configuration: inference_tsu ============
+# Target: tsu_extropic_1
+# Batch: 32
+# Sample Budget: 1000000
+# Description: TSU-native sampling configuration
+# From: ising_pgm.net:389, tsu.act:160
+
+def inference_inference_tsu(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+    if params is None:
+        params = {}
+    
+    print(f"Starting inference: inference_tsu")
+    print(f"Target: tsu_extropic_1, Batch: 32")
+    
+    # Set default parameters
+    params.setdefault('batch', 32)
+    params.setdefault('sample_budget', 1000000)
+    params.setdefault('temperature', 1.0)
+    
+    # Execute schedule steps in order
+    # Step 1: Direct TSU sampling (native hardware)
+    # Execute all ops in layer: tsu_sampling_layer
+    state = op_tsu_sampling_layer_tsu_native_sample(state)
+    state = sampling_op_gibbs_direct(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer tsu_sampling_layer: {energy}")
+    print("Completed step 1: Direct TSU sampling (native hardware)")
+    # Step 2: Compute energy on GPU for validation
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy on GPU for validation")
+    # Step 1: Block Gibbs on GPU (THRML)
+    # Execute all ops in layer: spin_lattice_layer
+    state = op_spin_lattice_layer_block_gibbs_update(state)
+    state = sampling_op_gibbs_sweep(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer spin_lattice_layer: {energy}")
+    print("Completed step 1: Block Gibbs on GPU (THRML)")
+    # Step 2: Compute energy
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy")
+    
+    print("Inference complete: inference_tsu")
+    return state
+
+# ============ Configuration: inference_gpu_emulated ============
+# Target: gpu_a100
+# Batch: 32
+# Sample Budget: 100000
+# Description: GPU-emulated THRML sampling (no TSU)
+# From: ising_pgm.net:414, tsu.act:160
+
+def inference_inference_gpu_emulated(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+    if params is None:
+        params = {}
+    
+    print(f"Starting inference: inference_gpu_emulated")
+    print(f"Target: gpu_a100, Batch: 32")
+    
+    # Set default parameters
+    params.setdefault('batch', 32)
+    params.setdefault('sample_budget', 100000)
+    params.setdefault('temperature', 1.0)
+    
+    # Execute schedule steps in order
+    # Step 1: Direct TSU sampling (native hardware)
+    # Execute all ops in layer: tsu_sampling_layer
+    state = op_tsu_sampling_layer_tsu_native_sample(state)
+    state = sampling_op_gibbs_direct(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer tsu_sampling_layer: {energy}")
+    print("Completed step 1: Direct TSU sampling (native hardware)")
+    # Step 2: Compute energy on GPU for validation
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy on GPU for validation")
+    # Step 1: Block Gibbs on GPU (THRML)
+    # Execute all ops in layer: spin_lattice_layer
+    state = op_spin_lattice_layer_block_gibbs_update(state)
+    state = sampling_op_gibbs_sweep(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer spin_lattice_layer: {energy}")
+    print("Completed step 1: Block Gibbs on GPU (THRML)")
+    # Step 2: Compute energy
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy")
+    
+    print("Inference complete: inference_gpu_emulated")
+    return state
+
+# ============ Configuration: inference_tsu ============
+# Target: tsu_extropic_1
+# Batch: 32
+# Sample Budget: 1000000
+# Description: Native TSU execution
+# From: ising_pgm.net:729, tsu.act:160
+
+def inference_inference_tsu(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+    if params is None:
+        params = {}
+    
+    print(f"Starting inference: inference_tsu")
+    print(f"Target: tsu_extropic_1, Batch: 32")
+    
+    # Set default parameters
+    params.setdefault('batch', 32)
+    params.setdefault('sample_budget', 1000000)
+    params.setdefault('temperature', 1.0)
+    
+    # Execute schedule steps in order
+    # Step 1: Direct TSU sampling (native hardware)
+    # Execute all ops in layer: tsu_sampling_layer
+    state = op_tsu_sampling_layer_tsu_native_sample(state)
+    state = sampling_op_gibbs_direct(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer tsu_sampling_layer: {energy}")
+    print("Completed step 1: Direct TSU sampling (native hardware)")
+    # Step 2: Compute energy on GPU for validation
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy on GPU for validation")
+    # Step 1: Block Gibbs on GPU (THRML)
+    # Execute all ops in layer: spin_lattice_layer
+    state = op_spin_lattice_layer_block_gibbs_update(state)
+    state = sampling_op_gibbs_sweep(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer spin_lattice_layer: {energy}")
+    print("Completed step 1: Block Gibbs on GPU (THRML)")
+    # Step 2: Compute energy
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy")
+    
+    print("Inference complete: inference_tsu")
+    return state
+
+# ============ Configuration: inference_gpu_emulated ============
+# Target: gpu_a100
+# Batch: 32
+# Sample Budget: 100000
+# Description: GPU emulation with THRML
+# From: ising_pgm.net:738, tsu.act:160
+
+def inference_inference_gpu_emulated(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+    if params is None:
+        params = {}
+    
+    print(f"Starting inference: inference_gpu_emulated")
+    print(f"Target: gpu_a100, Batch: 32")
+    
+    # Set default parameters
+    params.setdefault('batch', 32)
+    params.setdefault('sample_budget', 100000)
+    params.setdefault('temperature', 1.0)
+    
+    # Execute schedule steps in order
+    # Step 1: Direct TSU sampling (native hardware)
+    # Execute all ops in layer: tsu_sampling_layer
+    state = op_tsu_sampling_layer_tsu_native_sample(state)
+    state = sampling_op_gibbs_direct(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer tsu_sampling_layer: {energy}")
+    print("Completed step 1: Direct TSU sampling (native hardware)")
+    # Step 2: Compute energy on GPU for validation
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy on GPU for validation")
+    # Step 1: Block Gibbs on GPU (THRML)
+    # Execute all ops in layer: spin_lattice_layer
+    state = op_spin_lattice_layer_block_gibbs_update(state)
+    state = sampling_op_gibbs_sweep(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer spin_lattice_layer: {energy}")
+    print("Completed step 1: Block Gibbs on GPU (THRML)")
+    # Step 2: Compute energy
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy")
+    
+    print("Inference complete: inference_gpu_emulated")
+    return state
+
+# ============ Configuration: inference_cpu_sim ============
+# Target: cpu_x86
+# Batch: 4
+# Sample Budget: 10000
+# Description: CPU simulation (slow but accurate)
+# From: ising_pgm.net:747, tsu.act:160
+
+def inference_inference_cpu_sim(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+    if params is None:
+        params = {}
+    
+    print(f"Starting inference: inference_cpu_sim")
+    print(f"Target: cpu_x86, Batch: 4")
+    
+    # Set default parameters
+    params.setdefault('batch', 4)
+    params.setdefault('sample_budget', 10000)
+    params.setdefault('temperature', 1.0)
+    
+    # Execute schedule steps in order
+    # Step 1: Direct TSU sampling (native hardware)
+    # Execute all ops in layer: tsu_sampling_layer
+    state = op_tsu_sampling_layer_tsu_native_sample(state)
+    state = sampling_op_gibbs_direct(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer tsu_sampling_layer: {energy}")
+    print("Completed step 1: Direct TSU sampling (native hardware)")
+    # Step 2: Compute energy on GPU for validation
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy on GPU for validation")
+    # Step 1: Block Gibbs on GPU (THRML)
+    # Execute all ops in layer: spin_lattice_layer
+    state = op_spin_lattice_layer_block_gibbs_update(state)
+    state = sampling_op_gibbs_sweep(state, key, params)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer spin_lattice_layer: {energy}")
+    print("Completed step 1: Block Gibbs on GPU (THRML)")
+    # Step 2: Compute energy
+    # Execute all ops in layer: energy_computation
+    state = op_energy_computation_energy_eval(state)
+    energy = energy_function_ising_energy(state, params)
+    print(f"Energy at layer energy_computation: {energy}")
+    print("Completed step 2: Compute energy")
+    
+    print("Inference complete: inference_cpu_sim")
+    return state
+
+# =========================================================================
+# 5. Main Inference Entry Point
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"Generated inference code for IsingPGM")
+    
+    # Initialize JAX
+    key = jax.random.PRNGKey(0)
+    
+    print("JAX initialized")
+    
+    print("Ready for inference")

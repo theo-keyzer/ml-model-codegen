@@ -1,0 +1,199 @@
+// =========================================================================
+// THRML/JAX PYTHON ACTOR SCRIPT FOR ISING MODEL
+// =========================================================================
+
+Actor main
+
+Map _:tensor
+
+All Model generate_model_files
+
+// =========================================================================
+// MODEL FILE GENERATION
+// =========================================================================
+
+Actor generate_model_files Model
+C # Generated Python/JAX inference code for ${model}
+C # WARNING: Auto-generated file, do not edit manually
+C
+C import jax
+C import jax.numpy as jnp
+C import numpy as np
+C from typing import Dict, Any
+C
+C # =========================================================================
+C # 1. Tensor Declarations
+C # =========================================================================
+All Tensor declare_tensor
+C
+C # =========================================================================
+C # 2. Operation Forward Declarations
+C # =========================================================================
+All Op declare_op_forward
+All SamplingOp declare_sampling_op_forward
+All EnergyFunction declare_energy_function_forward
+C
+C # =========================================================================
+C # 3. Operation Implementations
+C # =========================================================================
+All Op generate_op_implementation
+All SamplingOp generate_sampling_op_implementation
+All EnergyFunction generate_energy_function_implementation
+C
+C # =========================================================================
+C # 4. Inference Configurations
+C # =========================================================================
+All Config generate_config_implementation
+C
+C # =========================================================================
+C # 5. Main Inference Entry Point
+C # =========================================================================
+C
+C if __name__ == "__main__":
+C     print(f"Generated inference code for ${model}")
+C     
+C     # Initialize JAX
+C     key = jax.random.PRNGKey(0)
+C     
+C     print("JAX initialized")
+C     
+C     print("Ready for inference")
+
+// =========================================================================
+// TENSOR DECLARATIONS
+// =========================================================================
+
+Actor declare_tensor Tensor
+Add.break _.tensor:${tensor:l}
+C # ${tensor:l}: ${shape} ${layout} ${dtype} ${shape_type::static}
+
+// =========================================================================
+// OPERATION FORWARD DECLARATIONS
+// =========================================================================
+
+Actor declare_op_forward Op
+C def op_${parent.layer:l}_${op:l}(state: jnp.ndarray) -> jnp.ndarray:
+C     pass
+
+Actor declare_sampling_op_forward SamplingOp
+C def sampling_op_${sampling_op:l}(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+C     pass
+
+Actor declare_energy_function_forward EnergyFunction
+C def energy_function_${energy_fn:l}(state: jnp.ndarray, params: Dict) -> float:
+C     pass
+
+// =========================================================================
+// OPERATION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_op_implementation Op
+C
+C def op_${parent.layer:l}_${op:l}(state: jnp.ndarray) -> jnp.ndarray:
+C     # Operation: ${op}
+C     # Layer: ${parent.layer}
+C     # From: ${._lno}
+C     
+C     # Apply operation
+C     ${operation::"return state"}
+C     
+C     return state
+
+// =========================================================================
+// SAMPLING OPERATION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_sampling_op_implementation SamplingOp
+C
+C def sampling_op_${sampling_op:l}(state: jnp.ndarray, key: Any, params: Dict) -> jnp.ndarray:
+C     # Sampling Operation: ${sampling_op}
+C     # Algorithm: ${algorithm}
+C     # From: ${._lno}
+C     
+C     batch_size = params.get('batch', 32)
+C     sample_budget = params.get('sample_budget', ${sample_budget::1000000})
+C     temperature = params.get('temperature', ${temperature::1.0})
+C     
+C     # Perform sampling
+C     for i in range(sample_budget // batch_size):
+C         key, subkey = jax.random.split(key)
+C         # Simple Metropolis sampling as placeholder
+C         indices = jax.random.randint(subkey, (batch_size,), 0, state.size)
+C         flat_state = state.flatten()
+C         updates = jax.random.choice(subkey, jnp.array([-1., 1.]), shape=(batch_size,))
+C         flat_state = flat_state.at[indices].set(updates)
+C         state = flat_state.reshape(state.shape)
+C     
+C     return state
+
+// =========================================================================
+// ENERGY FUNCTION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_energy_function_implementation EnergyFunction
+C
+C def energy_function_${energy_fn:l}(state: jnp.ndarray, params: Dict) -> float:
+C     # Energy Function: ${energy_fn}
+C     # Expression: ${expression}
+C     # From: ${._lno}
+C     
+C     # Compute Ising energy (nearest neighbor interactions)
+C     # Horizontal interactions
+C     horizontal_energy = jnp.sum(state[:, :-1] * state[:, 1:])
+C     # Vertical interactions
+C     vertical_energy = jnp.sum(state[:-1, :] * state[1:, :])
+C     energy = -(horizontal_energy + vertical_energy)
+C     
+C     return float(energy)
+
+// =========================================================================
+// CONFIGURATION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_config_implementation Config
+C
+C # ============ Configuration: ${config} ============
+C # Target: ${target}
+C # Batch: ${batch}
+C # Sample Budget: ${sample_budget}
+C # Description: ${desc}
+C # From: ${._lno}
+C
+C def inference_${config:l}(state: jnp.ndarray, key: Any, params: Dict = None) -> jnp.ndarray:
+C     if params is None:
+C         params = {}
+C     
+C     print(f"Starting inference: ${config}")
+C     print(f"Target: ${target}, Batch: ${batch}")
+C     
+C     # Set default parameters
+C     params.setdefault('batch', ${batch::32})
+C     params.setdefault('sample_budget', ${sample_budget::1000000})
+C     params.setdefault('temperature', 1.0)
+C     
+C     # Execute schedule steps in order
+All Schedule execute_schedule_step_by_seq
+C     
+C     print("Inference complete: ${config}")
+C     return state
+
+Actor execute_schedule_step_by_seq Schedule
+C     # Step ${seq}: ${desc}
+Its layer execute_ops_in_layer
+C     print("Completed step ${seq}: ${desc}")
+
+Actor execute_ops_in_layer Layer
+C     # Execute all ops in layer: ${layer}
+Its Op execute_op_in_layer
+All EnergyFunction execute_energy_fn_in_layer
+
+Actor execute_op_in_layer Op
+C     state = op_${parent.layer:l}_${op:l}(state)
+Its SamplingOp execute_sampling_op_in_layer
+
+Actor execute_sampling_op_in_layer SamplingOp
+C     state = sampling_op_${sampling_op:l}(state, key, params)
+
+Actor execute_energy_fn_in_layer EnergyFunction
+C     energy = energy_function_${energy_fn:l}(state, params)
+C     print(f"Energy at layer ${.execute_ops_in_layer.layer}: {energy}")
