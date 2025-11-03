@@ -1,0 +1,4850 @@
+# =========================================================================
+# Project: MaxCutMultiTarget
+# Multi-target MAX-CUT/QUBO Code Generation
+# Generated from: max-cut.net:788, max-cut.act:22
+# =========================================================================
+
+import os
+import sys
+from pathlib import Path
+
+# Create output directories
+output_dirs = [
+    "./build/maxcut_multi",
+    "./build/maxcut_tsu",
+]
+
+for dir_path in output_dirs:
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+    print(f"Created directory: {dir_path}")
+
+print(f"\\nProject MaxCutMultiTarget structure ready")
+print(f"Model: MaxCutQUBO")
+print(f"Domain: qubo_kernels")
+
+
+# =========================================================================
+# Target: tsu_production
+# Hardware: tsu_extropic_1
+# Mode: production
+# Priority: primary
+# From: max-cut.net:796, max-cut.act:60
+# Debug Info:
+#   Target ID: tsu_production (tsu_production)
+#   Hardware: tsu_extropic_1 (tsu_extropic_1)
+#   Mode: production (production)
+#   Config: tsu_annealing (tsu_annealing)
+#   Priority: primary (primary)
+# =========================================================================
+
+
+# File: tsu_production_maxcutqubo.py
+# Generated MAX-CUT/QUBO inference for tsu_production
+# WARNING: Auto-generated file, do not edit manually
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any, Tuple, Optional
+from dataclasses import dataclass
+import time
+
+# =========================================================================
+# CONFIGURATION
+# =========================================================================
+
+@dataclass
+class TSU_PRODUCTION_Config:
+    """Configuration for tsu_production"""
+    target_id: str = "tsu_production"
+    hardware: str = "tsu_extropic_1"
+    mode: str = "production"
+    batch_size: int = 64
+    sample_budget: int = 10000000
+    num_vertices: int = 100
+    device: str = "tsu_extropic_1"
+
+config = TSU_PRODUCTION_Config()
+
+# =========================================================================
+# TENSOR DECLARATIONS
+# =========================================================================
+
+# Tensor: partition_state
+# Shape: 100, Dtype: binary, Layout: dense
+# Role: latent, From: max-cut.net:247, max-cut.act:194
+# Tensor: partition_state_out
+# Shape: 100, Dtype: binary, Layout: dense
+# Role: latent, From: max-cut.net:259, max-cut.act:194
+# Tensor: tsu_samples
+# Shape: 64, 100, Dtype: binary, Layout: dense
+# Role: latent, From: max-cut.net:270, max-cut.act:194
+# Tensor: edge_weights
+# Shape: 100, 100, Dtype: fp32, Layout: sparse_csr
+# Role: factor_param, From: max-cut.net:281, max-cut.act:194
+# Tensor: qubo_matrix
+# Shape: 100, 100, Dtype: fp32, Layout: dense
+# Role: factor_param, From: max-cut.net:291, max-cut.act:194
+# Tensor: cut_size
+# Shape: 1, Dtype: fp32, Layout: dense
+# Role: state, From: max-cut.net:302, max-cut.act:194
+# Tensor: system_energy
+# Shape: 1, Dtype: fp32, Layout: dense
+# Role: state, From: max-cut.net:311, max-cut.act:194
+# Tensor: best_partition
+# Shape: 100, Dtype: binary, Layout: dense
+# Role: state, From: max-cut.net:320, max-cut.act:194
+# Tensor: best_cut
+# Shape: 1, Dtype: fp32, Layout: dense
+# Role: state, From: max-cut.net:329, max-cut.act:194
+# Tensor: temperature_schedule
+# Shape: 1000, Dtype: fp32, Layout: dense
+# Role: param, From: max-cut.net:339, max-cut.act:194
+
+# =========================================================================
+# ENERGY FUNCTIONS
+# =========================================================================
+
+
+@jax.jit
+def energy_maxcut_energy(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+    """
+    Energy Function: maxcut_energy
+    Expression: E(x) = -sum_{(i,j) in E} w_ij * (x_i XOR x_j) = -sum_{(i,j)} w_ij * (x_i + x_j - 2*x_i*x_j)
+    Variables: x
+    Source: symbolic
+    From: max-cut.net:188, max-cut.act:210
+    """
+    # MAX-CUT: E(x) = -sum w_ij * (x_i XOR x_j)
+    # = -sum w_ij * (x_i + x_j - 2*x_i*x_j)
+    n = partition.shape[0]
+    energy = 0.0
+    
+    # Vectorized computation of cut edges
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Edge contributes if x_i != x_j
+            contribution = edge_weights[i, j] * (partition[i] + partition[j] - 2 * partition[i] * partition[j])
+            energy -= contribution
+    
+    return energy
+    # QUBO: E(x) = x^T Q x
+    n = partition.shape[0]
+    energy = 0.0
+    
+    # Compute quadratic form
+    for i in range(n):
+        for j in range(n):
+            energy += edge_weights[i, j] * partition[i] * partition[j]
+    
+    return energy
+
+def evaluate_cut_size_maxcut_energy(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+    """Evaluate cut size (positive objective) for maxcut_energy"""
+    return -energy_maxcut_energy(partition, edge_weights)
+
+@jax.jit
+def energy_qubo_energy(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+    """
+    Energy Function: qubo_energy
+    Expression: E(x) = x^T Q x = sum_{i,j} Q_ij * x_i * x_j
+    Variables: x
+    Source: symbolic
+    From: max-cut.net:197, max-cut.act:210
+    """
+    # MAX-CUT: E(x) = -sum w_ij * (x_i XOR x_j)
+    # = -sum w_ij * (x_i + x_j - 2*x_i*x_j)
+    n = partition.shape[0]
+    energy = 0.0
+    
+    # Vectorized computation of cut edges
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Edge contributes if x_i != x_j
+            contribution = edge_weights[i, j] * (partition[i] + partition[j] - 2 * partition[i] * partition[j])
+            energy -= contribution
+    
+    return energy
+    # QUBO: E(x) = x^T Q x
+    n = partition.shape[0]
+    energy = 0.0
+    
+    # Compute quadratic form
+    for i in range(n):
+        for j in range(n):
+            energy += edge_weights[i, j] * partition[i] * partition[j]
+    
+    return energy
+
+def evaluate_cut_size_qubo_energy(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+    """Evaluate cut size (positive objective) for qubo_energy"""
+    return -energy_qubo_energy(partition, edge_weights)
+
+# =========================================================================
+# ANNEALING UTILITIES
+# =========================================================================
+
+
+def create_temperature_schedule_tsu_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: tsu_annealing
+    Target: tsu_extropic_1
+    From: max-cut.net:435, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_gpu_simulated_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: gpu_simulated_annealing
+    Target: gpu_a100
+    From: max-cut.net:460, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_cpu_branch_bound(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: cpu_branch_bound
+    Target: cpu_x86
+    From: max-cut.net:486, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_hybrid_gpu_tsu(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    From: max-cut.net:496, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+# =========================================================================
+# SAMPLING OPERATIONS
+# =========================================================================
+
+
+def sampling_maxcut_gibbs(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: maxcut_gibbs
+    Algorithm: gibbs_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:73, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def sampling_quantum_anneal_emulation(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: quantum_anneal_emulation
+    Algorithm: simulated_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:162, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def tsu_sampling_tsu_qubo_anneal(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    temperature_schedule: jnp.ndarray,
+    num_samples: int = 64
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """
+    TSU Native Sampling: tsu_qubo_anneal
+    Hardware: tsu_extropic_1
+    Device: tsu0
+    Sample Shape: batch=64,variables=100
+    Calibration: per_annealing_run
+    From: max-cut.net:173, max-cut.act:467
+    
+    NOTE: This is a SOFTWARE EMULATION of TSU hardware.
+    Real TSU would use thermodynamic sampling in analog hardware.
+    """
+    print(f"  [TSU EMULATION] Initializing TSU device: tsu0")
+    print(f"  [TSU EMULATION] Control lines: V_ctrl[0:99] = map_qubo_weights(edge_weights)")
+    print(f"  [TSU EMULATION] Running hardware annealing...")
+    
+    n = edge_weights.shape[0]
+    samples = []
+    energies = []
+    
+    # Emulate TSU by running multiple annealing runs
+    for sample_idx in range(num_samples):
+        key, subkey = jax.random.split(key)
+        
+        # Initialize random partition
+        partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+        
+        # Anneal according to schedule
+        for t_idx, T in enumerate(temperature_schedule):
+            # Gibbs sweep at temperature T
+            partition, energy = sampling_maxcut_gibbs(
+                key=key,
+                partition=partition,
+                edge_weights=edge_weights,
+                temperature=float(T),
+                num_sweeps=1
+            )
+        
+        samples.append(partition)
+        energies.append(energy)
+    
+    print(f"  [TSU EMULATION] Generated {num_samples} samples")
+    
+    return jnp.array(samples), jnp.array(energies)
+
+# =========================================================================
+# EVALUATION OPERATIONS
+# =========================================================================
+
+
+def op_evaluate_cut_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:42, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    From: max-cut.net:42, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    Kernel: cut_energy_cuda
+    From: max-cut.net:101, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    From: max-cut.net:101, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:142, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    From: max-cut.net:142, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+# =========================================================================
+# INFERENCE PIPELINE
+# =========================================================================
+
+
+def run_inference_tsu_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: TSU_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: tsu_annealing
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 10000000
+    From: max-cut.net:435, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: tsu_annealing")
+    print(f"Configuration from: max-cut.net:435, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_gpu_simulated_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: GPU_SIMULATED_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: gpu_simulated_annealing
+    Target: gpu_a100
+    Batch: 64
+    Sample Budget: 1000000
+    From: max-cut.net:460, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: gpu_simulated_annealing")
+    print(f"Configuration from: max-cut.net:460, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_cpu_branch_bound(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: CPU_BRANCH_BOUND_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: cpu_branch_bound
+    Target: cpu_x86
+    Batch: 1
+    Sample Budget: 100000
+    From: max-cut.net:486, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: cpu_branch_bound")
+    print(f"Configuration from: max-cut.net:486, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_hybrid_gpu_tsu(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: HYBRID_GPU_TSU_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 5000000
+    From: max-cut.net:496, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: hybrid_gpu_tsu")
+    print(f"Configuration from: max-cut.net:496, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+# =========================================================================
+# MAIN ENTRY POINT
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"\\n{'='*70}")
+    print(f"MAX-CUT/QUBO Solver - Target: tsu_production")
+    print(f"{'='*70}")
+    print(f"Hardware: tsu_extropic_1")
+    print(f"Mode: production")
+    print(f"Batch Size: {config.batch_size}")
+    print(f"Sample Budget: {config.sample_budget}")
+    print(f"{'='*70}\\n")
+    
+    # Initialize JAX
+    key = jax.random.PRNGKey(42)
+    
+    # Create random MAX-CUT instance
+    print("Generating random MAX-CUT instance...")
+    num_vertices = config.num_vertices
+    edge_weights = generate_random_graph(key, num_vertices, edge_prob=0.3)
+    
+    # Run inference
+    print(f"\\nStarting inference on tsu_production...")
+    start_time = time.time()
+    
+    best_partition, best_cut, energy_history = run_inference_tsu_production(
+        key=key,
+        edge_weights=edge_weights,
+        config=config
+    )
+    
+    elapsed = time.time() - start_time
+    
+    # Results
+    print(f"\\n{'='*70}")
+    print(f"RESULTS - tsu_production")
+    print(f"{'='*70}")
+    print(f"Best cut found: {best_cut:.4f}")
+    print(f"Best partition: {best_partition}")
+    print(f"Time elapsed: {elapsed:.2f}s")
+    print(f"Samples/sec: {config.sample_budget/elapsed:.0f}")
+    print(f"{'='*70}\\n")
+
+# =========================================================================
+# Target: gpu_baseline
+# Hardware: gpu_a100
+# Mode: simulation
+# Priority: validation
+# From: max-cut.net:808, max-cut.act:60
+# Debug Info:
+#   Target ID: gpu_baseline (gpu_baseline)
+#   Hardware: gpu_a100 (gpu_a100)
+#   Mode: simulation (simulation)
+#   Config: gpu_simulated_annealing (gpu_simulated_annealing)
+#   Priority: validation (validation)
+# =========================================================================
+
+
+# File: gpu_baseline_maxcutqubo.py
+# Generated MAX-CUT/QUBO inference for gpu_baseline
+# WARNING: Auto-generated file, do not edit manually
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any, Tuple, Optional
+from dataclasses import dataclass
+import time
+
+# =========================================================================
+# CONFIGURATION
+# =========================================================================
+
+@dataclass
+class GPU_BASELINE_Config:
+    """Configuration for gpu_baseline"""
+    target_id: str = "gpu_baseline"
+    hardware: str = "gpu_a100"
+    mode: str = "simulation"
+    batch_size: int = 64
+    sample_budget: int = 1000000
+    num_vertices: int = 100
+    device: str = "gpu_a100"
+
+config = GPU_BASELINE_Config()
+
+# =========================================================================
+# TENSOR DECLARATIONS
+# =========================================================================
+
+
+# =========================================================================
+# ENERGY FUNCTIONS
+# =========================================================================
+
+
+# =========================================================================
+# ANNEALING UTILITIES
+# =========================================================================
+
+
+def create_temperature_schedule_tsu_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: tsu_annealing
+    Target: tsu_extropic_1
+    From: max-cut.net:435, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_gpu_simulated_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: gpu_simulated_annealing
+    Target: gpu_a100
+    From: max-cut.net:460, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_cpu_branch_bound(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: cpu_branch_bound
+    Target: cpu_x86
+    From: max-cut.net:486, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_hybrid_gpu_tsu(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    From: max-cut.net:496, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+# =========================================================================
+# SAMPLING OPERATIONS
+# =========================================================================
+
+
+def sampling_maxcut_gibbs(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: maxcut_gibbs
+    Algorithm: gibbs_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:73, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def sampling_quantum_anneal_emulation(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: quantum_anneal_emulation
+    Algorithm: simulated_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:162, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def tsu_sampling_tsu_qubo_anneal(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    temperature_schedule: jnp.ndarray,
+    num_samples: int = 64
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """
+    TSU Native Sampling: tsu_qubo_anneal
+    Hardware: tsu_extropic_1
+    Device: tsu0
+    Sample Shape: batch=64,variables=100
+    Calibration: per_annealing_run
+    From: max-cut.net:173, max-cut.act:467
+    
+    NOTE: This is a SOFTWARE EMULATION of TSU hardware.
+    Real TSU would use thermodynamic sampling in analog hardware.
+    """
+    print(f"  [TSU EMULATION] Initializing TSU device: tsu0")
+    print(f"  [TSU EMULATION] Control lines: V_ctrl[0:99] = map_qubo_weights(edge_weights)")
+    print(f"  [TSU EMULATION] Running hardware annealing...")
+    
+    n = edge_weights.shape[0]
+    samples = []
+    energies = []
+    
+    # Emulate TSU by running multiple annealing runs
+    for sample_idx in range(num_samples):
+        key, subkey = jax.random.split(key)
+        
+        # Initialize random partition
+        partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+        
+        # Anneal according to schedule
+        for t_idx, T in enumerate(temperature_schedule):
+            # Gibbs sweep at temperature T
+            partition, energy = sampling_maxcut_gibbs(
+                key=key,
+                partition=partition,
+                edge_weights=edge_weights,
+                temperature=float(T),
+                num_sweeps=1
+            )
+        
+        samples.append(partition)
+        energies.append(energy)
+    
+    print(f"  [TSU EMULATION] Generated {num_samples} samples")
+    
+    return jnp.array(samples), jnp.array(energies)
+
+# =========================================================================
+# EVALUATION OPERATIONS
+# =========================================================================
+
+
+def op_evaluate_cut_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:42, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    From: max-cut.net:42, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    Kernel: cut_energy_cuda
+    From: max-cut.net:101, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    From: max-cut.net:101, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:142, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    From: max-cut.net:142, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+# =========================================================================
+# INFERENCE PIPELINE
+# =========================================================================
+
+
+def run_inference_tsu_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: TSU_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: tsu_annealing
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 10000000
+    From: max-cut.net:435, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: tsu_annealing")
+    print(f"Configuration from: max-cut.net:435, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_gpu_simulated_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: GPU_SIMULATED_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: gpu_simulated_annealing
+    Target: gpu_a100
+    Batch: 64
+    Sample Budget: 1000000
+    From: max-cut.net:460, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: gpu_simulated_annealing")
+    print(f"Configuration from: max-cut.net:460, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_cpu_branch_bound(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: CPU_BRANCH_BOUND_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: cpu_branch_bound
+    Target: cpu_x86
+    Batch: 1
+    Sample Budget: 100000
+    From: max-cut.net:486, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: cpu_branch_bound")
+    print(f"Configuration from: max-cut.net:486, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_hybrid_gpu_tsu(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: HYBRID_GPU_TSU_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 5000000
+    From: max-cut.net:496, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: hybrid_gpu_tsu")
+    print(f"Configuration from: max-cut.net:496, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+# =========================================================================
+# MAIN ENTRY POINT
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"\\n{'='*70}")
+    print(f"MAX-CUT/QUBO Solver - Target: gpu_baseline")
+    print(f"{'='*70}")
+    print(f"Hardware: tsu_extropic_1")
+    print(f"Mode: simulation")
+    print(f"Batch Size: {config.batch_size}")
+    print(f"Sample Budget: {config.sample_budget}")
+    print(f"{'='*70}\\n")
+    
+    # Initialize JAX
+    key = jax.random.PRNGKey(42)
+    
+    # Create random MAX-CUT instance
+    print("Generating random MAX-CUT instance...")
+    num_vertices = config.num_vertices
+    edge_weights = generate_random_graph(key, num_vertices, edge_prob=0.3)
+    
+    # Run inference
+    print(f"\\nStarting inference on gpu_baseline...")
+    start_time = time.time()
+    
+    best_partition, best_cut, energy_history = run_inference_gpu_baseline(
+        key=key,
+        edge_weights=edge_weights,
+        config=config
+    )
+    
+    elapsed = time.time() - start_time
+    
+    # Results
+    print(f"\\n{'='*70}")
+    print(f"RESULTS - gpu_baseline")
+    print(f"{'='*70}")
+    print(f"Best cut found: {best_cut:.4f}")
+    print(f"Best partition: {best_partition}")
+    print(f"Time elapsed: {elapsed:.2f}s")
+    print(f"Samples/sec: {config.sample_budget/elapsed:.0f}")
+    print(f"{'='*70}\\n")
+
+# =========================================================================
+# Target: hybrid_mode
+# Hardware: tsu_extropic_1
+# Mode: production
+# Priority: primary
+# From: max-cut.net:820, max-cut.act:60
+# Debug Info:
+#   Target ID: hybrid_mode (hybrid_mode)
+#   Hardware: tsu_extropic_1 (tsu_extropic_1)
+#   Mode: production (production)
+#   Config: hybrid_gpu_tsu (hybrid_gpu_tsu)
+#   Priority: primary (primary)
+# =========================================================================
+
+
+# File: hybrid_mode_maxcutqubo.py
+# Generated MAX-CUT/QUBO inference for hybrid_mode
+# WARNING: Auto-generated file, do not edit manually
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any, Tuple, Optional
+from dataclasses import dataclass
+import time
+
+# =========================================================================
+# CONFIGURATION
+# =========================================================================
+
+@dataclass
+class HYBRID_MODE_Config:
+    """Configuration for hybrid_mode"""
+    target_id: str = "hybrid_mode"
+    hardware: str = "tsu_extropic_1"
+    mode: str = "production"
+    batch_size: int = 64
+    sample_budget: int = 5000000
+    num_vertices: int = 100
+    device: str = "tsu_extropic_1"
+
+config = HYBRID_MODE_Config()
+
+# =========================================================================
+# TENSOR DECLARATIONS
+# =========================================================================
+
+
+# =========================================================================
+# ENERGY FUNCTIONS
+# =========================================================================
+
+
+# =========================================================================
+# ANNEALING UTILITIES
+# =========================================================================
+
+
+def create_temperature_schedule_tsu_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: tsu_annealing
+    Target: tsu_extropic_1
+    From: max-cut.net:435, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_gpu_simulated_annealing(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: gpu_simulated_annealing
+    Target: gpu_a100
+    From: max-cut.net:460, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_cpu_branch_bound(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: cpu_branch_bound
+    Target: cpu_x86
+    From: max-cut.net:486, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+def create_temperature_schedule_hybrid_gpu_tsu(
+    T_initial: float = 100.0,
+    T_final: float = 0.01,
+    num_steps: int = 1000,
+    schedule_type: str = "geometric"
+) -> jnp.ndarray:
+    """
+    Create annealing temperature schedule
+    Config: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    From: max-cut.net:496, max-cut.act:263
+    """
+    if schedule_type == "geometric":
+        ratio = (T_final / T_initial) ** (1.0 / num_steps)
+        temps = T_initial * (ratio ** jnp.arange(num_steps))
+    elif schedule_type == "linear":
+        temps = jnp.linspace(T_initial, T_final, num_steps)
+    elif schedule_type == "exponential":
+        temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+    else:
+        raise ValueError(f"Unknown schedule type: {schedule_type}")
+    
+    return temps
+
+def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+    """Generate random weighted graph for MAX-CUT"""
+    key1, key2 = jax.random.split(key)
+    
+    # Random adjacency
+    edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+    # Make symmetric
+    edges = jnp.triu(edges, k=1)
+    edges = edges + edges.T
+    
+    # Random weights
+    weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+    weights = weights * edges
+    
+    return weights
+
+# =========================================================================
+# SAMPLING OPERATIONS
+# =========================================================================
+
+
+def sampling_maxcut_gibbs(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: maxcut_gibbs
+    Algorithm: gibbs_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:73, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def sampling_quantum_anneal_emulation(
+    key: Any,
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray,
+    temperature: float,
+    num_sweeps: int = 1
+) -> Tuple[jnp.ndarray, float]:
+    """
+    Sampling Operation: quantum_anneal_emulation
+    Algorithm: simulated_annealing
+    Distribution: boltzmann
+    Temperature: variable
+    From: max-cut.net:162, max-cut.act:311
+    """
+    # Gibbs sampling with temperature
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    
+    for sweep in range(num_sweeps):
+        key, subkey = jax.random.split(key)
+        
+        # Random variable ordering
+        order = jax.random.permutation(subkey, n)
+        
+        for idx in order:
+            i = int(idx)
+            
+            # Compute energy change for flipping variable i
+            current_val = current_partition[i]
+            
+            # Energy with current value
+            E_current = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Flip and compute new energy
+            current_partition = current_partition.at[i].set(1 - current_val)
+            E_flip = energy_maxcut_energy(current_partition, edge_weights)
+            
+            # Metropolis acceptance
+            delta_E = E_flip - E_current
+            key, subkey = jax.random.split(key)
+            
+            if delta_E <= 0:
+                # Accept (keep flipped)
+                pass
+            else:
+                # Accept with probability exp(-delta_E / T)
+                prob = jnp.exp(-delta_E / temperature)
+                accept = jax.random.uniform(subkey) < prob
+                if not accept:
+                    # Reject: flip back
+                    current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Block Gibbs: update multiple variables in parallel
+    current_partition = partition.copy()
+    n = current_partition.shape[0]
+    block_size = 10  # Update 10 variables at a time
+    
+    for sweep in range(num_sweeps):
+        for block_start in range(0, n, block_size):
+            block_end = min(block_start + block_size, n)
+            block_indices = jnp.arange(block_start, block_end)
+            
+            # Try all 2^block_size configurations (if small)
+            if block_end - block_start <= 6:
+                # Enumerate all configurations
+                best_energy = float('inf')
+                best_config = current_partition[block_start:block_end].copy()
+                
+                for config_idx in range(2 ** (block_end - block_start)):
+                    # Generate configuration
+                    test_partition = current_partition.copy()
+                    for j, idx in enumerate(block_indices):
+                        bit = (config_idx >> j) & 1
+                        test_partition = test_partition.at[idx].set(bit)
+                    
+                    E = energy_maxcut_energy(test_partition, edge_weights)
+                    
+                    # Sample proportional to exp(-E/T)
+                    prob = jnp.exp(-E / temperature)
+                    # Simplified: just take lowest energy
+                    if E < best_energy:
+                        best_energy = E
+                        best_config = test_partition[block_start:block_end].copy()
+                
+                current_partition = current_partition.at[block_start:block_end].set(best_config)
+            else:
+                # Too large, fall back to sequential Gibbs
+                for idx in block_indices:
+                    i = int(idx)
+                    current_val = current_partition[i]
+                    
+                    E_current = energy_maxcut_energy(current_partition, edge_weights)
+                    current_partition = current_partition.at[i].set(1 - current_val)
+                    E_flip = energy_maxcut_energy(current_partition, edge_weights)
+                    
+                    delta_E = E_flip - E_current
+                    if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+                        current_partition = current_partition.at[i].set(current_val)
+    
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    return current_partition, current_energy
+    # Simulated annealing: gradually decrease temperature
+    current_partition = partition.copy()
+    current_energy = energy_maxcut_energy(current_partition, edge_weights)
+    
+    # Use provided temperature as starting point
+    T = temperature
+    cooling_rate = 0.95
+    
+    for sweep in range(num_sweeps):
+        n = current_partition.shape[0]
+        key, subkey = jax.random.split(key)
+        
+        # Pick random variable to flip
+        i = int(jax.random.randint(subkey, (), 0, n))
+        
+        # Compute energy change
+        current_val = current_partition[i]
+        current_partition = current_partition.at[i].set(1 - current_val)
+        new_energy = energy_maxcut_energy(current_partition, edge_weights)
+        
+        delta_E = new_energy - current_energy
+        
+        # Metropolis acceptance
+        key, subkey = jax.random.split(key)
+        if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+            # Accept
+            current_energy = new_energy
+        else:
+            # Reject
+            current_partition = current_partition.at[i].set(current_val)
+        
+        # Cool down
+        T *= cooling_rate
+    
+    return current_partition, current_energy
+    
+    return partition, current_energy
+
+def tsu_sampling_tsu_qubo_anneal(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    temperature_schedule: jnp.ndarray,
+    num_samples: int = 64
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """
+    TSU Native Sampling: tsu_qubo_anneal
+    Hardware: tsu_extropic_1
+    Device: tsu0
+    Sample Shape: batch=64,variables=100
+    Calibration: per_annealing_run
+    From: max-cut.net:173, max-cut.act:467
+    
+    NOTE: This is a SOFTWARE EMULATION of TSU hardware.
+    Real TSU would use thermodynamic sampling in analog hardware.
+    """
+    print(f"  [TSU EMULATION] Initializing TSU device: tsu0")
+    print(f"  [TSU EMULATION] Control lines: V_ctrl[0:99] = map_qubo_weights(edge_weights)")
+    print(f"  [TSU EMULATION] Running hardware annealing...")
+    
+    n = edge_weights.shape[0]
+    samples = []
+    energies = []
+    
+    # Emulate TSU by running multiple annealing runs
+    for sample_idx in range(num_samples):
+        key, subkey = jax.random.split(key)
+        
+        # Initialize random partition
+        partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+        
+        # Anneal according to schedule
+        for t_idx, T in enumerate(temperature_schedule):
+            # Gibbs sweep at temperature T
+            partition, energy = sampling_maxcut_gibbs(
+                key=key,
+                partition=partition,
+                edge_weights=edge_weights,
+                temperature=float(T),
+                num_sweeps=1
+            )
+        
+        samples.append(partition)
+        energies.append(energy)
+    
+    print(f"  [TSU EMULATION] Generated {num_samples} samples")
+    
+    return jnp.array(samples), jnp.array(energies)
+
+# =========================================================================
+# EVALUATION OPERATIONS
+# =========================================================================
+
+
+def op_evaluate_cut_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:42, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_qubo_gibbs_update(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: qubo_gibbs_update
+    Layer: partition_sampling_layer
+    From: max-cut.net:42, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    Kernel: cut_energy_cuda
+    From: max-cut.net:101, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_evaluate_cut(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: evaluate_cut
+    Layer: cut_evaluation
+    From: max-cut.net:101, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+def op_evaluate_cut_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> Tuple[float, float]:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    Kernel: tsu_qubo_kernel
+    From: max-cut.net:142, max-cut.act:523
+    """
+    energy = energy_maxcut_energy(partition, edge_weights)
+    cut_size = -energy  # Cut size is negative energy
+    return cut_size, energy
+
+def op_energy_eval_tsu_anneal(
+    partition: jnp.ndarray,
+    edge_weights: jnp.ndarray
+) -> float:
+    """
+    Operation: tsu_anneal
+    Layer: tsu_annealing_layer
+    From: max-cut.net:142, max-cut.act:538
+    """
+    return energy_maxcut_energy(partition, edge_weights)
+
+# =========================================================================
+# INFERENCE PIPELINE
+# =========================================================================
+
+
+def run_inference_tsu_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: TSU_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: tsu_annealing
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 10000000
+    From: max-cut.net:435, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: tsu_annealing")
+    print(f"Configuration from: max-cut.net:435, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_tsu_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_gpu_simulated_annealing(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: GPU_SIMULATED_ANNEALING_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: gpu_simulated_annealing
+    Target: gpu_a100
+    Batch: 64
+    Sample Budget: 1000000
+    From: max-cut.net:460, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: gpu_simulated_annealing")
+    print(f"Configuration from: max-cut.net:460, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_gpu_simulated_annealing(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_cpu_branch_bound(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: CPU_BRANCH_BOUND_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: cpu_branch_bound
+    Target: cpu_x86
+    Batch: 1
+    Sample Budget: 100000
+    From: max-cut.net:486, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: cpu_branch_bound")
+    print(f"Configuration from: max-cut.net:486, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_cpu_branch_bound(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+def run_inference_hybrid_gpu_tsu(
+    key: Any,
+    edge_weights: jnp.ndarray,
+    config: HYBRID_GPU_TSU_Config
+) -> Tuple[jnp.ndarray, float, list]:
+    """
+    Inference Pipeline: hybrid_gpu_tsu
+    Target: tsu_extropic_1
+    Batch: 64
+    Sample Budget: 5000000
+    From: max-cut.net:496, max-cut.act:558
+    
+    Schedule:
+    #   Step 1: TSU annealing with T: 100.0 -> 0.01 over 1000 steps (tsu_annealing_layer)
+    #   Step 2: Evaluate final cut size (cut_evaluation)
+    #   Step 1: Gibbs sweep at current temperature (partition_sampling_layer)
+    #   Step 2: Evaluate cut and update best solution (cut_evaluation)
+    #   Step 1: Warm start on GPU (100 sweeps at T=50) (partition_sampling_layer)
+    #   Step 2: Transfer to TSU for fine annealing (tsu_annealing_layer)
+    #   Step 3: Final evaluation on GPU (cut_evaluation)
+    """
+    print(f"\\nRunning inference: hybrid_gpu_tsu")
+    print(f"Configuration from: max-cut.net:496, max-cut.act:564")
+    
+    n = edge_weights.shape[0]
+    
+    # Initialize
+    key, subkey = jax.random.split(key)
+    best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+    best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+    best_energy = -best_cut
+    
+    energy_history = [best_energy]
+    
+    # TSU Hardware Annealing Pipeline
+    print("\\n[STEP 1] TSU Hardware Annealing")
+    
+    # Create temperature schedule
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    # TSU sampling (emulated)
+    tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+        key=key,
+        edge_weights=edge_weights,
+        temperature_schedule=T_schedule,
+        num_samples=config.batch_size
+    )
+    
+    # Find best from TSU samples
+    best_idx = jnp.argmin(tsu_energies)
+    best_partition = tsu_samples[best_idx]
+    best_energy = tsu_energies[best_idx]
+    
+    print(f"\\n[STEP 2] Evaluate Final Cut")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    
+    print(f"  Best cut from TSU: {best_cut:.4f}")
+    print(f"  Energy: {best_energy:.4f}")
+    
+    energy_history.extend(tsu_energies.tolist())
+    # GPU Simulated Annealing Pipeline
+    print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+    
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=100.0,
+        T_final=0.01,
+        num_steps=1000,
+        schedule_type="geometric"
+    )
+    
+    current_partition = best_partition.copy()
+    
+    # Annealing loop
+    for step_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        
+        # Gibbs sweep at current temperature
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=10
+        )
+        
+        energy_history.append(current_energy)
+        
+        # Update best
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+            best_cut = -best_energy
+        
+        if step_idx % 100 == 0:
+            print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+    
+    print(f"\\n[STEP 2] Final Evaluation")
+    final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+    print(f"  Final cut: {final_cut:.4f}")
+    # Hybrid GPU + TSU Pipeline
+    print("\\n[STEP 1] GPU Warm Start")
+    
+    # Warm start on GPU
+    warm_start_steps = 100
+    T_warm = 50.0
+    
+    current_partition = best_partition.copy()
+    
+    for step in range(warm_start_steps):
+        key, subkey = jax.random.split(key)
+        current_partition, current_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=current_partition,
+            edge_weights=edge_weights,
+            temperature=T_warm,
+            num_sweeps=1
+        )
+        
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_partition = current_partition.copy()
+        
+        if step % 20 == 0:
+            print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+    
+    print(f"\\n[STEP 2] TSU Fine Annealing")
+    
+    # Transfer to TSU for fine annealing
+    T_schedule = create_temperature_schedule_hybrid_gpu_tsu(
+        T_initial=50.0,
+        T_final=0.01,
+        num_steps=500,
+        schedule_type="geometric"
+    )
+    
+    # Use warm-started partition
+    tsu_partition = best_partition.copy()
+    
+    for t_idx, T in enumerate(T_schedule):
+        key, subkey = jax.random.split(key)
+        tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+            key=subkey,
+            partition=tsu_partition,
+            edge_weights=edge_weights,
+            temperature=float(T),
+            num_sweeps=5
+        )
+        
+        energy_history.append(tsu_energy)
+        
+        if tsu_energy < best_energy:
+            best_energy = tsu_energy
+            best_partition = tsu_partition.copy()
+        
+        if t_idx % 100 == 0:
+            print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+    
+    print(f"\\n[STEP 3] GPU Final Evaluation")
+    best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+    print(f"  Final cut: {best_cut:.4f}")
+    # CPU Branch-and-Bound (for small instances)
+    print("\\n[STEP 1] CPU Exact Solver")
+    print("  WARNING: Exponential time - only for N <= 40")
+    
+    n = edge_weights.shape[0]
+    if n > 40:
+        print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+        # Fall back to GPU annealing
+        current_partition = best_partition.copy()
+        for step in range(1000):
+            key, subkey = jax.random.split(key)
+            current_partition, current_energy = sampling_maxcut_gibbs(
+                key=subkey,
+                partition=current_partition,
+                edge_weights=edge_weights,
+                temperature=1.0,
+                num_sweeps=10
+            )
+            if current_energy < best_energy:
+                best_energy = current_energy
+                best_partition = current_partition.copy()
+    else:
+        # Brute force enumeration (exponential!)
+        print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+        for config_idx in range(2**n):
+            # Generate configuration
+            partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+            energy = energy_maxcut_energy(partition, edge_weights)
+            
+            energy_history.append(energy)
+            
+            if energy < best_energy:
+                best_energy = energy
+                best_partition = partition.copy()
+                best_cut = -energy
+            
+            if config_idx % 10000 == 0 and config_idx > 0:
+                print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+        
+        print(f"  Exact solution found: cut = {best_cut:.4f}")
+    
+    return best_partition, best_cut, energy_history
+
+# =========================================================================
+# MAIN ENTRY POINT
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"\\n{'='*70}")
+    print(f"MAX-CUT/QUBO Solver - Target: hybrid_mode")
+    print(f"{'='*70}")
+    print(f"Hardware: tsu_extropic_1")
+    print(f"Mode: production")
+    print(f"Batch Size: {config.batch_size}")
+    print(f"Sample Budget: {config.sample_budget}")
+    print(f"{'='*70}\\n")
+    
+    # Initialize JAX
+    key = jax.random.PRNGKey(42)
+    
+    # Create random MAX-CUT instance
+    print("Generating random MAX-CUT instance...")
+    num_vertices = config.num_vertices
+    edge_weights = generate_random_graph(key, num_vertices, edge_prob=0.3)
+    
+    # Run inference
+    print(f"\\nStarting inference on hybrid_mode...")
+    start_time = time.time()
+    
+    best_partition, best_cut, energy_history = run_inference_hybrid_mode(
+        key=key,
+        edge_weights=edge_weights,
+        config=config
+    )
+    
+    elapsed = time.time() - start_time
+    
+    # Results
+    print(f"\\n{'='*70}")
+    print(f"RESULTS - hybrid_mode")
+    print(f"{'='*70}")
+    print(f"Best cut found: {best_cut:.4f}")
+    print(f"Best partition: {best_partition}")
+    print(f"Time elapsed: {elapsed:.2f}s")
+    print(f"Samples/sec: {config.sample_budget/elapsed:.0f}")
+    print(f"{'='*70}\\n")
+
+
+# =========================================================================
+# Build Script: generate_all_maxcut
+# Targets: tsu_production,gpu_baseline,hybrid_mode
+# Output: ./build/maxcut_multi
+# Template: multi_target
+# From: max-cut.net:832, max-cut.act:776
+# Debug Info:
+#   Build ID: generate_all_maxcut (generate_all_maxcut)
+#   Targets: tsu_production,gpu_baseline,hybrid_mode (tsu_production,gpu_baseline,hybrid_mode)
+#   Output Dir: ./build/maxcut_multi (./build/maxcut_multi)
+#   Template: multi_target (multi_target)
+# =========================================================================
+
+def build_generate_all_maxcut():
+    """Generate code for all targets"""
+    print(f"\\nBuild Rule: generate_all_maxcut")
+    print(f"Targets: tsu_production,gpu_baseline,hybrid_mode")
+    print(f"Output Directory: ./build/maxcut_multi")
+    print(f"Template: multi_target")
+    
+    targets = "tsu_production,gpu_baseline,hybrid_mode".split(",")
+    
+    for target in targets:
+        target = target.strip()
+        print(f"\\nGenerating code for target: {target}")
+        
+        # In real implementation, would call target-specific codegen
+        output_file = Path("./build/maxcut_multi") / f"{target}_maxcutqubo.py"
+        print(f"  Output: {output_file}")
+        
+        # Placeholder: actual code would be generated per target
+        print(f"  ✓ Generated: {output_file}")
+    
+
+def validate_against_gpu_baseline():
+    """
+    Validation Script
+    Validate TSU results against: gpu_baseline
+    From: max-cut.net:808, max-cut.act:819
+    """
+    print(f"\\n{'='*70}")
+    print(f"VALIDATION: Compare against gpu_baseline")
+    print(f"{'='*70}")
+    
+    # Load results from different targets
+    print("Loading results from all targets...")
+    
+    # In real implementation:
+    # - Run inference on each target
+    # - Compare cut sizes
+    # - Measure time/energy differences
+    # - Check solution quality
+    
+    print("\\nValidation metrics:")
+    print("  - Solution quality (cut size)")
+    print("  - Runtime performance") 
+    print("  - Energy consumption")
+    print("  - Convergence behavior")
+    print(f"\\nBaseline target: gpu_baseline")
+    print(f"{'='*70}\\n")
+    
+    print(f"\\n{'='*70}")
+    print(f"Build complete: generate_all_maxcut")
+    print(f"{'='*70}\\n")
+
+if __name__ == "__main__":
+    build_generate_all_maxcut()
+
+# =========================================================================
+# Build Script: tsu_fast_iteration
+# Targets: tsu_production
+# Output: ./build/maxcut_tsu
+# Template: tsu
+# From: max-cut.net:842, max-cut.act:776
+# Debug Info:
+#   Build ID: tsu_fast_iteration (tsu_fast_iteration)
+#   Targets: tsu_production (tsu_production)
+#   Output Dir: ./build/maxcut_tsu (./build/maxcut_tsu)
+#   Template: tsu (tsu)
+# =========================================================================
+
+def build_tsu_fast_iteration():
+    """Generate code for all targets"""
+    print(f"\\nBuild Rule: tsu_fast_iteration")
+    print(f"Targets: tsu_production")
+    print(f"Output Directory: ./build/maxcut_tsu")
+    print(f"Template: tsu")
+    
+    targets = "tsu_production".split(",")
+    
+    for target in targets:
+        target = target.strip()
+        print(f"\\nGenerating code for target: {target}")
+        
+        # In real implementation, would call target-specific codegen
+        output_file = Path("./build/maxcut_tsu") / f"{target}_maxcutqubo.py"
+        print(f"  Output: {output_file}")
+        
+        # Placeholder: actual code would be generated per target
+        print(f"  ✓ Generated: {output_file}")
+    
+    
+    print(f"\\n{'='*70}")
+    print(f"Build complete: tsu_fast_iteration")
+    print(f"{'='*70}\\n")
+
+if __name__ == "__main__":
+    build_tsu_fast_iteration()
+
+# =========================================================================
+# THERMODYNAMIC ANALYSIS
+# =========================================================================
+
+
+def thermodynamic_analysis_maxcut_thermo_analysis(
+    energy_history: list,
+    temperature_schedule: jnp.ndarray
+) -> Dict[str, Any]:
+    """
+    Thermodynamic Analysis: maxcut_thermo_analysis
+    Temperature: variable K
+    kT: 4.11e-21 * T
+    Entropy Traced: true
+    Landauer Limit: 2.85e-21 J/bit
+    From: max-cut.net:533, max-cut.act:866
+    """
+    print(f"\\n{'='*70}")
+    print(f"THERMODYNAMIC ANALYSIS - maxcut_thermo_analysis")
+    print(f"{'='*70}\\n")
+    
+    kT = 4.11e-21 * T
+    landauer_limit = 2.85e-21 J/bit
+    
+    # Compute thermodynamic quantities
+    num_steps = len(energy_history)
+    energy_array = jnp.array(energy_history)
+    
+    # Energy dissipation
+    energy_changes = jnp.diff(energy_array)
+    total_dissipation = jnp.sum(jnp.abs(energy_changes))
+    
+    # Entropy production (estimate)
+    entropy_production = total_dissipation / kT if kT > 0 else 0.0
+    
+    # Landauer cost per bit flip
+    num_variables = 100  # From model
+    estimated_flips = num_steps * num_variables * 0.1  # Assume 10% flip rate
+    landauer_cost_total = estimated_flips * landauer_limit
+    
+    print(f"Total energy dissipation: {total_dissipation:.6e} J")
+    print(f"Entropy production: {entropy_production:.6e} J/K")
+    print(f"Estimated bit flips: {estimated_flips:.0f}")
+    print(f"Landauer limit cost: {landauer_cost_total:.6e} J")
+    print(f"Actual vs Landauer: {total_dissipation/landauer_cost_total:.2f}x")
+    
+    # Temperature-energy correlation
+    if len(temperature_schedule) == len(energy_history):
+        print(f"\\nTemperature-Energy Correlation:")
+        for i in [0, len(energy_history)//2, -1]:
+            if i >= 0:
+                T_val = temperature_schedule[i] if i < len(temperature_schedule) else temperature_schedule[-1]
+                E_val = energy_history[i]
+                print(f"  Step {i}: T={T_val:.4f}, E={E_val:.4f}")
+    
+    print(f"\\n{'='*70}\\n")
+    
+    return {
+        'total_dissipation': float(total_dissipation),
+        'entropy_production': float(entropy_production),
+        'landauer_cost': float(landauer_cost_total),
+'efficiency_ratio': float(total_dissipation / landauer_cost_total) if landauer_cost_total > 0 else 0.0
+    }

@@ -68,6 +68,34 @@ type ActT struct {
 	ApFailureMode [] *KpFailureMode
 	ApResourceBudget [] *KpResourceBudget
 	ApAdaptiveScheduling [] *KpAdaptiveScheduling
+	ApMultiStateModel [] *KpMultiStateModel
+	ApLoopyPGM [] *KpLoopyPGM
+	ApVariationalModel [] *KpVariationalModel
+	ApHybridSampling [] *KpHybridSampling
+	ApPottsOp [] *KpPottsOp
+	ApPottsKernel [] *KpPottsKernel
+	ApMultiStateOp [] *KpMultiStateOp
+	ApClusterSamplingOp [] *KpClusterSamplingOp
+	ApVariationalOp [] *KpVariationalOp
+	ApBeliefPropagationOp [] *KpBeliefPropagationOp
+	ApMultiStateEnergyFactor [] *KpMultiStateEnergyFactor
+	ApVariationalFactor [] *KpVariationalFactor
+	ApDegenerateEnergy [] *KpDegenerateEnergy
+	ApMultiLevelTSU [] *KpMultiLevelTSU
+	ApAdvancedTSUCompilation [] *KpAdvancedTSUCompilation
+	ApNoiseModel [] *KpNoiseModel
+	ApHybridConfig [] *KpHybridConfig
+	ApELBOTracking [] *KpELBOTracking
+	ApErgodicityValidation [] *KpErgodicityValidation
+	ApMultiStateConstraint [] *KpMultiStateConstraint
+	ApDegeneracySimulation [] *KpDegeneracySimulation
+	ApClusterKernel [] *KpClusterKernel
+	ApVariationalKernel [] *KpVariationalKernel
+	ApMultiStateDistributionRule [] *KpMultiStateDistributionRule
+	ApAdvancedSamplingAlgorithmRule [] *KpAdvancedSamplingAlgorithmRule
+	ApVIAlgorithmRule [] *KpVIAlgorithmRule
+	ApMultiStateProject [] *KpMultiStateProject
+	ApAutoTuneExtension [] *KpAutoTuneExtension
 	ApActor [] *KpActor
 	ApAll [] *KpAll
 	ApDu [] *KpDu
@@ -418,19 +446,19 @@ func refs(act *ActT) int {
 		}
 //  tsu-auto.unit:168, g_runh.act:180
 
-		v, _ = st.Names["resume_from"]
-		err, res = fnd3(act, "Checkpoint_" + v, v, "ref:AutoTuneConfig.resume_from:Checkpoint." + v,  "*", st.LineNo, "tsu-auto.unit:168, g_runh.act:184" );
-		st.Kresume_fromp = res
+		v, _ = st.Names["opt_from"]
+		err, res = fnd3(act, "OptimizationRun_" + v, v, "ref:AutoTuneConfig.opt_from:OptimizationRun." + v,  "*", st.LineNo, "tsu-auto.unit:168, g_runh.act:184" );
+		st.Kopt_fromp = res
 		if (err == false) {
 			errs += 1
 		}
 	}
 	for _, st := range act.ApSensitivityAnalysis {
 
-//  tsu-auto.unit:176, g_runh.act:180
+//  tsu-auto.unit:177, g_runh.act:180
 
 		v, _ = st.Names["search_space"]
-		err, res = fnd3(act, "SearchSpace_" + v, v, "ref:SensitivityAnalysis.search_space:SearchSpace." + v,  "+", st.LineNo, "tsu-auto.unit:176, g_runh.act:184" );
+		err, res = fnd3(act, "SearchSpace_" + v, v, "ref:SensitivityAnalysis.search_space:SearchSpace." + v,  "+", st.LineNo, "tsu-auto.unit:177, g_runh.act:184" );
 		st.Ksearch_spacep = res
 		if (err == false) {
 			errs += 1
@@ -438,11 +466,55 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApOptimizationPattern {
 
-//  tsu-auto.unit:206, g_runh.act:180
+//  tsu-auto.unit:207, g_runh.act:180
 
 		v, _ = st.Names["discovered_by"]
-		err, res = fnd3(act, "OptimizationRun_" + v, v, "ref:OptimizationPattern.discovered_by:OptimizationRun." + v,  "*", st.LineNo, "tsu-auto.unit:206, g_runh.act:184" );
+		err, res = fnd3(act, "OptimizationRun_" + v, v, "ref:OptimizationPattern.discovered_by:OptimizationRun." + v,  "*", st.LineNo, "tsu-auto.unit:207, g_runh.act:184" );
 		st.Kdiscovered_byp = res
+		if (err == false) {
+			errs += 1
+		}
+	}
+	for _, st := range act.ApVariationalModel {
+
+//  tsu-ext.unit:38, g_runh.act:180
+
+		v, _ = st.Names["optimizer_ref"]
+		err, res = fnd3(act, "EvolutionStrategy_" + v, v, "ref:VariationalModel.optimizer_ref:EvolutionStrategy." + v,  "*", st.LineNo, "tsu-ext.unit:38, g_runh.act:184" );
+		st.Koptimizer_refp = res
+		if (err == false) {
+			errs += 1
+		}
+	}
+	for _, st := range act.ApHybridSampling {
+
+//  tsu-ext.unit:48, g_runh.act:180
+
+		v, _ = st.Names["fusion_pattern"]
+		err, res = fnd3(act, "Fusion_" + v, v, "ref:HybridSampling.fusion_pattern:Fusion." + v,  "*", st.LineNo, "tsu-ext.unit:48, g_runh.act:184" );
+		st.Kfusion_patternp = res
+		if (err == false) {
+			errs += 1
+		}
+	}
+	for _, st := range act.ApPottsOp {
+
+//  tsu-ext.unit:62, g_runh.act:180
+
+		v, _ = st.Names["energy_fn"]
+		err, res = fnd3(act, "EnergyFunction_" + v, v, "ref:PottsOp.energy_fn:EnergyFunction." + v,  "+", st.LineNo, "tsu-ext.unit:62, g_runh.act:184" );
+		st.Kenergy_fnp = res
+		if (err == false) {
+			errs += 1
+		}
+	}
+	for _, st := range act.ApAutoTuneExtension {
+
+//  tsu-ext.unit:310, g_runh.act:180
+
+		v, _ = st.Names["multi_objective"]
+		err, res = fnd3(act, "MultiObjective_" + v, v, "ref:AutoTuneExtension.multi_objective:MultiObjective." + v,  "*", st.LineNo, "tsu-ext.unit:310, g_runh.act:184" );
+		st.Kmulti_objectivep = res
 		if (err == false) {
 			errs += 1
 		}
@@ -599,6 +671,26 @@ func refs(act *ActT) int {
 		v, _ = st.Names["validate_against"]
 		err, res = fnd3(act, strconv.Itoa(st.Kprojectp) + "_TargetConfig_" + v, v, "ref_child:BuildRule.validate_against:Project." + parent + "." + v + " from up_copy:BuildRule.project", "*", st.LineNo, "tsu.unit:447, g_runh.act:236")
 		st.Kvalidate_againstp = res
+		if !err {
+			errs += 1
+		}
+	}
+	}
+	for _, st := range act.ApAutoTuneConfig {
+
+//  tsu-auto.unit:169, g_runh.act:224
+
+ 
+	if st.Kopt_fromp < 0 {
+		if "*" != "*" {
+			fmt.Printf("ref_child:AutoTuneConfig.resume_from unresolved from ref:AutoTuneConfig.opt_from:OptimizationRun %s > tsu-auto.unit:169, g_runh.act:229", st.LineNo)
+			errs += 1
+		}
+	} else {
+		parent := act.ApOptimizationRun[st.Kopt_fromp].MyName
+		v, _ = st.Names["resume_from"]
+		err, res = fnd3(act, strconv.Itoa(st.Kopt_fromp) + "_Checkpoint_" + v, v, "ref_child:AutoTuneConfig.resume_from:OptimizationRun." + parent + "." + v + " from ref:AutoTuneConfig.opt_from", "*", st.LineNo, "tsu-auto.unit:169, g_runh.act:236")
+		st.Kresume_fromp = res
 		if !err {
 			errs += 1
 		}
@@ -2168,6 +2260,734 @@ func DoAll(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
+	if va[0] == "MultiStateModel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateModel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateModel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateModel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateModel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "LoopyPGM" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["LoopyPGM_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApLoopyPGM[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApLoopyPGM[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApLoopyPGM {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "VariationalModel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["VariationalModel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApVariationalModel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApVariationalModel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApVariationalModel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "HybridSampling" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["HybridSampling_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApHybridSampling[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApHybridSampling[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApHybridSampling {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "PottsOp" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["PottsOp_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApPottsOp[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApPottsOp[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApPottsOp {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "PottsKernel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["PottsKernel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApPottsKernel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApPottsKernel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApPottsKernel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiStateOp" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateOp_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateOp[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateOp[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateOp {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "ClusterSamplingOp" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["ClusterSamplingOp_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApClusterSamplingOp[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApClusterSamplingOp[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApClusterSamplingOp {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "VariationalOp" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["VariationalOp_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApVariationalOp[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApVariationalOp[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApVariationalOp {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "BeliefPropagationOp" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["BeliefPropagationOp_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApBeliefPropagationOp[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApBeliefPropagationOp[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApBeliefPropagationOp {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiStateEnergyFactor" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateEnergyFactor_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateEnergyFactor[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateEnergyFactor[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateEnergyFactor {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "VariationalFactor" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["VariationalFactor_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApVariationalFactor[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApVariationalFactor[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApVariationalFactor {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "DegenerateEnergy" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["DegenerateEnergy_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApDegenerateEnergy[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApDegenerateEnergy[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApDegenerateEnergy {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiLevelTSU" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiLevelTSU_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiLevelTSU[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiLevelTSU[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiLevelTSU {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "AdvancedTSUCompilation" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["AdvancedTSUCompilation_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApAdvancedTSUCompilation[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApAdvancedTSUCompilation[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApAdvancedTSUCompilation {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "NoiseModel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["NoiseModel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApNoiseModel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApNoiseModel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApNoiseModel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "HybridConfig" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["HybridConfig_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApHybridConfig[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApHybridConfig[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApHybridConfig {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "ELBOTracking" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["ELBOTracking_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApELBOTracking[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApELBOTracking[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApELBOTracking {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "ErgodicityValidation" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["ErgodicityValidation_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApErgodicityValidation[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApErgodicityValidation[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApErgodicityValidation {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiStateConstraint" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateConstraint_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateConstraint[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateConstraint[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateConstraint {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "DegeneracySimulation" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["DegeneracySimulation_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApDegeneracySimulation[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApDegeneracySimulation[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApDegeneracySimulation {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "ClusterKernel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["ClusterKernel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApClusterKernel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApClusterKernel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApClusterKernel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "VariationalKernel" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["VariationalKernel_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApVariationalKernel[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApVariationalKernel[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApVariationalKernel {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiStateDistributionRule" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateDistributionRule_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateDistributionRule[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateDistributionRule[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateDistributionRule {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "AdvancedSamplingAlgorithmRule" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["AdvancedSamplingAlgorithmRule_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApAdvancedSamplingAlgorithmRule[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApAdvancedSamplingAlgorithmRule[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApAdvancedSamplingAlgorithmRule {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "VIAlgorithmRule" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["VIAlgorithmRule_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApVIAlgorithmRule[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApVIAlgorithmRule[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApVIAlgorithmRule {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "MultiStateProject" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["MultiStateProject_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApMultiStateProject[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApMultiStateProject[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApMultiStateProject {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
+	if va[0] == "AutoTuneExtension" {
+		if (len(va) > 1 && len(va[1]) > 0) {
+			en, er := glob.Dats.index["AutoTuneExtension_" + va[1] ];
+			if !er {
+				if len(va) > 2 {
+					return( glob.Dats.ApAutoTuneExtension[en].DoIts(glob, va[2:], lno) )
+				}
+				return( GoAct(glob, glob.Dats.ApAutoTuneExtension[en]) )
+			}
+			return(0)
+		}
+		for _, st := range glob.Dats.ApAutoTuneExtension {
+			if len(va) > 2 {
+				ret := st.DoIts(glob, va[2:], lno)
+				if ret != 0 {
+					return(ret)
+				}
+				continue
+			}
+			ret := GoAct(glob, st)
+			if ret != 0 {
+				return(ret)
+			}
+		}
+		return(0)
+	}
 	if va[0] == "Actor" {
 		if (len(va) > 1 && len(va[1]) > 0) {
 			en, er := glob.Dats.index["Actor_" + va[1] ];
@@ -2286,6 +3106,34 @@ func Loadh(act *ActT, toks string, ln string, pos int, lno string, nm map[string
 	if tok == "FailureMode" { errs += loadFailureMode(act,ln,pos,lno,flag,nm) }
 	if tok == "ResourceBudget" { errs += loadResourceBudget(act,ln,pos,lno,flag,nm) }
 	if tok == "AdaptiveScheduling" { errs += loadAdaptiveScheduling(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateModel" { errs += loadMultiStateModel(act,ln,pos,lno,flag,nm) }
+	if tok == "LoopyPGM" { errs += loadLoopyPGM(act,ln,pos,lno,flag,nm) }
+	if tok == "VariationalModel" { errs += loadVariationalModel(act,ln,pos,lno,flag,nm) }
+	if tok == "HybridSampling" { errs += loadHybridSampling(act,ln,pos,lno,flag,nm) }
+	if tok == "PottsOp" { errs += loadPottsOp(act,ln,pos,lno,flag,nm) }
+	if tok == "PottsKernel" { errs += loadPottsKernel(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateOp" { errs += loadMultiStateOp(act,ln,pos,lno,flag,nm) }
+	if tok == "ClusterSamplingOp" { errs += loadClusterSamplingOp(act,ln,pos,lno,flag,nm) }
+	if tok == "VariationalOp" { errs += loadVariationalOp(act,ln,pos,lno,flag,nm) }
+	if tok == "BeliefPropagationOp" { errs += loadBeliefPropagationOp(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateEnergyFactor" { errs += loadMultiStateEnergyFactor(act,ln,pos,lno,flag,nm) }
+	if tok == "VariationalFactor" { errs += loadVariationalFactor(act,ln,pos,lno,flag,nm) }
+	if tok == "DegenerateEnergy" { errs += loadDegenerateEnergy(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiLevelTSU" { errs += loadMultiLevelTSU(act,ln,pos,lno,flag,nm) }
+	if tok == "AdvancedTSUCompilation" { errs += loadAdvancedTSUCompilation(act,ln,pos,lno,flag,nm) }
+	if tok == "NoiseModel" { errs += loadNoiseModel(act,ln,pos,lno,flag,nm) }
+	if tok == "HybridConfig" { errs += loadHybridConfig(act,ln,pos,lno,flag,nm) }
+	if tok == "ELBOTracking" { errs += loadELBOTracking(act,ln,pos,lno,flag,nm) }
+	if tok == "ErgodicityValidation" { errs += loadErgodicityValidation(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateConstraint" { errs += loadMultiStateConstraint(act,ln,pos,lno,flag,nm) }
+	if tok == "DegeneracySimulation" { errs += loadDegeneracySimulation(act,ln,pos,lno,flag,nm) }
+	if tok == "ClusterKernel" { errs += loadClusterKernel(act,ln,pos,lno,flag,nm) }
+	if tok == "VariationalKernel" { errs += loadVariationalKernel(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateDistributionRule" { errs += loadMultiStateDistributionRule(act,ln,pos,lno,flag,nm) }
+	if tok == "AdvancedSamplingAlgorithmRule" { errs += loadAdvancedSamplingAlgorithmRule(act,ln,pos,lno,flag,nm) }
+	if tok == "VIAlgorithmRule" { errs += loadVIAlgorithmRule(act,ln,pos,lno,flag,nm) }
+	if tok == "MultiStateProject" { errs += loadMultiStateProject(act,ln,pos,lno,flag,nm) }
+	if tok == "AutoTuneExtension" { errs += loadAutoTuneExtension(act,ln,pos,lno,flag,nm) }
 	return errs
 }
 

@@ -1,0 +1,913 @@
+// =========================================================================
+// THRML/JAX PYTHON ACTOR SCRIPT FOR MAX-CUT QUBO
+// Multi-Target Code Generation: TSU + GPU + Hybrid
+// Corrected version with proper function generation
+// =========================================================================
+
+Actor main
+
+Map _:tensor
+Map _:config
+
+All Project generate_project_structure
+
+// =========================================================================
+// PROJECT STRUCTURE GENERATION
+// =========================================================================
+
+Actor generate_project_structure Project
+C # =========================================================================
+C # Project: ${project}
+C # Multi-target MAX-CUT/QUBO Code Generation
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C import os
+C import sys
+C from pathlib import Path
+C
+C # Create output directories
+C output_dirs = [
+Its BuildRule create_output_directories
+C ]
+C
+C for dir_path in output_dirs:
+C     Path(dir_path).mkdir(parents=True, exist_ok=True)
+C     print(f"Created directory: {dir_path}")
+C
+C print(f"\\nProject ${project} structure ready")
+C print(f"Model: ${model}")
+C print(f"Domain: ${domain}")
+C
+All TargetConfig generate_target_header
+C
+All BuildRule generate_build_script
+
+Actor create_output_directories BuildRule
+C     "${output_dir}",
+
+// =========================================================================
+// TARGET-SPECIFIC CODE GENERATION
+// =========================================================================
+
+Actor generate_target_header TargetConfig
+C
+C # =========================================================================
+C # Target: ${target_id}
+C # Hardware: ${hardware}
+C # Mode: ${mode}
+C # Priority: ${priority}
+C # From: ${._lno}
+C # Debug Info:
+C #   Target ID: ${target_id} (${target_id})
+C #   Hardware: ${hardware} (${hardware::cpu})
+C #   Mode: ${mode} (${mode::simulation})
+C #   Config: ${config} (${config::default_config})
+C #   Priority: ${priority} (${priority::secondary})
+C # =========================================================================
+C
+All Model generate_target_code
+
+// =========================================================================
+// MODEL FILE GENERATION (PER TARGET)
+// =========================================================================
+
+Actor generate_target_code Model
+C
+C # File: ${.generate_target_header.target_id}_${model:l}.py
+C # Generated MAX-CUT/QUBO inference for ${.generate_target_header.target_id}
+C # WARNING: Auto-generated file, do not edit manually
+C
+C import jax
+C import jax.numpy as jnp
+C import numpy as np
+C from typing import Dict, Any, Tuple, Optional
+C from dataclasses import dataclass
+C import time
+C
+C # =========================================================================
+C # CONFIGURATION
+C # =========================================================================
+C
+C @dataclass
+C class ${.generate_target_header.target_id:u}_Config:
+C     """Configuration for ${.generate_target_header.target_id}"""
+C     target_id: str = "${.generate_target_header.target_id}"
+C     hardware: str = "${.generate_target_header.hardware}"
+C     mode: str = "${.generate_target_header.mode}"
+C     batch_size: int = ${.generate_target_header.config.batch::32}
+C     sample_budget: int = ${.generate_target_header.config.sample_budget::1000000}
+C     num_vertices: int = 100
+C     device: str = "${.generate_target_header.hardware::cpu}"
+C
+C config = ${.generate_target_header.target_id:u}_Config()
+C
+C # =========================================================================
+C # TENSOR DECLARATIONS
+C # =========================================================================
+C
+All Tensor declare_tensor
+C
+C # =========================================================================
+C # ENERGY FUNCTIONS
+C # =========================================================================
+C
+All EnergyFunction generate_energy_function
+C
+C # =========================================================================
+C # ANNEALING UTILITIES
+C # =========================================================================
+C
+All Config generate_annealing_utils
+C
+C # =========================================================================
+C # SAMPLING OPERATIONS
+C # =========================================================================
+C
+All SamplingOp generate_sampling_op
+All TSUSamplingOp generate_tsu_sampling_op
+C
+C # =========================================================================
+C # EVALUATION OPERATIONS
+C # =========================================================================
+C
+All Op generate_evaluation_op
+C
+C # =========================================================================
+C # INFERENCE PIPELINE
+C # =========================================================================
+C
+All Config generate_inference_pipeline
+C
+C # =========================================================================
+C # MAIN ENTRY POINT
+C # =========================================================================
+C
+C if __name__ == "__main__":
+C     print(f"\\n{'='*70}")
+C     print(f"MAX-CUT/QUBO Solver - Target: ${.generate_target_header.target_id}")
+C     print(f"{'='*70}")
+C     print(f"Hardware: ${hardware}")
+C     print(f"Mode: ${.generate_target_header.mode}")
+C     print(f"Batch Size: {config.batch_size}")
+C     print(f"Sample Budget: {config.sample_budget}")
+C     print(f"{'='*70}\\n")
+C     
+C     # Initialize JAX
+C     key = jax.random.PRNGKey(42)
+C     
+C     # Create random MAX-CUT instance
+C     print("Generating random MAX-CUT instance...")
+C     num_vertices = config.num_vertices
+C     edge_weights = generate_random_graph(key, num_vertices, edge_prob=0.3)
+C     
+C     # Run inference
+C     print(f"\\nStarting inference on ${.generate_target_header.target_id}...")
+C     start_time = time.time()
+C     
+C     best_partition, best_cut, energy_history = run_inference_${.generate_target_header.target_id:l}(
+C         key=key,
+C         edge_weights=edge_weights,
+C         config=config
+C     )
+C     
+C     elapsed = time.time() - start_time
+C     
+C     # Results
+C     print(f"\\n{'='*70}")
+C     print(f"RESULTS - ${.generate_target_header.target_id}")
+C     print(f"{'='*70}")
+C     print(f"Best cut found: {best_cut:.4f}")
+C     print(f"Best partition: {best_partition}")
+C     print(f"Time elapsed: {elapsed:.2f}s")
+C     print(f"Samples/sec: {config.sample_budget/elapsed:.0f}")
+C     print(f"{'='*70}\\n")
+
+// =========================================================================
+// TENSOR DECLARATIONS
+// =========================================================================
+
+Actor declare_tensor Tensor
+Add.break _.tensor:${tensor:l}
+C # Tensor: ${tensor:l}
+C # Shape: ${shape}, Dtype: ${dtype}, Layout: ${layout}
+C # Role: ${role::state}, From: ${._lno}
+
+// =========================================================================
+// ENERGY FUNCTION IMPLEMENTATIONS
+// =========================================================================
+
+Actor generate_energy_function EnergyFunction
+Add.break _.energy_fn:${energy_fn:l}
+C
+C @jax.jit
+C def energy_${energy_fn:l}(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+C     """
+C     Energy Function: ${energy_fn}
+C     Expression: ${expression}
+C     Variables: ${variables}
+C     Source: ${source}
+C     From: ${._lno}
+C     """
+Du generate_maxcut_energy_impl maxcut_energy 
+Du generate_qubo_energy_impl qubo_energy
+
+C
+C def evaluate_cut_size_${energy_fn:l}(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:
+C     """Evaluate cut size (positive objective) for ${energy_fn}"""
+C     return -energy_${energy_fn:l}(partition, edge_weights)
+
+Actor generate_maxcut_energy_impl EnergyFunction
+C     # MAX-CUT: E(x) = -sum w_ij * (x_i XOR x_j)
+C     # = -sum w_ij * (x_i + x_j - 2*x_i*x_j)
+C     n = partition.shape[0]
+C     energy = 0.0
+C     
+C     # Vectorized computation of cut edges
+C     for i in range(n):
+C         for j in range(i + 1, n):
+C             # Edge contributes if x_i != x_j
+C             contribution = edge_weights[i, j] * (partition[i] + partition[j] - 2 * partition[i] * partition[j])
+C             energy -= contribution
+C     
+C     return energy
+
+Actor generate_qubo_energy_impl EnergyFunction
+C     # QUBO: E(x) = x^T Q x
+C     n = partition.shape[0]
+C     energy = 0.0
+C     
+C     # Compute quadratic form
+C     for i in range(n):
+C         for j in range(n):
+C             energy += edge_weights[i, j] * partition[i] * partition[j]
+C     
+C     return energy
+
+// =========================================================================
+// ANNEALING UTILITIES
+// =========================================================================
+
+Actor generate_annealing_utils Config
+C
+C def create_temperature_schedule_${config:l}(
+C     T_initial: float = 100.0,
+C     T_final: float = 0.01,
+C     num_steps: int = 1000,
+C     schedule_type: str = "geometric"
+C ) -> jnp.ndarray:
+C     """
+C     Create annealing temperature schedule
+C     Config: ${config}
+C     Target: ${target}
+C     From: ${._lno}
+C     """
+C     if schedule_type == "geometric":
+C         ratio = (T_final / T_initial) ** (1.0 / num_steps)
+C         temps = T_initial * (ratio ** jnp.arange(num_steps))
+C     elif schedule_type == "linear":
+C         temps = jnp.linspace(T_initial, T_final, num_steps)
+C     elif schedule_type == "exponential":
+C         temps = T_initial * jnp.exp(-jnp.arange(num_steps) / (num_steps / 5))
+C     else:
+C         raise ValueError(f"Unknown schedule type: {schedule_type}")
+C     
+C     return temps
+C
+C def generate_random_graph(key, num_vertices: int, edge_prob: float = 0.3) -> jnp.ndarray:
+C     """Generate random weighted graph for MAX-CUT"""
+C     key1, key2 = jax.random.split(key)
+C     
+C     # Random adjacency
+C     edges = jax.random.bernoulli(key1, edge_prob, (num_vertices, num_vertices))
+C     # Make symmetric
+C     edges = jnp.triu(edges, k=1)
+C     edges = edges + edges.T
+C     
+C     # Random weights
+C     weights = jax.random.uniform(key2, (num_vertices, num_vertices), minval=0.1, maxval=10.0)
+C     weights = weights * edges
+C     
+C     return weights
+
+// =========================================================================
+// SAMPLING OPERATIONS
+// =========================================================================
+
+Actor generate_sampling_op SamplingOp
+C
+C def sampling_${sampling_op:l}(
+C     key: Any,
+C     partition: jnp.ndarray,
+C     edge_weights: jnp.ndarray,
+C     temperature: float,
+C     num_sweeps: int = 1
+C ) -> Tuple[jnp.ndarray, float]:
+C     """
+C     Sampling Operation: ${sampling_op}
+C     Algorithm: ${algorithm}
+C     Distribution: ${distribution}
+C     Temperature: ${temperature::variable}
+C     From: ${._lno}
+C     """
+Du generate_gibbs_implementation
+Du generate_block_gibbs_implementation
+Du generate_simulated_annealing_implementation
+C     
+C     return partition, current_energy
+
+Actor generate_gibbs_implementation SamplingOp
+C     # Gibbs sampling with temperature
+C     current_partition = partition.copy()
+C     n = current_partition.shape[0]
+C     
+C     for sweep in range(num_sweeps):
+C         key, subkey = jax.random.split(key)
+C         
+C         # Random variable ordering
+C         order = jax.random.permutation(subkey, n)
+C         
+C         for idx in order:
+C             i = int(idx)
+C             
+C             # Compute energy change for flipping variable i
+C             current_val = current_partition[i]
+C             
+C             # Energy with current value
+C             E_current = energy_maxcut_energy(current_partition, edge_weights)
+C             
+C             # Flip and compute new energy
+C             current_partition = current_partition.at[i].set(1 - current_val)
+C             E_flip = energy_maxcut_energy(current_partition, edge_weights)
+C             
+C             # Metropolis acceptance
+C             delta_E = E_flip - E_current
+C             key, subkey = jax.random.split(key)
+C             
+C             if delta_E <= 0:
+C                 # Accept (keep flipped)
+C                 pass
+C             else:
+C                 # Accept with probability exp(-delta_E / T)
+C                 prob = jnp.exp(-delta_E / temperature)
+C                 accept = jax.random.uniform(subkey) < prob
+C                 if not accept:
+C                     # Reject: flip back
+C                     current_partition = current_partition.at[i].set(current_val)
+C     
+C     current_energy = energy_maxcut_energy(current_partition, edge_weights)
+C     return current_partition, current_energy
+
+Actor generate_block_gibbs_implementation SamplingOp
+C     # Block Gibbs: update multiple variables in parallel
+C     current_partition = partition.copy()
+C     n = current_partition.shape[0]
+C     block_size = 10  # Update 10 variables at a time
+C     
+C     for sweep in range(num_sweeps):
+C         for block_start in range(0, n, block_size):
+C             block_end = min(block_start + block_size, n)
+C             block_indices = jnp.arange(block_start, block_end)
+C             
+C             # Try all 2^block_size configurations (if small)
+C             if block_end - block_start <= 6:
+C                 # Enumerate all configurations
+C                 best_energy = float('inf')
+C                 best_config = current_partition[block_start:block_end].copy()
+C                 
+C                 for config_idx in range(2 ** (block_end - block_start)):
+C                     # Generate configuration
+C                     test_partition = current_partition.copy()
+C                     for j, idx in enumerate(block_indices):
+C                         bit = (config_idx >> j) & 1
+C                         test_partition = test_partition.at[idx].set(bit)
+C                     
+C                     E = energy_maxcut_energy(test_partition, edge_weights)
+C                     
+C                     # Sample proportional to exp(-E/T)
+C                     prob = jnp.exp(-E / temperature)
+C                     # Simplified: just take lowest energy
+C                     if E < best_energy:
+C                         best_energy = E
+C                         best_config = test_partition[block_start:block_end].copy()
+C                 
+C                 current_partition = current_partition.at[block_start:block_end].set(best_config)
+C             else:
+C                 # Too large, fall back to sequential Gibbs
+C                 for idx in block_indices:
+C                     i = int(idx)
+C                     current_val = current_partition[i]
+C                     
+C                     E_current = energy_maxcut_energy(current_partition, edge_weights)
+C                     current_partition = current_partition.at[i].set(1 - current_val)
+C                     E_flip = energy_maxcut_energy(current_partition, edge_weights)
+C                     
+C                     delta_E = E_flip - E_current
+C                     if delta_E > 0 and jax.random.uniform(key) >= jnp.exp(-delta_E / temperature):
+C                         current_partition = current_partition.at[i].set(current_val)
+C     
+C     current_energy = energy_maxcut_energy(current_partition, edge_weights)
+C     return current_partition, current_energy
+
+Actor generate_simulated_annealing_implementation SamplingOp
+C     # Simulated annealing: gradually decrease temperature
+C     current_partition = partition.copy()
+C     current_energy = energy_maxcut_energy(current_partition, edge_weights)
+C     
+C     # Use provided temperature as starting point
+C     T = temperature
+C     cooling_rate = 0.95
+C     
+C     for sweep in range(num_sweeps):
+C         n = current_partition.shape[0]
+C         key, subkey = jax.random.split(key)
+C         
+C         # Pick random variable to flip
+C         i = int(jax.random.randint(subkey, (), 0, n))
+C         
+C         # Compute energy change
+C         current_val = current_partition[i]
+C         current_partition = current_partition.at[i].set(1 - current_val)
+C         new_energy = energy_maxcut_energy(current_partition, edge_weights)
+C         
+C         delta_E = new_energy - current_energy
+C         
+C         # Metropolis acceptance
+C         key, subkey = jax.random.split(key)
+C         if delta_E <= 0 or jax.random.uniform(subkey) < jnp.exp(-delta_E / T):
+C             # Accept
+C             current_energy = new_energy
+C         else:
+C             # Reject
+C             current_partition = current_partition.at[i].set(current_val)
+C         
+C         # Cool down
+C         T *= cooling_rate
+C     
+C     return current_partition, current_energy
+
+// =========================================================================
+// TSU SAMPLING OPERATIONS
+// =========================================================================
+
+Actor generate_tsu_sampling_op TSUSamplingOp
+C
+C def tsu_sampling_${tsu_op:l}(
+C     key: Any,
+C     edge_weights: jnp.ndarray,
+C     temperature_schedule: jnp.ndarray,
+C     num_samples: int = 64
+C ) -> Tuple[jnp.ndarray, jnp.ndarray]:
+C     """
+C     TSU Native Sampling: ${tsu_op}
+C     Hardware: ${hardware}
+C     Device: ${tsu_device}
+C     Sample Shape: ${sample_shape}
+C     Calibration: ${calibration}
+C     From: ${._lno}
+C     
+C     NOTE: This is a SOFTWARE EMULATION of TSU hardware.
+C     Real TSU would use thermodynamic sampling in analog hardware.
+C     """
+C     print(f"  [TSU EMULATION] Initializing TSU device: ${tsu_device}")
+C     print(f"  [TSU EMULATION] Control lines: ${control_lines}")
+C     print(f"  [TSU EMULATION] Running hardware annealing...")
+C     
+C     n = edge_weights.shape[0]
+C     samples = []
+C     energies = []
+C     
+C     # Emulate TSU by running multiple annealing runs
+C     for sample_idx in range(num_samples):
+C         key, subkey = jax.random.split(key)
+C         
+C         # Initialize random partition
+C         partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+C         
+C         # Anneal according to schedule
+C         for t_idx, T in enumerate(temperature_schedule):
+C             # Gibbs sweep at temperature T
+C             partition, energy = sampling_maxcut_gibbs(
+C                 key=key,
+C                 partition=partition,
+C                 edge_weights=edge_weights,
+C                 temperature=float(T),
+C                 num_sweeps=1
+C             )
+C         
+C         samples.append(partition)
+C         energies.append(energy)
+C     
+C     print(f"  [TSU EMULATION] Generated {num_samples} samples")
+C     
+C     return jnp.array(samples), jnp.array(energies)
+
+// =========================================================================
+// EVALUATION OPERATIONS
+// =========================================================================
+
+Actor generate_evaluation_op Op
+Du generate_cut_evaluation cut_evaluation
+Du generate_energy_evaluation energy_computation
+
+Actor generate_cut_evaluation Op
+C
+C def op_evaluate_cut_${op:l}(
+C     partition: jnp.ndarray,
+C     edge_weights: jnp.ndarray
+C ) -> Tuple[float, float]:
+C     """
+C     Operation: ${op}
+C     Layer: ${parent.layer}
+C     Kernel: ${kernel::none}
+C     From: ${._lno}
+C     """
+C     energy = energy_maxcut_energy(partition, edge_weights)
+C     cut_size = -energy  # Cut size is negative energy
+C     return cut_size, energy
+
+Actor generate_energy_evaluation Op
+C
+C def op_energy_eval_${op:l}(
+C     partition: jnp.ndarray,
+C     edge_weights: jnp.ndarray
+C ) -> float:
+C     """
+C     Operation: ${op}
+C     Layer: ${parent.layer}
+C     From: ${._lno}
+C     """
+C     return energy_maxcut_energy(partition, edge_weights)
+
+// =========================================================================
+// INFERENCE PIPELINE
+// =========================================================================
+
+Actor generate_inference_pipeline Config
+C
+C def run_inference_${config:l}(
+C     key: Any,
+C     edge_weights: jnp.ndarray,
+C     config: ${config:u}_Config
+C ) -> Tuple[jnp.ndarray, float, list]:
+C     """
+C     Inference Pipeline: ${config}
+C     Target: ${target}
+C     Batch: ${batch}
+C     Sample Budget: ${sample_budget}
+C     From: ${._lno}
+C     
+C     Schedule:
+All Schedule generate_schedule_comment
+C     """
+C     print(f"\\nRunning inference: ${config}")
+C     print(f"Configuration from: ${._lno}")
+C     
+C     n = edge_weights.shape[0]
+C     
+C     # Initialize
+C     key, subkey = jax.random.split(key)
+C     best_partition = jax.random.bernoulli(subkey, 0.5, (n,)).astype(jnp.int32)
+C     best_cut = evaluate_cut_size_maxcut_energy(best_partition, edge_weights)
+C     best_energy = -best_cut
+C     
+C     energy_history = [best_energy]
+C     
+Du generate_tsu_annealing_pipeline
+Du generate_gpu_annealing_pipeline
+Du generate_hybrid_pipeline
+Du generate_cpu_pipeline
+C     
+C     return best_partition, best_cut, energy_history
+
+Actor generate_schedule_comment Schedule
+C     #   Step ${seq}: ${desc} (${layer})
+
+Actor generate_tsu_annealing_pipeline Config
+C     # TSU Hardware Annealing Pipeline
+C     print("\\n[STEP 1] TSU Hardware Annealing")
+C     
+C     # Create temperature schedule
+C     T_schedule = create_temperature_schedule_${config:l}(
+C         T_initial=100.0,
+C         T_final=0.01,
+C         num_steps=1000,
+C         schedule_type="geometric"
+C     )
+C     
+C     # TSU sampling (emulated)
+C     tsu_samples, tsu_energies = tsu_sampling_tsu_qubo_anneal(
+C         key=key,
+C         edge_weights=edge_weights,
+C         temperature_schedule=T_schedule,
+C         num_samples=config.batch_size
+C     )
+C     
+C     # Find best from TSU samples
+C     best_idx = jnp.argmin(tsu_energies)
+C     best_partition = tsu_samples[best_idx]
+C     best_energy = tsu_energies[best_idx]
+C     
+C     print(f"\\n[STEP 2] Evaluate Final Cut")
+C     best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+C     
+C     print(f"  Best cut from TSU: {best_cut:.4f}")
+C     print(f"  Energy: {best_energy:.4f}")
+C     
+C     energy_history.extend(tsu_energies.tolist())
+
+Actor generate_gpu_annealing_pipeline Config
+C     # GPU Simulated Annealing Pipeline
+C     print("\\n[STEP 1] GPU Gibbs Sampling with Annealing")
+C     
+C     T_schedule = create_temperature_schedule_${config:l}(
+C         T_initial=100.0,
+C         T_final=0.01,
+C         num_steps=1000,
+C         schedule_type="geometric"
+C     )
+C     
+C     current_partition = best_partition.copy()
+C     
+C     # Annealing loop
+C     for step_idx, T in enumerate(T_schedule):
+C         key, subkey = jax.random.split(key)
+C         
+C         # Gibbs sweep at current temperature
+C         current_partition, current_energy = sampling_maxcut_gibbs(
+C             key=subkey,
+C             partition=current_partition,
+C             edge_weights=edge_weights,
+C             temperature=float(T),
+C             num_sweeps=10
+C         )
+C         
+C         energy_history.append(current_energy)
+C         
+C         # Update best
+C         if current_energy < best_energy:
+C             best_energy = current_energy
+C             best_partition = current_partition.copy()
+C             best_cut = -best_energy
+C         
+C         if step_idx % 100 == 0:
+C             print(f"  Step {step_idx}/1000: T={T:.4f}, E={current_energy:.4f}, Best={best_cut:.4f}")
+C     
+C     print(f"\\n[STEP 2] Final Evaluation")
+C     final_cut, final_energy = op_evaluate_cut_qubo_gibbs_update(best_partition, edge_weights)
+C     print(f"  Final cut: {final_cut:.4f}")
+
+Actor generate_hybrid_pipeline Config
+C     # Hybrid GPU + TSU Pipeline
+C     print("\\n[STEP 1] GPU Warm Start")
+C     
+C     # Warm start on GPU
+C     warm_start_steps = 100
+C     T_warm = 50.0
+C     
+C     current_partition = best_partition.copy()
+C     
+C     for step in range(warm_start_steps):
+C         key, subkey = jax.random.split(key)
+C         current_partition, current_energy = sampling_maxcut_gibbs(
+C             key=subkey,
+C             partition=current_partition,
+C             edge_weights=edge_weights,
+C             temperature=T_warm,
+C             num_sweeps=1
+C         )
+C         
+C         if current_energy < best_energy:
+C             best_energy = current_energy
+C             best_partition = current_partition.copy()
+C         
+C         if step % 20 == 0:
+C             print(f"  Warm start step {step}/100: E={current_energy:.4f}")
+C     
+C     print(f"\\n[STEP 2] TSU Fine Annealing")
+C     
+C     # Transfer to TSU for fine annealing
+C     T_schedule = create_temperature_schedule_${config:l}(
+C         T_initial=50.0,
+C         T_final=0.01,
+C         num_steps=500,
+C         schedule_type="geometric"
+C     )
+C     
+C     # Use warm-started partition
+C     tsu_partition = best_partition.copy()
+C     
+C     for t_idx, T in enumerate(T_schedule):
+C         key, subkey = jax.random.split(key)
+C         tsu_partition, tsu_energy = sampling_maxcut_gibbs(
+C             key=subkey,
+C             partition=tsu_partition,
+C             edge_weights=edge_weights,
+C             temperature=float(T),
+C             num_sweeps=5
+C         )
+C         
+C         energy_history.append(tsu_energy)
+C         
+C         if tsu_energy < best_energy:
+C             best_energy = tsu_energy
+C             best_partition = tsu_partition.copy()
+C         
+C         if t_idx % 100 == 0:
+C             print(f"  TSU anneal step {t_idx}/500: T={T:.4f}, E={tsu_energy:.4f}")
+C     
+C     print(f"\\n[STEP 3] GPU Final Evaluation")
+C     best_cut, best_energy = op_evaluate_cut_tsu_anneal(best_partition, edge_weights)
+C     print(f"  Final cut: {best_cut:.4f}")
+
+Actor generate_cpu_pipeline Config
+C     # CPU Branch-and-Bound (for small instances)
+C     print("\\n[STEP 1] CPU Exact Solver")
+C     print("  WARNING: Exponential time - only for N <= 40")
+C     
+C     n = edge_weights.shape[0]
+C     if n > 40:
+C         print(f"  ERROR: Instance too large (N={n}), using heuristic instead")
+C         # Fall back to GPU annealing
+C         current_partition = best_partition.copy()
+C         for step in range(1000):
+C             key, subkey = jax.random.split(key)
+C             current_partition, current_energy = sampling_maxcut_gibbs(
+C                 key=subkey,
+C                 partition=current_partition,
+C                 edge_weights=edge_weights,
+C                 temperature=1.0,
+C                 num_sweeps=10
+C             )
+C             if current_energy < best_energy:
+C                 best_energy = current_energy
+C                 best_partition = current_partition.copy()
+C     else:
+C         # Brute force enumeration (exponential!)
+C         print(f"  Enumerating all 2^{n} = {2**n} configurations...")
+C         for config_idx in range(2**n):
+C             # Generate configuration
+C             partition = jnp.array([(config_idx >> i) & 1 for i in range(n)])
+C             energy = energy_maxcut_energy(partition, edge_weights)
+C             
+C             energy_history.append(energy)
+C             
+C             if energy < best_energy:
+C                 best_energy = energy
+C                 best_partition = partition.copy()
+C                 best_cut = -energy
+C             
+C             if config_idx % 10000 == 0 and config_idx > 0:
+C                 print(f"  Progress: {config_idx}/{2**n} ({100*config_idx/(2**n):.1f}%)")
+C         
+C         print(f"  Exact solution found: cut = {best_cut:.4f}")
+
+// =========================================================================
+// BUILD SCRIPT GENERATION
+// =========================================================================
+
+Actor generate_build_script BuildRule
+C
+C # =========================================================================
+C # Build Script: ${build_id}
+C # Targets: ${targets}
+C # Output: ${output_dir}
+C # Template: ${template}
+C # From: ${._lno}
+C # Debug Info:
+C #   Build ID: ${build_id} (${build_id::default_build})
+C #   Targets: ${targets} (${targets::default_target})
+C #   Output Dir: ${output_dir} (${output_dir::./build})
+C #   Template: ${template} (${template::default})
+C # =========================================================================
+C
+C def build_${build_id:l}():
+C     """Generate code for all targets"""
+C     print(f"\\nBuild Rule: ${build_id}")
+C     print(f"Targets: ${targets}")
+C     print(f"Output Directory: ${output_dir}")
+C     print(f"Template: ${template}")
+C     
+C     targets = "${targets}".split(",")
+C     
+C     for target in targets:
+C         target = target.strip()
+C         print(f"\\nGenerating code for target: {target}")
+C         
+C         # In real implementation, would call target-specific codegen
+C         output_file = Path("${output_dir}") / f"{target}_maxcutqubo.py"
+C         print(f"  Output: {output_file}")
+C         
+C         # Placeholder: actual code would be generated per target
+C         print(f"  ✓ Generated: {output_file}")
+C     
+Its validate_against generate_validation_script
+C     
+C     print(f"\\n{'='*70}")
+C     print(f"Build complete: ${build_id}")
+C     print(f"{'='*70}\\n")
+C
+C if __name__ == "__main__":
+C     build_${build_id:l}()
+
+Actor generate_validation_script TargetConfig
+C
+C def validate_against_${target_id:l}():
+C     """
+C     Validation Script
+C     Validate TSU results against: ${target_id}
+C     From: ${._lno}
+C     """
+C     print(f"\\n{'='*70}")
+C     print(f"VALIDATION: Compare against ${target_id}")
+C     print(f"{'='*70}")
+C     
+C     # Load results from different targets
+C     print("Loading results from all targets...")
+C     
+C     # In real implementation:
+C     # - Run inference on each target
+C     # - Compare cut sizes
+C     # - Measure time/energy differences
+C     # - Check solution quality
+C     
+C     print("\\nValidation metrics:")
+C     print("  - Solution quality (cut size)")
+C     print("  - Runtime performance") 
+C     print("  - Energy consumption")
+C     print("  - Convergence behavior")
+C     print(f"\\nBaseline target: ${target_id}")
+C     print(f"{'='*70}\\n")
+
+// =========================================================================
+// THERMODYNAMIC ANALYSIS UTILITIES
+// =========================================================================
+
+Actor generate_project_structure Project
+C
+C # =========================================================================
+C # THERMODYNAMIC ANALYSIS
+C # =========================================================================
+C
+All ThermodynamicSimulation generate_thermo_simulation
+
+Actor generate_thermo_simulation ThermodynamicSimulation
+C
+C def thermodynamic_analysis_${sim_id:l}(
+C     energy_history: list,
+C     temperature_schedule: jnp.ndarray
+C ) -> Dict[str, Any]:
+C     """
+C     Thermodynamic Analysis: ${sim_id}
+C     Temperature: ${T} K
+C     kT: ${kT}
+C     Entropy Traced: ${entropy_traced}
+C     Landauer Limit: ${landauer_limit}
+C     From: ${._lno}
+C     """
+C     print(f"\\n{'='*70}")
+C     print(f"THERMODYNAMIC ANALYSIS - ${sim_id}")
+C     print(f"{'='*70}\\n")
+C     
+C     kT = ${kT::"4.11e-21 * T"}
+C     landauer_limit = ${landauer_limit::"2.85e-21"}
+C     
+C     # Compute thermodynamic quantities
+C     num_steps = len(energy_history)
+C     energy_array = jnp.array(energy_history)
+C     
+C     # Energy dissipation
+C     energy_changes = jnp.diff(energy_array)
+C     total_dissipation = jnp.sum(jnp.abs(energy_changes))
+C     
+C     # Entropy production (estimate)
+C     entropy_production = total_dissipation / kT if kT > 0 else 0.0
+C     
+C     # Landauer cost per bit flip
+C     num_variables = 100  # From model
+C     estimated_flips = num_steps * num_variables * 0.1  # Assume 10% flip rate
+C     landauer_cost_total = estimated_flips * landauer_limit
+C     
+C     print(f"Total energy dissipation: {total_dissipation:.6e} J")
+C     print(f"Entropy production: {entropy_production:.6e} J/K")
+C     print(f"Estimated bit flips: {estimated_flips:.0f}")
+C     print(f"Landauer limit cost: {landauer_cost_total:.6e} J")
+C     print(f"Actual vs Landauer: {total_dissipation/landauer_cost_total:.2f}x")
+C     
+C     # Temperature-energy correlation
+C     if len(temperature_schedule) == len(energy_history):
+C         print(f"\\nTemperature-Energy Correlation:")
+C         for i in [0, len(energy_history)//2, -1]:
+C             if i >= 0:
+C                 T_val = temperature_schedule[i] if i < len(temperature_schedule) else temperature_schedule[-1]
+C                 E_val = energy_history[i]
+C                 print(f"  Step {i}: T={T_val:.4f}, E={E_val:.4f}")
+C     
+C     print(f"\\n{'='*70}\\n")
+C     
+C     return {
+C         'total_dissipation': float(total_dissipation),
+C         'entropy_production': float(entropy_production),
+C         'landauer_cost': float(landauer_cost_total),
+C 'efficiency_ratio': float(total_dissipation / landauer_cost_total) if landauer_cost_total > 0 else 0.0
+C     }

@@ -1,0 +1,1498 @@
+# =========================================================================
+# Auto-Tuning Project: MaxCutMultiTarget
+# Evolutionary Optimization for MAX-CUT Annealing
+# Generated from: max-cut.net:788, max-cut-auto.act:21
+# =========================================================================
+
+import os
+import sys
+from pathlib import Path
+import json
+import pickle
+from datetime import datetime
+
+# Create output directories
+output_dirs = [
+    "./build/maxcut_multi",
+    "./build/maxcut_multi/checkpoints",
+    "./build/maxcut_multi/results",
+    "./build/maxcut_multi/learned_patterns",
+    "./build/maxcut_tsu",
+    "./build/maxcut_tsu/checkpoints",
+    "./build/maxcut_tsu/results",
+    "./build/maxcut_tsu/learned_patterns",
+]
+
+for dir_path in output_dirs:
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+    print(f"Created directory: {dir_path}")
+
+print(f"\\nAuto-tuning project: MaxCutMultiTarget")
+print(f"Model: MaxCutQUBO")
+
+
+# =========================================================================
+# SEARCH SPACE DEFINITION: maxcut_tuning_space
+# Generated from: max-cut-auto.net:5, max-cut-auto.act:62
+# =========================================================================
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any, List, Tuple, Optional
+from dataclasses import dataclass, field
+import random
+
+@dataclass
+class SearchSpaceConfig_maxcut_tuning_space:
+    """
+    Search Space: maxcut_tuning_space
+    Target: inference_tsu
+    Objective: maximize_cut
+    Constraints: power < 5W, time < 60s
+    From: max-cut-auto.net:5, max-cut-auto.act:79
+    """
+    search_space_id: str = "maxcut_tuning_space"
+    target_config: str = "inference_tsu"
+    objective: str = "maximize_cut"
+    constraints: str = "power < 5W, time < 60s"
+    
+    # Parameter bounds
+    t_initial_min: float = 10.0
+    t_initial_max: float = 1000.0
+    t_initial_initial: float = 100.0
+    t_initial_mutation_rate: float = 0.3
+    t_initial_type: str = "continuous"  # continuous
+    t_initial_values: List[str] = field(default_factory=lambda: "none".split(","))
+    cooling_rate_min: float = 0.85
+    cooling_rate_max: float = 0.99
+    cooling_rate_initial: float = 0.95
+    cooling_rate_mutation_rate: float = 0.2
+    cooling_rate_type: str = "continuous"  # continuous
+    cooling_rate_values: List[str] = field(default_factory=lambda: "none".split(","))
+    num_annealing_steps_min: float = 100
+    num_annealing_steps_max: float = 10000
+    num_annealing_steps_initial: float = 1000
+    num_annealing_steps_mutation_rate: float = 0.3
+    num_annealing_steps_type: str = "discrete"  # discrete
+    num_annealing_steps_values: List[str] = field(default_factory=lambda: "none".split(","))
+    resampling_strategy_min: float = 0.0
+    resampling_strategy_max: float = 1.0
+    resampling_strategy_initial: float = async
+    resampling_strategy_mutation_rate: float = 0.1
+    resampling_strategy_type: str = "categorical"  # categorical
+    resampling_strategy_values: List[str] = field(default_factory=lambda: "sequential,parallel,async".split(","))
+    
+    def validate_constraints(self, params: Dict[str, Any]) -> bool:
+        """Check if parameter set satisfies constraints"""
+        # Parse constraints: power < 5W, time < 60s
+        # Constraint parsing for: power < 5W, time < 60s
+        constraint_str = "power < 5W, time < 60s"
+        # Example: "power < 5W, time < 60s"
+        # In production, parse and evaluate dynamically
+        # For now, simple validation
+        return True  # Placeholder
+        return True
+    
+    def generate_random_individual(self, key) -> Dict[str, Any]:
+        """Generate random parameter configuration"""
+        individual = {}
+        # Parameter: T_initial (continuous)
+        key, subkey = jax.random.split(key)
+        individual["T_initial"] = float(jax.random.uniform(
+            subkey, 
+            minval=self.t_initial_min, 
+            maxval=self.t_initial_max
+        ))
+        key, subkey = jax.random.split(key)
+        individual["T_initial"] = int(jax.random.randint(
+            subkey, 
+            shape=(), 
+            minval=int(self.t_initial_min), 
+            maxval=int(self.t_initial_max) + 1
+        ))
+        key, subkey = jax.random.split(key)
+        idx = int(jax.random.randint(subkey, shape=(), minval=0, maxval=len(self.t_initial_values)))
+        individual["T_initial"] = self.t_initial_values[idx]
+        # Parameter: cooling_rate (continuous)
+        key, subkey = jax.random.split(key)
+        individual["cooling_rate"] = float(jax.random.uniform(
+            subkey, 
+            minval=self.cooling_rate_min, 
+            maxval=self.cooling_rate_max
+        ))
+        key, subkey = jax.random.split(key)
+        individual["cooling_rate"] = int(jax.random.randint(
+            subkey, 
+            shape=(), 
+            minval=int(self.cooling_rate_min), 
+            maxval=int(self.cooling_rate_max) + 1
+        ))
+        key, subkey = jax.random.split(key)
+        idx = int(jax.random.randint(subkey, shape=(), minval=0, maxval=len(self.cooling_rate_values)))
+        individual["cooling_rate"] = self.cooling_rate_values[idx]
+        # Parameter: num_annealing_steps (discrete)
+        key, subkey = jax.random.split(key)
+        individual["num_annealing_steps"] = float(jax.random.uniform(
+            subkey, 
+            minval=self.num_annealing_steps_min, 
+            maxval=self.num_annealing_steps_max
+        ))
+        key, subkey = jax.random.split(key)
+        individual["num_annealing_steps"] = int(jax.random.randint(
+            subkey, 
+            shape=(), 
+            minval=int(self.num_annealing_steps_min), 
+            maxval=int(self.num_annealing_steps_max) + 1
+        ))
+        key, subkey = jax.random.split(key)
+        idx = int(jax.random.randint(subkey, shape=(), minval=0, maxval=len(self.num_annealing_steps_values)))
+        individual["num_annealing_steps"] = self.num_annealing_steps_values[idx]
+        # Parameter: resampling_strategy (categorical)
+        key, subkey = jax.random.split(key)
+        individual["resampling_strategy"] = float(jax.random.uniform(
+            subkey, 
+            minval=self.resampling_strategy_min, 
+            maxval=self.resampling_strategy_max
+        ))
+        key, subkey = jax.random.split(key)
+        individual["resampling_strategy"] = int(jax.random.randint(
+            subkey, 
+            shape=(), 
+            minval=int(self.resampling_strategy_min), 
+            maxval=int(self.resampling_strategy_max) + 1
+        ))
+        key, subkey = jax.random.split(key)
+        idx = int(jax.random.randint(subkey, shape=(), minval=0, maxval=len(self.resampling_strategy_values)))
+        individual["resampling_strategy"] = self.resampling_strategy_values[idx]
+        return individual
+    
+    def mutate(self, individual: Dict[str, Any], key) -> Dict[str, Any]:
+        """Mutate an individual"""
+        mutated = individual.copy()
+        # Mutate T_initial with probability 0.3
+        if random.random() < self.t_initial_mutation_rate:
+            # Gaussian mutation for continuous parameter
+            sigma = (self.t_initial_max - self.t_initial_min) * 0.1
+            mutated["T_initial"] = np.clip(
+                individual["T_initial"] + np.random.normal(0, sigma),
+                self.t_initial_min,
+                self.t_initial_max
+            )
+            # Integer mutation
+            delta = np.random.randint(-5, 6)
+            mutated["T_initial"] = int(np.clip(
+                individual["T_initial"] + delta,
+                self.t_initial_min,
+                self.t_initial_max
+            ))
+            # Random categorical value
+            mutated["T_initial"] = random.choice(self.t_initial_values)
+        # Mutate cooling_rate with probability 0.2
+        if random.random() < self.cooling_rate_mutation_rate:
+            # Gaussian mutation for continuous parameter
+            sigma = (self.cooling_rate_max - self.cooling_rate_min) * 0.1
+            mutated["cooling_rate"] = np.clip(
+                individual["cooling_rate"] + np.random.normal(0, sigma),
+                self.cooling_rate_min,
+                self.cooling_rate_max
+            )
+            # Integer mutation
+            delta = np.random.randint(-5, 6)
+            mutated["cooling_rate"] = int(np.clip(
+                individual["cooling_rate"] + delta,
+                self.cooling_rate_min,
+                self.cooling_rate_max
+            ))
+            # Random categorical value
+            mutated["cooling_rate"] = random.choice(self.cooling_rate_values)
+        # Mutate num_annealing_steps with probability 0.3
+        if random.random() < self.num_annealing_steps_mutation_rate:
+            # Gaussian mutation for continuous parameter
+            sigma = (self.num_annealing_steps_max - self.num_annealing_steps_min) * 0.1
+            mutated["num_annealing_steps"] = np.clip(
+                individual["num_annealing_steps"] + np.random.normal(0, sigma),
+                self.num_annealing_steps_min,
+                self.num_annealing_steps_max
+            )
+            # Integer mutation
+            delta = np.random.randint(-5, 6)
+            mutated["num_annealing_steps"] = int(np.clip(
+                individual["num_annealing_steps"] + delta,
+                self.num_annealing_steps_min,
+                self.num_annealing_steps_max
+            ))
+            # Random categorical value
+            mutated["num_annealing_steps"] = random.choice(self.num_annealing_steps_values)
+        # Mutate resampling_strategy with probability 0.1
+        if random.random() < self.resampling_strategy_mutation_rate:
+            # Gaussian mutation for continuous parameter
+            sigma = (self.resampling_strategy_max - self.resampling_strategy_min) * 0.1
+            mutated["resampling_strategy"] = np.clip(
+                individual["resampling_strategy"] + np.random.normal(0, sigma),
+                self.resampling_strategy_min,
+                self.resampling_strategy_max
+            )
+            # Integer mutation
+            delta = np.random.randint(-5, 6)
+            mutated["resampling_strategy"] = int(np.clip(
+                individual["resampling_strategy"] + delta,
+                self.resampling_strategy_min,
+                self.resampling_strategy_max
+            ))
+            # Random categorical value
+            mutated["resampling_strategy"] = random.choice(self.resampling_strategy_values)
+        return mutated
+    
+    def crossover(self, parent1: Dict[str, Any], parent2: Dict[str, Any], key) -> Dict[str, Any]:
+        """Crossover two parents"""
+        offspring = {}
+        # Crossover for T_initial
+        # Arithmetic crossover
+        alpha = random.random()
+        offspring["T_initial"] = alpha * parent1["T_initial"] + (1 - alpha) * parent2["T_initial"]
+        # Random selection
+        offspring["T_initial"] = random.choice([parent1["T_initial"], parent2["T_initial"]])
+        # Random selection
+        offspring["T_initial"] = random.choice([parent1["T_initial"], parent2["T_initial"]])
+        # Crossover for cooling_rate
+        # Arithmetic crossover
+        alpha = random.random()
+        offspring["cooling_rate"] = alpha * parent1["cooling_rate"] + (1 - alpha) * parent2["cooling_rate"]
+        # Random selection
+        offspring["cooling_rate"] = random.choice([parent1["cooling_rate"], parent2["cooling_rate"]])
+        # Random selection
+        offspring["cooling_rate"] = random.choice([parent1["cooling_rate"], parent2["cooling_rate"]])
+        # Crossover for num_annealing_steps
+        # Arithmetic crossover
+        alpha = random.random()
+        offspring["num_annealing_steps"] = alpha * parent1["num_annealing_steps"] + (1 - alpha) * parent2["num_annealing_steps"]
+        # Random selection
+        offspring["num_annealing_steps"] = random.choice([parent1["num_annealing_steps"], parent2["num_annealing_steps"]])
+        # Random selection
+        offspring["num_annealing_steps"] = random.choice([parent1["num_annealing_steps"], parent2["num_annealing_steps"]])
+        # Crossover for resampling_strategy
+        # Arithmetic crossover
+        alpha = random.random()
+        offspring["resampling_strategy"] = alpha * parent1["resampling_strategy"] + (1 - alpha) * parent2["resampling_strategy"]
+        # Random selection
+        offspring["resampling_strategy"] = random.choice([parent1["resampling_strategy"], parent2["resampling_strategy"]])
+        # Random selection
+        offspring["resampling_strategy"] = random.choice([parent1["resampling_strategy"], parent2["resampling_strategy"]])
+        return offspring
+
+# Global search space instance
+search_space_maxcut_tuning_space = SearchSpaceConfig_maxcut_tuning_space()
+
+# =========================================================================
+# EVOLUTION STRATEGY: maxcut_genetic_search
+# Generated from: max-cut-auto.net:71, max-cut-auto.act:219
+# =========================================================================
+
+@dataclass
+class EvolutionConfig_maxcut_genetic_search:
+    """
+    Evolution Strategy: maxcut_genetic_search
+    Algorithm: genetic_algorithm
+    Population: 50
+    Generations: 100
+    From: max-cut-auto.net:71, max-cut-auto.act:229
+    """
+    strategy_id: str = "maxcut_genetic_search"
+    algorithm: str = "genetic_algorithm"
+    population_size: int = 50
+    num_generations: int = 100
+    elite_count: int = 5
+    crossover_rate: float = 0.7
+    mutation_rate: float = 0.2
+    selection_method: str = "tournament"
+    parallel_eval: bool = true
+    
+    
+    # Fitness Function: maxcut_composite_fitness
+    # Expression: weighted_sum
+    # Components: cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1
+    # Normalization: z_score
+    # Higher Better: true
+
+class EvolutionaryOptimizer_maxcut_genetic_search:
+    """Evolutionary optimizer for maxcut_genetic_search"""
+    
+    def __init__(self, search_space, config: EvolutionConfig_maxcut_genetic_search):
+        self.search_space = search_space
+        self.config = config
+        self.population: List[Dict[str, Any]] = []
+        self.fitness_scores: List[float] = []
+        self.best_individual: Optional[Dict[str, Any]] = None
+        self.best_fitness: float = -float('inf')
+        self.generation: int = 0
+        self.history: List[Dict[str, Any]] = []
+        
+    def initialize_population(self, key):
+        """Initialize random population"""
+        print(f"Initializing population of {self.config.population_size}...")
+        self.population = []
+        for i in range(self.config.population_size):
+            key, subkey = jax.random.split(key)
+            individual = self.search_space.generate_random_individual(subkey)
+            self.population.append(individual)
+        print(f"Population initialized: {len(self.population)} individuals")
+    
+    
+    def evaluate_fitness(self, individual: Dict[str, Any]) -> float:
+        """
+        Fitness Function: maxcut_composite_fitness
+        Expression: weighted_sum
+        Components: cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1
+        Normalization: z_score
+        Higher Better: true
+        From: max-cut-auto.net:85, max-cut-auto.act:394
+        """
+        # In production: run actual MAX-CUT inference with these parameters
+        # For now, simulate fitness evaluation
+        
+        # Parse components: cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1
+        # Example: "cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1"
+        
+        # Simulate quality (higher is better)
+        cut_quality = 0.8 + 0.2 * random.random()
+        
+        # Simulate time efficiency (faster is better)
+        time_efficiency = 1.0 / (1.0 + abs(individual.get("T_initial", 100) - 100) / 1000.0)
+        
+        # Simulate energy cost (lower is better)
+        energy_cost = 1.0 / (1.0 + abs(individual.get("cooling_rate", 0.95) - 0.95) * 10)
+        
+        # Weighted combination: cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1
+        fitness = (0.6 * cut_quality + 
+                  0.3 * time_efficiency + 
+                  0.1 * energy_cost)
+        
+        # Normalization: z_score
+        # In production: apply z-score or min-max normalization
+        
+        return fitness
+    
+    def select_parents(self, key) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Select two parents using tournament"""
+        # Tournament selection
+        tournament_size = 3
+        tournament_indices = random.sample(range(len(self.population)), tournament_size * 2)
+        
+        # First parent
+        tournament1 = tournament_indices[:tournament_size]
+        winner1_idx = max(tournament1, key=lambda i: self.fitness_scores[i])
+        parent1 = self.population[winner1_idx]
+        
+        # Second parent
+        tournament2 = tournament_indices[tournament_size:]
+        winner2_idx = max(tournament2, key=lambda i: self.fitness_scores[i])
+        parent2 = self.population[winner2_idx]
+        
+        return parent1, parent2
+        # Roulette wheel selection
+        total_fitness = sum(self.fitness_scores)
+        if total_fitness <= 0:
+            # Fallback to random selection
+            idx1, idx2 = random.sample(range(len(self.population)), 2)
+            return self.population[idx1], self.population[idx2]
+        
+        def select_one():
+            r = random.random() * total_fitness
+            cumsum = 0
+            for i, fitness in enumerate(self.fitness_scores):
+                cumsum += fitness
+                if cumsum >= r:
+                    return self.population[i]
+            return self.population[-1]
+        
+        return select_one(), select_one()
+        # Rank-based selection
+        ranks = np.argsort(np.argsort(self.fitness_scores)) + 1
+        rank_sum = np.sum(ranks)
+        probabilities = ranks / rank_sum
+        
+        indices = np.random.choice(len(self.population), size=2, p=probabilities, replace=False)
+        return self.population[indices[0]], self.population[indices[1]]
+        # Elitist selection: always pick from top 20%
+        top_k = max(1, len(self.population) // 5)
+        top_indices = np.argsort(self.fitness_scores)[-top_k:]
+        
+        idx1, idx2 = random.sample(list(top_indices), 2)
+        return self.population[idx1], self.population[idx2]
+    
+    def evolve_generation(self, key):
+        """Evolve one generation"""
+        print(f"\\nGeneration {self.generation + 1}/{self.config.num_generations}")
+        
+        # Evaluate fitness
+        print("  Evaluating fitness...")
+        self.fitness_scores = []
+        for idx, individual in enumerate(self.population):
+            fitness = self.evaluate_fitness(individual)
+            self.fitness_scores.append(fitness)
+            
+            # Update best
+            if fitness > self.best_fitness:
+                self.best_fitness = fitness
+                self.best_individual = individual.copy()
+                print(f"  âœ" New best! Fitness: {fitness:.4f}, Individual: {individual}")
+            
+            if idx % 10 == 0:
+                print(f"    Evaluated {idx}/{len(self.population)}")
+        
+        # Record history
+        self.history.append({
+            'generation': self.generation,
+            'best_fitness': self.best_fitness,
+            'avg_fitness': np.mean(self.fitness_scores),
+            'std_fitness': np.std(self.fitness_scores),
+            'best_individual': self.best_individual.copy()
+        })
+        
+        print(f"  Best fitness: {self.best_fitness:.4f}")
+        print(f"  Avg fitness: {np.mean(self.fitness_scores):.4f} ± {np.std(self.fitness_scores):.4f}")
+        
+        # Create next generation
+        next_population = []
+        
+        # Elitism: keep top individuals
+        elite_indices = np.argsort(self.fitness_scores)[-self.config.elite_count:]
+        for idx in elite_indices:
+            next_population.append(self.population[idx].copy())
+        print(f"  Preserved {len(elite_indices)} elite individuals")
+        
+        # Generate offspring
+        while len(next_population) < self.config.population_size:
+            key, subkey = jax.random.split(key)
+            
+            # Selection
+            parent1, parent2 = self.select_parents(subkey)
+            
+            # Crossover
+            if random.random() < self.config.crossover_rate:
+                key, subkey = jax.random.split(key)
+                offspring = self.search_space.crossover(parent1, parent2, subkey)
+            else:
+                offspring = parent1.copy()
+            
+            # Mutation
+            key, subkey = jax.random.split(key)
+            offspring = self.search_space.mutate(offspring, subkey)
+            
+            next_population.append(offspring)
+        
+        self.population = next_population
+        self.generation += 1
+    
+    def run(self, key, num_generations: Optional[int] = None):
+        """Run evolutionary optimization"""
+        if num_generations is None:
+            num_generations = self.config.num_generations
+        
+        print(f"\\n{'='*70}")
+        print(f"EVOLUTIONARY OPTIMIZATION: maxcut_genetic_search")
+        print(f"{'='*70}")
+        print(f"Algorithm: genetic_algorithm")
+        print(f"Population: 50")
+        print(f"Generations: {num_generations}")
+        print(f"Search Space: {self.search_space.search_space_id}")
+        print(f"{'='*70}\\n")
+        
+        # Initialize
+        key, subkey = jax.random.split(key)
+        self.initialize_population(subkey)
+        
+        # Evolution loop
+        for gen in range(num_generations):
+            key, subkey = jax.random.split(key)
+            self.evolve_generation(subkey)
+            
+            
+            # Early stopping check
+            if len(self.history) >= 50:
+                recent_best = [h['best_fitness'] for h in self.history[-50:]]
+                if max(recent_best) - min(recent_best) < 1e-6:
+                    print(f"\\n  Early stopping: no improvement for 50 generations")
+                    break
+            
+            # Save checkpoint every 10 generations
+            if (gen + 1) % 10 == 0:
+                checkpoint = {
+                    'generation': self.generation,
+                    'population': self.population,
+                    'fitness_scores': self.fitness_scores,
+                    'best_individual': self.best_individual,
+                    'best_fitness': self.best_fitness,
+                    'history': self.history
+                }
+                checkpoint_path = Path("./build/autotuner/checkpoints") / f"gen_{self.generation:04d}.pkl"
+                with open(checkpoint_path, 'wb') as f:
+                    pickle.dump(checkpoint, f)
+                print(f"  Checkpoint saved: {checkpoint_path}")
+        
+        print(f"\\n{'='*70}")
+        print(f"OPTIMIZATION COMPLETE")
+        print(f"{'='*70}")
+        print(f"Best fitness: {self.best_fitness:.4f}")
+        print(f"Best individual: {self.best_individual}")
+        print(f"{'='*70}\\n")
+        
+        return self.best_individual, self.best_fitness, self.history
+
+# Global optimizer instance
+optimizer_maxcut_genetic_search = None
+
+# =========================================================================
+# PERFORMANCE METRICS
+# =========================================================================
+
+@dataclass
+class PerformanceMetric_cut_quality:
+    """
+    Metric: cut_quality
+    Type: solution_quality
+    Measurement: achieved_cut / theoretical_upper_bound
+    Target: 0.95
+    From: max-cut-auto.net:95, max-cut-auto.act:738
+    """
+    metric_id: str = "cut_quality"
+    metric_type: str = "solution_quality"
+    measurement: str = "achieved_cut / theoretical_upper_bound"
+    target_value: float = 0.95
+    tolerance: float = 0.05
+    
+    def evaluate(self, trial_results: Dict[str, Any]) -> float:
+        """Evaluate metric on trial results"""
+        # Solution quality metric: achieved_cut / theoretical_upper_bound
+        if self.metric_type == "solution_quality":
+            achieved_cut = trial_results.get("cut_value", 0.0)
+            theoretical_bound = trial_results.get("upper_bound", 1.0)
+            if theoretical_bound > 0:
+                return achieved_cut / theoretical_bound
+            return 0.0
+        # Runtime metric: achieved_cut / theoretical_upper_bound
+        if self.metric_type == "runtime":
+            runtime = trial_results.get("elapsed_time", float('inf'))
+            return 1.0 / (1.0 + runtime)  # Normalized
+        # Energy metric: achieved_cut / theoretical_upper_bound
+        if self.metric_type == "energy":
+            energy = trial_results.get("energy_consumption", 0.0)
+            return 1.0 / (1.0 + energy)
+        # Convergence metric: achieved_cut / theoretical_upper_bound
+        if self.metric_type == "convergence":
+            steps_to_converge = trial_results.get("convergence_steps", float('inf'))
+            return self.target_value / max(steps_to_converge, 1.0)
+        return 0.0
+    
+    def check_target(self, value: float) -> bool:
+        """Check if metric meets target"""
+        return abs(value - self.target_value) <= self.tolerance
+
+# Metric registry
+performance_metrics = [
+    PerformanceMetric_cut_quality()
+]
+
+# =========================================================================
+# PERFORMANCE METRICS
+# =========================================================================
+
+@dataclass
+class PerformanceMetric_convergence_speed:
+    """
+    Metric: convergence_speed
+    Type: convergence
+    Measurement: steps_to_variance_threshold
+    Target: 500
+    From: max-cut-auto.net:104, max-cut-auto.act:738
+    """
+    metric_id: str = "convergence_speed"
+    metric_type: str = "convergence"
+    measurement: str = "steps_to_variance_threshold"
+    target_value: float = 500
+    tolerance: float = 100
+    
+    def evaluate(self, trial_results: Dict[str, Any]) -> float:
+        """Evaluate metric on trial results"""
+        # Solution quality metric: steps_to_variance_threshold
+        if self.metric_type == "solution_quality":
+            achieved_cut = trial_results.get("cut_value", 0.0)
+            theoretical_bound = trial_results.get("upper_bound", 1.0)
+            if theoretical_bound > 0:
+                return achieved_cut / theoretical_bound
+            return 0.0
+        # Runtime metric: steps_to_variance_threshold
+        if self.metric_type == "runtime":
+            runtime = trial_results.get("elapsed_time", float('inf'))
+            return 1.0 / (1.0 + runtime)  # Normalized
+        # Energy metric: steps_to_variance_threshold
+        if self.metric_type == "energy":
+            energy = trial_results.get("energy_consumption", 0.0)
+            return 1.0 / (1.0 + energy)
+        # Convergence metric: steps_to_variance_threshold
+        if self.metric_type == "convergence":
+            steps_to_converge = trial_results.get("convergence_steps", float('inf'))
+            return self.target_value / max(steps_to_converge, 1.0)
+        return 0.0
+    
+    def check_target(self, value: float) -> bool:
+        """Check if metric meets target"""
+        return abs(value - self.target_value) <= self.tolerance
+
+# Metric registry
+performance_metrics = [
+    PerformanceMetric_convergence_speed()
+]
+
+# =========================================================================
+# DIAGNOSTIC RULES
+# =========================================================================
+
+@dataclass
+class DiagnosticRule_detect_premature_freezing:
+    """
+    Diagnostic Rule: detect_premature_freezing
+    Symptom: energy_variance drops to 0 before step 100
+    Diagnosis: Temperature cooling too fast, trapped in local minimum
+    Remedy: Increase T_initial OR decrease cooling_rate to 0.98+
+    Confidence: high
+    From: max-cut-auto.net:156, max-cut-auto.act:811
+    """
+    rule_id: str = "detect_premature_freezing"
+    symptom: str = "energy_variance drops to 0 before step 100"
+    diagnosis: str = "Temperature cooling too fast, trapped in local minimum"
+    remedy: str = "Increase T_initial OR decrease cooling_rate to 0.98+"
+    confidence: str = "high"
+    
+    def check_symptom(self, trial_data: Dict[str, Any]) -> bool:
+        """Check if symptom is present"""
+        # Check for: energy_variance drops to 0 before step 100
+        if "energy_variance" in trial_data and "step" in trial_data:
+            variance = trial_data.get("energy_variance", 1.0)
+            step = trial_data.get("step", 0)
+            # Symptom: "energy_variance drops to 0 before step 100"
+            if variance < 1e-6 and step < 100:
+                return True
+        return False
+        # Check for slow convergence
+        if "convergence_steps" in trial_data:
+            steps = trial_data.get("convergence_steps", 0)
+            if steps > 5000:
+                return True
+        return False
+        # Check for energy divergence
+        if "energy_history" in trial_data:
+            history = trial_data.get("energy_history", [])
+            if len(history) > 10:
+                recent_trend = np.diff(history[-10:])
+                if np.mean(recent_trend) > 0.1:  # Energy increasing
+                    return True
+        return False
+        return False
+    
+    def diagnose(self) -> str:
+        """Return diagnosis"""
+        return f"[{self.confidence.upper()}] {self.diagnosis}"
+    
+    def suggest_remedy(self) -> str:
+        """Return suggested remedy"""
+        return self.remedy
+
+# Diagnostic system
+diagnostic_rules = [
+    DiagnosticRule_detect_premature_freezing()
+]
+
+def run_diagnostics(trial_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Run all diagnostic rules on trial data"""
+    issues = []
+    
+    for rule in diagnostic_rules:
+        if rule.check_symptom(trial_data):
+            issues.append({
+                'rule_id': rule.rule_id,
+                'diagnosis': rule.diagnose(),
+                'remedy': rule.suggest_remedy(),
+                'confidence': rule.confidence
+            })
+    
+    return issues
+
+# =========================================================================
+# FAILURE MODE RECOVERY
+# =========================================================================
+
+@dataclass
+class FailureMode_tsu_calibration_drift:
+    """
+    Failure Mode: tsu_calibration_drift
+    Pattern: cut_quality degrades over 1000+ inferences
+    Root Cause: TSU control voltage drift due to thermal effects
+    Mitigation: Enable background_stochastic_calibration
+    Recovery: Re-calibrate TSU every 500 inferences
+    Frequency: 5% of long runs
+    From: max-cut-auto.net:165, max-cut-auto.act:904
+    """
+    failure_id: str = "tsu_calibration_drift"
+    pattern: str = "cut_quality degrades over 1000+ inferences"
+    root_cause: str = "TSU control voltage drift due to thermal effects"
+    mitigation: str = "Enable background_stochastic_calibration"
+    recovery: str = "Re-calibrate TSU every 500 inferences"
+    frequency: str = "5% of long runs"
+    
+    def detect(self, trial_data: Dict[str, Any]) -> bool:
+        """Detect if failure pattern is present"""
+        # Pattern: cut_quality degrades over 1000+ inferences
+        # Check for known failure patterns
+        return False
+    
+    def recover(self, optimizer) -> bool:
+        """Attempt recovery"""
+        print(f"\\nâš ï¸ Failure detected: {self.failure_id}")
+        print(f"  Root cause: {self.root_cause}")
+        print(f"  Attempting recovery: {self.recovery}")
+        
+        # Recovery: Re-calibrate TSU every 500 inferences
+        # In production: implement specific recovery procedures
+        
+        return True
+
+# Failure mode database
+known_failures = [
+    FailureMode_tsu_calibration_drift()
+]
+
+# =========================================================================
+# MULTI-OBJECTIVE OPTIMIZATION (PARETO)
+# =========================================================================
+
+class ParetoOptimizer_maxcut_genetic_search:
+    """
+    Multi-Objective Optimizer
+    Objectives: cut_quality, energy_consumption
+    Method: NSGA-II
+    From: max-cut-auto.net:176, max-cut-auto.act:953
+    """
+    
+    def __init__(self):
+        self.objectives = "cut_quality, energy_consumption".split(",")
+        self.pareto_method = "NSGA-II"
+        self.pareto_front: List[Dict[str, Any]] = []
+        self.archive_size = 100
+    
+    def dominates(self, obj1: Dict[str, float], obj2: Dict[str, float]) -> bool:
+        """Check if obj1 dominates obj2 (Pareto dominance)"""
+        better_in_one = False
+        
+        for objective in self.objectives:
+            obj_name = objective.strip()
+            if obj1.get(obj_name, 0) < obj2.get(obj_name, 0):
+                return False  # Worse in this objective (assuming minimization)
+            if obj1.get(obj_name, 0) > obj2.get(obj_name, 0):
+                better_in_one = True
+        
+        return better_in_one
+    
+    def update_pareto_front(self, new_individual: Dict[str, Any], objectives: Dict[str, float]):
+        """Update Pareto front with new solution"""
+        # Check if new individual is dominated
+        dominated = False
+        to_remove = []
+        
+        for idx, front_member in enumerate(self.pareto_front):
+            if self.dominates(front_member['objectives'], objectives):
+                dominated = True
+                break
+            if self.dominates(objectives, front_member['objectives']):
+                to_remove.append(idx)
+        
+        # Remove dominated solutions
+        for idx in reversed(to_remove):
+            del self.pareto_front[idx]
+        
+        # Add if not dominated
+        if not dominated:
+            self.pareto_front.append({
+                'individual': new_individual.copy(),
+                'objectives': objectives.copy()
+            })
+        
+        # Maintain archive size
+        if len(self.pareto_front) > self.archive_size:
+            # Use crowding distance to prune
+            self.prune_by_crowding_distance()
+    
+    def prune_by_crowding_distance(self):
+        """Prune Pareto front using crowding distance"""
+        if len(self.pareto_front) <= self.archive_size:
+            return
+        
+        # Calculate crowding distance for each solution
+        distances = []
+        for i, solution in enumerate(self.pareto_front):
+            distance = 0.0
+            
+            for objective in self.objectives:
+                obj_name = objective.strip()
+                values = [s['objectives'].get(obj_name, 0) for s in self.pareto_front]
+                
+                if len(values) > 1:
+                    obj_range = max(values) - min(values)
+                    if obj_range > 0:
+                        # Crowding distance contribution
+                        sorted_indices = np.argsort(values)
+                        if i == sorted_indices[0] or i == sorted_indices[-1]:
+                            distance += float('inf')  # Boundary points
+                        else:
+                            rank = list(sorted_indices).index(i)
+                            distance += (values[sorted_indices[rank+1]] - 
+                                       values[sorted_indices[rank-1]]) / obj_range
+            
+            distances.append(distance)
+        
+        # Keep solutions with largest crowding distance
+        keep_indices = np.argsort(distances)[-self.archive_size:]
+        self.pareto_front = [self.pareto_front[i] for i in keep_indices]
+    
+    def get_pareto_front(self) -> List[Dict[str, Any]]:
+        """Return current Pareto front"""
+        return self.pareto_front
+    
+    def compute_hypervolume(self, reference_point: Dict[str, float]) -> float:
+        """Compute hypervolume indicator"""
+        # Simplified hypervolume calculation
+        if len(self.pareto_front) == 0:
+            return 0.0
+        
+        # For 2D case (can be extended)
+        if len(self.objectives) == 2:
+            obj1_name = self.objectives[0].strip()
+            obj2_name = self.objectives[1].strip()
+            
+            points = [(s['objectives'].get(obj1_name, 0), 
+                      s['objectives'].get(obj2_name, 0)) 
+                     for s in self.pareto_front]
+            points.sort()
+            
+            ref_x = reference_point.get(obj1_name, 0)
+            ref_y = reference_point.get(obj2_name, 0)
+            
+            volume = 0.0
+            prev_x = ref_x
+            
+            for x, y in points:
+                volume += (prev_x - x) * (ref_y - y)
+                prev_x = x
+            
+            return abs(volume)
+        
+        return 0.0
+
+# Multi-objective optimizer instance
+pareto_optimizer_maxcut_genetic_search = ParetoOptimizer_maxcut_genetic_search()
+
+# =========================================================================
+# SENSITIVITY ANALYSIS
+# =========================================================================
+
+class SensitivityAnalyzer_maxcut_sensitivity:
+    """
+    Sensitivity Analysis: maxcut_sensitivity
+    Method: sobol
+    From: max-cut-auto.net:195, max-cut-auto.act:1090
+    """
+    
+    def __init__(self, search_space):
+        self.search_space = search_space
+        self.method = "sobol"
+        self.results = {}
+        self.most_sensitive = []
+    
+    def sobol_analysis(self, num_samples: int = 1000) -> Dict[str, float]:
+        """Sobol sensitivity analysis"""
+        print(f"\\nRunning Sobol sensitivity analysis ({num_samples} samples)...")
+        
+        # Generate Sobol sequences (simplified)
+        # In production: use scipy.stats.qmc.Sobol
+        
+        sensitivities = {}
+        
+        # For each parameter, measure variance contribution
+        # Parameter: T_initial
+        # Vary this parameter while keeping others fixed
+        param_variance = 0.0
+        baseline_fitness = 0.8  # Placeholder
+        
+        # Sample parameter range
+        num_param_samples = 50
+        param_values = np.linspace(
+            self.search_space.t_initial_min,
+            self.search_space.t_initial_max,
+            num_param_samples
+        )
+        
+        fitness_values = []
+        for val in param_values:
+            # Simulate fitness with this parameter value
+            # In production: actually run inference
+            noise = np.random.normal(0, 0.05)
+            fitness = baseline_fitness + noise
+            fitness_values.append(fitness)
+        
+        param_variance = np.var(fitness_values)
+        sensitivities["T_initial"] = param_variance
+# Failure mode database
+known_failures = [
+    FailureMode_tsu_calibration_drift()
+]
+# Global meta-learner instance
+meta_learner_maxcut_surrogate_model = MetaLearner_maxcut_surrogate_model()
+        # Parameter: cooling_rate
+        # Vary this parameter while keeping others fixed
+        param_variance = 0.0
+        baseline_fitness = 0.8  # Placeholder
+        
+        # Sample parameter range
+        num_param_samples = 50
+        param_values = np.linspace(
+            self.search_space.cooling_rate_min,
+            self.search_space.cooling_rate_max,
+            num_param_samples
+        )
+        
+        fitness_values = []
+        for val in param_values:
+            # Simulate fitness with this parameter value
+            # In production: actually run inference
+            noise = np.random.normal(0, 0.05)
+            fitness = baseline_fitness + noise
+            fitness_values.append(fitness)
+        
+        param_variance = np.var(fitness_values)
+        sensitivities["cooling_rate"] = param_variance
+# Failure mode database
+known_failures = [
+    FailureMode_tsu_calibration_drift()
+]
+# Global meta-learner instance
+meta_learner_maxcut_surrogate_model = MetaLearner_maxcut_surrogate_model()
+        # Parameter: num_annealing_steps
+        # Vary this parameter while keeping others fixed
+        param_variance = 0.0
+        baseline_fitness = 0.8  # Placeholder
+        
+        # Sample parameter range
+        num_param_samples = 50
+        param_values = np.linspace(
+            self.search_space.num_annealing_steps_min,
+            self.search_space.num_annealing_steps_max,
+            num_param_samples
+        )
+        
+        fitness_values = []
+        for val in param_values:
+            # Simulate fitness with this parameter value
+            # In production: actually run inference
+            noise = np.random.normal(0, 0.05)
+            fitness = baseline_fitness + noise
+            fitness_values.append(fitness)
+        
+        param_variance = np.var(fitness_values)
+        sensitivities["num_annealing_steps"] = param_variance
+# Failure mode database
+known_failures = [
+    FailureMode_tsu_calibration_drift()
+]
+# Global meta-learner instance
+meta_learner_maxcut_surrogate_model = MetaLearner_maxcut_surrogate_model()
+        # Parameter: resampling_strategy
+        # Vary this parameter while keeping others fixed
+        param_variance = 0.0
+        baseline_fitness = 0.8  # Placeholder
+        
+        # Sample parameter range
+        num_param_samples = 50
+        param_values = np.linspace(
+            self.search_space.resampling_strategy_min,
+            self.search_space.resampling_strategy_max,
+            num_param_samples
+        )
+        
+        fitness_values = []
+        for val in param_values:
+            # Simulate fitness with this parameter value
+            # In production: actually run inference
+            noise = np.random.normal(0, 0.05)
+            fitness = baseline_fitness + noise
+            fitness_values.append(fitness)
+        
+        param_variance = np.var(fitness_values)
+        sensitivities["resampling_strategy"] = param_variance
+# Failure mode database
+known_failures = [
+    FailureMode_tsu_calibration_drift()
+]
+# Global meta-learner instance
+meta_learner_maxcut_surrogate_model = MetaLearner_maxcut_surrogate_model()
+        
+        # Normalize
+        total = sum(sensitivities.values())
+        if total > 0:
+            sensitivities = {k: v/total for k, v in sensitivities.items()}
+        
+        self.results = sensitivities
+        self.most_sensitive = sorted(sensitivities.items(), 
+                                     key=lambda x: x[1], 
+                                     reverse=True)
+        
+        print(f"\\nSensitivity Analysis Results:")
+        for param, sensitivity in self.most_sensitive[:5]:
+            print(f"  {param}: {sensitivity:.3f}")
+        
+        return sensitivities
+    
+    def plot_sensitivity(self, output_path: str):
+        """Plot sensitivity indices"""
+        import matplotlib.pyplot as plt
+        
+        if not self.results:
+            print("No sensitivity results to plot")
+            return
+        
+        params = list(self.results.keys())
+        indices = list(self.results.values())
+        
+        plt.figure(figsize=(10, 6))
+        plt.barh(params, indices)
+        plt.xlabel("Sensitivity Index")
+        plt.title("Parameter Sensitivity Analysis")
+        plt.tight_layout()
+        plt.savefig(output_path)
+        print(f"Sensitivity plot saved: {output_path}")
+
+# Sensitivity analyzer instance
+sensitivity_analyzer_maxcut_sensitivity = None
+
+# =========================================================================
+# LEARNED OPTIMIZATION PATTERNS
+# Generated from: max-cut-auto.net:125, max-cut-auto.act:508
+# =========================================================================
+
+@dataclass
+class OptimizationPattern:
+    """
+    Pattern: maxcut_cooling_rule
+    Problem Class: maxcut
+    Type: schedule
+    Success Rate: 0.87
+    From: max-cut-auto.net:125, max-cut-auto.act:518
+    """
+    pattern_id: str = "maxcut_cooling_rule"
+    problem_class: str = "maxcut"
+    pattern_type: str = "schedule"
+    precondition: str = "graph_density > 0.5 AND num_vertices > 500"
+    recommendation: str = "use T_initial=500, cooling_rate=0.98, slow_cooling"
+    success_rate: float = 0.87
+    discovered_by: Optional[str] = None
+    
+    def matches(self, problem_features: Dict[str, Any]) -> bool:
+        """Check if pattern applies to problem"""
+        # Parse precondition: graph_density > 0.5 AND num_vertices > 500
+        # Evaluate: graph_density > 0.5 AND num_vertices > 500
+        # Example: "graph_density > 0.5 AND num_vertices > 500"
+        try:
+            # Simple parser for common patterns
+            condition = "graph_density > 0.5 AND num_vertices > 500"
+            if "graph_density" in condition:
+                if ">" in condition and "graph_density" in problem_features:
+                    threshold = float(condition.split(">")[1].split()[0])
+                    if problem_features.get("graph_density", 0) <= threshold:
+                        return False
+            if "num_vertices" in condition:
+                if ">" in condition and "num_vertices" in problem_features:
+                    threshold = int(condition.split(">")[1].strip())
+                    if problem_features.get("num_vertices", 0) <= threshold:
+                        return False
+            return True
+        except:
+            return False
+        return False
+    
+    def apply(self, base_params: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply pattern recommendation to parameters"""
+        # Parse recommendation: use T_initial=500, cooling_rate=0.98, slow_cooling
+        params = base_params.copy()
+        # Parse: use T_initial=500, cooling_rate=0.98, slow_cooling
+        # Example: "use T_initial=500, cooling_rate=0.98, slow_cooling"
+        recommendation = "use T_initial=500, cooling_rate=0.98, slow_cooling"
+        if "T_initial=" in recommendation:
+            val = float(recommendation.split("T_initial=")[1].split(",")[0])
+            params["T_initial"] = val
+        if "cooling_rate=" in recommendation:
+            val = float(recommendation.split("cooling_rate=")[1].split(",")[0])
+            params["cooling_rate"] = val
+        if "num_steps=" in recommendation:
+            val = int(recommendation.split("num_steps=")[1].split(",")[0])
+            params["num_annealing_steps"] = val
+        return params
+
+# Pattern database
+learned_patterns_maxcut = [
+    OptimizationPattern(
+        pattern_id="maxcut_cooling_rule",
+        problem_class="maxcut",
+        pattern_type="schedule",
+        precondition="graph_density > 0.5 AND num_vertices > 500",
+        recommendation="use T_initial=500, cooling_rate=0.98, slow_cooling",
+        success_rate=0.87
+    )
+]
+
+def apply_learned_patterns(problem_features: Dict[str, Any], base_params: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply all matching learned patterns"""
+    params = base_params.copy()
+    
+    for pattern in learned_patterns_maxcut:
+        if pattern.matches(problem_features):
+            print(f"Applying pattern: {pattern.pattern_id} (success rate: {pattern.success_rate:.1%})")
+            params = pattern.apply(params)
+    
+    return params
+
+# =========================================================================
+# LEARNED OPTIMIZATION PATTERNS
+# Generated from: max-cut-auto.net:135, max-cut-auto.act:508
+# =========================================================================
+
+@dataclass
+class OptimizationPattern:
+    """
+    Pattern: sparse_graph_fast_anneal
+    Problem Class: maxcut
+    Type: schedule
+    Success Rate: 0.92
+    From: max-cut-auto.net:135, max-cut-auto.act:518
+    """
+    pattern_id: str = "sparse_graph_fast_anneal"
+    problem_class: str = "maxcut"
+    pattern_type: str = "schedule"
+    precondition: str = "graph_density < 0.1 AND connectivity=sparse"
+    recommendation: str = "use T_initial=50, cooling_rate=0.90, fast_cooling"
+    success_rate: float = 0.92
+    discovered_by: Optional[str] = None
+    
+    def matches(self, problem_features: Dict[str, Any]) -> bool:
+        """Check if pattern applies to problem"""
+        # Parse precondition: graph_density < 0.1 AND connectivity=sparse
+        # Evaluate: graph_density < 0.1 AND connectivity=sparse
+        # Example: "graph_density > 0.5 AND num_vertices > 500"
+        try:
+            # Simple parser for common patterns
+            condition = "graph_density < 0.1 AND connectivity=sparse"
+            if "graph_density" in condition:
+                if ">" in condition and "graph_density" in problem_features:
+                    threshold = float(condition.split(">")[1].split()[0])
+                    if problem_features.get("graph_density", 0) <= threshold:
+                        return False
+            if "num_vertices" in condition:
+                if ">" in condition and "num_vertices" in problem_features:
+                    threshold = int(condition.split(">")[1].strip())
+                    if problem_features.get("num_vertices", 0) <= threshold:
+                        return False
+            return True
+        except:
+            return False
+        return False
+    
+    def apply(self, base_params: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply pattern recommendation to parameters"""
+        # Parse recommendation: use T_initial=50, cooling_rate=0.90, fast_cooling
+        params = base_params.copy()
+        # Parse: use T_initial=50, cooling_rate=0.90, fast_cooling
+        # Example: "use T_initial=500, cooling_rate=0.98, slow_cooling"
+        recommendation = "use T_initial=50, cooling_rate=0.90, fast_cooling"
+        if "T_initial=" in recommendation:
+            val = float(recommendation.split("T_initial=")[1].split(",")[0])
+            params["T_initial"] = val
+        if "cooling_rate=" in recommendation:
+            val = float(recommendation.split("cooling_rate=")[1].split(",")[0])
+            params["cooling_rate"] = val
+        if "num_steps=" in recommendation:
+            val = int(recommendation.split("num_steps=")[1].split(",")[0])
+            params["num_annealing_steps"] = val
+        return params
+
+# Pattern database
+learned_patterns_maxcut = [
+    OptimizationPattern(
+        pattern_id="sparse_graph_fast_anneal",
+        problem_class="maxcut",
+        pattern_type="schedule",
+        precondition="graph_density < 0.1 AND connectivity=sparse",
+        recommendation="use T_initial=50, cooling_rate=0.90, fast_cooling",
+        success_rate=0.92
+    )
+]
+
+def apply_learned_patterns(problem_features: Dict[str, Any], base_params: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply all matching learned patterns"""
+    params = base_params.copy()
+    
+    for pattern in learned_patterns_maxcut:
+        if pattern.matches(problem_features):
+            print(f"Applying pattern: {pattern.pattern_id} (success rate: {pattern.success_rate:.1%})")
+            params = pattern.apply(params)
+    
+    return params
+
+# =========================================================================
+# META-LEARNING: maxcut_surrogate_model
+# Generated from: max-cut-auto.net:186, max-cut-auto.act:606
+# =========================================================================
+
+class MetaLearner_maxcut_surrogate_model:
+    """
+    Meta-Learner: maxcut_surrogate_model
+    Type: surrogate_model
+    Source Runs: run_001,run_002,run_003,run_004,run_005
+    Improvement: 10x fewer trials needed for new graphs
+    From: max-cut-auto.net:186, max-cut-auto.act:615
+    """
+    
+    def __init__(self):
+        self.learner_type = "surrogate_model"
+        self.model = None
+        self.trained = False
+    
+    def load_source_runs(self) -> List[Dict[str, Any]]:
+        """Load data from source optimization runs"""
+        source_runs = "run_001,run_002,run_003,run_004,run_005".split(",")
+        data = []
+        
+        for run_id in source_runs:
+            run_id = run_id.strip()
+            checkpoint_path = Path(f"./build/autotuner/results/{run_id}.pkl")
+            if checkpoint_path.exists():
+                with open(checkpoint_path, 'rb') as f:
+                    run_data = pickle.load(f)
+                    data.append(run_data)
+                print(f"Loaded run: {run_id}")
+        
+        return data
+    
+    def extract_features(self, problem_instance: Dict[str, Any]) -> np.ndarray:
+        """Extract features from problem instance"""
+        # Example features for MAX-CUT:
+        # - num_vertices
+        # - graph_density
+        # - avg_edge_weight
+        # - variance_edge_weight
+        # - clustering_coefficient
+        
+        features = []
+        features.append(problem_instance.get("num_vertices", 100))
+        features.append(problem_instance.get("graph_density", 0.3))
+        features.append(problem_instance.get("avg_edge_weight", 5.0))
+        features.append(problem_instance.get("variance_edge_weight", 2.0))
+        
+        return np.array(features)
+    
+    def train_surrogate_model(self):
+        """Train surrogate model from source runs"""
+        print(f"\\nTraining meta-learner: maxcut_surrogate_model")
+        print(f"Learner type: surrogate_model")
+        
+        data = self.load_source_runs()
+        if len(data) == 0:
+            print("WARNING: No source data found")
+            return
+        
+        # Extract features and targets
+        X_train = []
+        y_train = []
+        
+        for run_data in data:
+            # Extract problem features
+            features = self.extract_features(run_data.get("problem_features", {}))
+            
+            # Extract best parameters found
+            best_params = run_data.get("best_individual", {})
+            
+            X_train.append(features)
+            y_train.append(best_params)
+        
+        # Train surrogate model (placeholder)
+        # In production: use Gaussian Process, Random Forest, or Neural Network
+        print(f"Training on {len(X_train)} examples...")
+        print(f"Feature dimension: {len(X_train[0])}")
+        print(f"Meta-learning model: surrogate_model")
+        
+        # Store training data
+        self.X_train = np.array(X_train)
+        self.y_train = y_train
+        self.trained = True
+        
+        print(f"âœ" Meta-learner trained successfully")
+        print(f"Expected improvement: 10x fewer trials needed for new graphs")
+    
+    def predict_warm_start(self, problem_features: Dict[str, Any]) -> Dict[str, Any]:
+        """Predict good starting parameters for new problem"""
+        if not self.trained:
+            print("WARNING: Meta-learner not trained, using defaults")
+            return {}
+        
+        features = self.extract_features(problem_features)
+        
+        # Simple nearest-neighbor prediction (placeholder)
+        # In production: use trained surrogate model
+        distances = np.linalg.norm(self.X_train - features, axis=1)
+        nearest_idx = np.argmin(distances)
+        
+        predicted_params = self.y_train[nearest_idx].copy()
+        
+        print(f"\\nMeta-learner prediction:")
+        print(f"  Nearest neighbor distance: {distances[nearest_idx]:.4f}")
+        print(f"  Predicted parameters: {predicted_params}")
+        
+        return predicted_params
+
+# Global meta-learner instance
+meta_learner_maxcut_surrogate_model = MetaLearner_maxcut_surrogate_model()
+
+# =========================================================================
+# MAIN AUTO-TUNING PIPELINE
+# =========================================================================
+
+def run_autotuning_pipeline(
+    problem_instance: Dict[str, Any],
+    use_meta_learning: bool = True,
+    use_learned_patterns: bool = True
+) -> Dict[str, Any]:
+    """
+    Complete auto-tuning pipeline
+    
+    1. Apply learned patterns (if available)
+    2. Use meta-learning for warm start (if available)
+    3. Run evolutionary optimization
+    4. Return best configuration
+    """
+    
+    print(f"\\n{'='*70}")
+    print(f"AUTO-TUNING PIPELINE")
+    print(f"{'='*70}\\n")
+    
+    # Get search space
+    search_space = search_space_maxcut_tuning_space
+    
+    # Base parameters
+    base_params = search_space.generate_random_individual(jax.random.PRNGKey(0))
+    
+    # Apply learned patterns
+    if use_learned_patterns:
+        print("\\nStep 1: Applying Learned Patterns")
+        base_params = apply_learned_patterns(problem_instance, base_params)
+    
+    # Meta-learning warm start
+    warm_start_params = base_params.copy()
+    if use_meta_learning:
+        print("\\nStep 2: Meta-Learning Warm Start")
+        try:
+            meta_learner_maxcut_surrogate_model.train_surrogate_model()
+            warm_start_params = meta_learner_maxcut_surrogate_model.predict_warm_start(problem_instance)
+            if warm_start_params:
+                base_params.update(warm_start_params)
+        except Exception as e:
+            print(f"  Meta-learning failed: {e}")
+            print("  Continuing with base parameters")
+    
+    # Run evolutionary optimization
+    print("\\nStep 3: Evolutionary Optimization")
+    key = jax.random.PRNGKey(42)
+    
+    # Create optimizer with warm-started population
+    optimizer_maxcut_genetic_search = EvolutionaryOptimizer_maxcut_genetic_search(
+        search_space=search_space,
+        config=EvolutionConfig_maxcut_genetic_search()
+    )
+    
+    # Initialize with warm start
+    key, subkey = jax.random.split(key)
+    optimizer_maxcut_genetic_search.initialize_population(subkey)
+    
+    # Inject warm-started individual into population
+    optimizer_maxcut_genetic_search.population[0] = warm_start_params.copy()
+    
+    # Run optimization
+    key, subkey = jax.random.split(key)
+    best_params, best_fitness, history = optimizer_maxcut_genetic_search.run(subkey)
+    
+    # Save results
+    print("\\nStep 4: Saving Results")
+    results = {
+        'problem_instance': problem_instance,
+        'base_params': base_params,
+        'warm_start_params': warm_start_params,
+        'best_params': best_params,
+        'best_fitness': best_fitness,
+        'optimization_history': history,
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    results_path = Path("./build/autotuner/results/latest_run.json")
+    with open(results_path, 'w') as f:
+        json.dump(results, f, indent=2, default=str)
+    print(f"Results saved: {results_path}")
+    
+    return results
+
+# =========================================================================
+# COMMAND LINE INTERFACE
+# =========================================================================
+
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Auto-tune MAX-CUT annealing parameters")
+    parser.add_argument("--num-vertices", type=int, default=100, help="Number of vertices")
+    parser.add_argument("--graph-density", type=float, default=0.3, help="Graph density")
+    parser.add_argument("--population", type=int, default=50, help="Population size")
+    parser.add_argument("--generations", type=int, default=100, help="Number of generations")
+    parser.add_argument("--no-meta-learning", action="store_true", help="Disable meta-learning")
+    parser.add_argument("--no-patterns", action="store_true", help="Disable learned patterns")
+    parser.add_argument("--train-meta-learner", action="store_true", help="Train meta-learner first")
+    
+    args = parser.parse_args()
+    
+    # Train meta-learner if requested
+    if args.train_meta_learner:
+        print("Training meta-learner...")
+        meta_learner_maxcut_surrogate_model.train_surrogate_model()
+    
+    # Define problem instance
+    problem_instance = {
+        'num_vertices': args.num_vertices,
+        'graph_density': args.graph_density,
+        'avg_edge_weight': 5.0,
+        'variance_edge_weight': 2.0
+    }
+    
+    print(f"\\nProblem Instance:")
+    print(f"  Vertices: {args.num_vertices}")
+    print(f"  Density: {args.graph_density}")
+    
+    # Run auto-tuning
+    results = run_autotuning_pipeline(
+        problem_instance=problem_instance,
+        use_meta_learning=not args.no_meta_learning,
+        use_learned_patterns=not args.no_patterns
+    )
+    
+    print(f"\\n{'='*70}")
+    print(f"AUTO-TUNING COMPLETE")
+    print(f"{'='*70}")
+    print(f"\\nBest Parameters:")
+    for key, value in results['best_params'].items():
+        print(f"  {key}: {value}")
+    print(f"\\nBest Fitness: {results['best_fitness']:.4f}")
+    print(f"{'='*70}\\n")

@@ -1,0 +1,202 @@
+// =========================================================================
+// AUTO-TUNING FOR MAX-CUT
+// =========================================================================
+
+SearchSpace {
+  search_space = maxcut_tuning_space
+  target = inference_tsu
+  objective = maximize_cut
+  constraints = "power < 5W, time < 60s"
+  desc = "Search space for MAX-CUT annealing parameters"
+}
+
+SearchParameter {
+  param = T_initial
+  parent = maxcut_tuning_space
+  param_type = continuous
+  range_min = 10.0
+  range_max = 1000.0
+  initial_value = 100.0
+  mutation_rate = 0.3
+  importance = high
+  desc = "Initial temperature for annealing"
+}
+
+ScheduleParameter {
+  parent = T_initial
+  schedule_type = geometric
+  T_initial = variable
+  T_final = 0.01
+  num_steps = variable
+  cooling_rate = variable
+  adaptation = adaptive_acceptance
+  desc = "Adaptive temperature schedule"
+}
+
+SearchParameter {
+  param = cooling_rate
+  parent = maxcut_tuning_space
+  param_type = continuous
+  range_min = 0.85
+  range_max = 0.99
+  initial_value = 0.95
+  mutation_rate = 0.2
+  importance = high
+  desc = "Geometric cooling rate"
+}
+
+SearchParameter {
+  param = num_annealing_steps
+  parent = maxcut_tuning_space
+  param_type = discrete
+  range_min = 100
+  range_max = 10000
+  initial_value = 1000
+  mutation_rate = 0.3
+  importance = medium
+  desc = "Number of annealing steps"
+}
+
+SearchParameter {
+  param = resampling_strategy
+  parent = maxcut_tuning_space
+  param_type = categorical
+  values = "sequential,parallel,async"
+  initial_value = "async"
+  mutation_rate = 0.1
+  importance = medium
+  desc = "Block Gibbs resampling strategy"
+}
+
+EvolutionStrategy {
+  strategy = maxcut_genetic_search
+  algorithm = genetic_algorithm
+  search_space = maxcut_tuning_space
+  population = 50
+  generations = 100
+  elite_count = 5
+  crossover_rate = 0.7
+  mutation_rate = 0.2
+  selection = tournament
+  parallel = true
+  desc = "GA for MAX-CUT parameter optimization"
+}
+
+FitnessFunction {
+  fitness_fn = maxcut_composite_fitness
+  parent = maxcut_genetic_search
+  expression = "weighted_sum"
+  components = "cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1"
+  normalization = z_score
+  higher_better = true
+  desc = "Multi-objective fitness: quality + speed + energy"
+}
+
+PerformanceMetric {
+  metric = cut_quality
+  type = solution_quality
+  measurement = "achieved_cut / theoretical_upper_bound"
+  target_value = 0.95
+  tolerance = 0.05
+  desc = "Solution quality metric"
+}
+
+PerformanceMetric {
+  metric = convergence_speed
+  type = convergence
+  measurement = "steps_to_variance_threshold"
+  target_value = 500
+  tolerance = 100
+  desc = "How quickly annealing converges"
+}
+
+AutoTuneConfig {
+  autotune = maxcut_autotune
+//  parent = inference_tsu
+  parent = hybrid_gpu_tsu
+  enabled = true
+  strategy = maxcut_genetic_search
+  budget = 500
+  early_stop = 50
+  desc = "Automatic tuning for TSU annealing"
+}
+
+// Learned pattern from previous runs
+OptimizationPattern {
+  pattern_id = maxcut_cooling_rule
+  problem_class = maxcut
+  pattern_type = schedule
+  precondition = "graph_density > 0.5 AND num_vertices > 500"
+  recommendation = "use T_initial=500, cooling_rate=0.98, slow_cooling"
+  success_rate = 0.87
+  desc = "Dense graphs need slower cooling"
+}
+
+OptimizationPattern {
+  pattern_id = sparse_graph_fast_anneal
+  problem_class = maxcut
+  pattern_type = schedule
+  precondition = "graph_density < 0.1 AND connectivity=sparse"
+  recommendation = "use T_initial=50, cooling_rate=0.90, fast_cooling"
+  success_rate = 0.92
+  desc = "Sparse graphs can use aggressive cooling"
+}
+
+// Transfer learning from Ising to MAX-CUT
+TransferLearning {
+  transfer_id = ising_to_maxcut
+  source_problem = ising_2d
+  target_problem = maxcut
+  mapping = "J_coupling -> edge_weights, spin_dynamics -> partition_dynamics"
+  effectiveness = "1.5x speedup in hyperparameter search"
+  desc = "Transfer annealing schedules from Ising to MAX-CUT"
+}
+
+// Diagnostic rules
+DiagnosticRule {
+  rule_id = detect_premature_freezing
+  symptom = "energy_variance drops to 0 before step 100"
+  diagnosis = "Temperature cooling too fast, trapped in local minimum"
+  remedy = "Increase T_initial OR decrease cooling_rate to 0.98+"
+  confidence = high
+  desc = "Detect premature convergence"
+}
+
+FailureMode {
+  failure_id = tsu_calibration_drift
+  pattern = "cut_quality degrades over 1000+ inferences"
+  root_cause = "TSU control voltage drift due to thermal effects"
+  mitigation = "Enable background_stochastic_calibration"
+  recovery = "Re-calibrate TSU every 500 inferences"
+  frequency = "5% of long runs"
+  desc = "TSU hardware drift over time"
+}
+
+// Multi-objective: optimize cut quality AND energy consumption
+MultiObjective {
+  parent = maxcut_genetic_search
+  objectives = "cut_quality, energy_consumption"
+  pareto_method = NSGA-II
+  diversity = crowding_distance
+  archive_size = 100
+  desc = "Find Pareto-optimal trade-offs"
+}
+
+// Meta-learning across multiple problem instances
+MetaLearning {
+  meta_id = maxcut_surrogate_model
+  learner_type = surrogate_model
+  source_runs = "run_001,run_002,run_003,run_004,run_005"
+  model = "Gaussian Process regression on (graph_features) -> best_params"
+  improvement = "10x fewer trials needed for new graphs"
+  desc = "Learn mapping from graph properties to good parameters"
+}
+
+SensitivityAnalysis {
+  analysis_id = maxcut_sensitivity
+  search_space = maxcut_tuning_space
+  method = sobol
+  results = "{T_initial: 0.65, cooling_rate: 0.82, num_steps: 0.43, resampling: 0.10}"
+  most_sensitive = "cooling_rate, T_initial"
+  desc = "cooling_rate is most sensitive parameter"
+}

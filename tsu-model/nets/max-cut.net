@@ -1,0 +1,868 @@
+// =========================================================================
+// ML MODEL SPECIFICATION - MAX-CUT QUBO WITH TSU
+// Quantum Annealing-Style Problem on Thermodynamic Hardware
+// =========================================================================
+
+Model {
+  model = MaxCutQUBO
+  type = energy_based
+  framework = thrml_jax
+  pgm_schema = maxcut_graph
+  hardware = tsu_extropic_1
+  tsu_use = required
+  desc = "MAX-CUT graph partitioning via QUBO formulation on TSU"
+}
+
+// =========================================================================
+// PGM SCHEMA DEFINITION
+// =========================================================================
+
+PGMSchema {
+  schema = maxcut_graph
+  variables = "x_0, x_1, ..., x_99"
+  domains = "binary"
+  factors = "pairwise: w_ij * (1 - x_i * x_j) / 2"
+  graph_sparsity = dense
+  factor_graph = true
+  energy_based = true
+  tsu_suitable = true
+  desc = "100-node graph with arbitrary edge weights for MAX-CUT"
+}
+
+// =========================================================================
+// LAYERS AND THEIR OPERATIONS
+// =========================================================================
+
+Layer {
+  layer = partition_sampling_layer
+  type = sampling
+  desc = "Sample binary graph partitions via simulated annealing"
+}
+
+Op {
+  op = qubo_gibbs_update
+  parent = partition_sampling_layer
+  kernel = tsu_qubo_kernel
+  desc = "Gibbs sampling for QUBO variables"
+}
+
+Arg {
+  arg = partition
+  parent = qubo_gibbs_update
+  role = input
+  tensor = partition_state
+  desc = "Current partition assignment"
+}
+
+Arg {
+  arg = weights
+  parent = qubo_gibbs_update
+  role = param
+  tensor = edge_weights
+  desc = "Graph edge weights"
+}
+
+Arg {
+  arg = updated_partition
+  parent = qubo_gibbs_update
+  role = output
+  tensor = partition_state_out
+  desc = "Updated partition"
+}
+
+SamplingOp {
+  sampling_op = maxcut_gibbs
+  parent = qubo_gibbs_update
+  distribution = boltzmann
+  temperature = variable
+  algorithm = gibbs_annealing
+  tsu_hint = force_tsu
+  energy_fn = maxcut_energy
+  desc = "Gibbs sampling with temperature annealing"
+}
+
+BlockGibbsOp {
+  block_op = parallel_flip_block
+  parent = maxcut_gibbs
+  factor_subset = "all_edges"
+  resampling = async
+  thrml_kernel = "apply_maxcut_gibbs"
+  jitted = true
+  energy_cost = "1.5 kT per variable flip"
+  desc = "Parallel variable updates for MAX-CUT"
+}
+
+Layer {
+  layer = cut_evaluation
+  type = energy
+  desc = "Evaluate cut size and energy"
+}
+
+Op {
+  op = evaluate_cut
+  parent = cut_evaluation
+  kernel = cut_energy_cuda
+  desc = "Compute cut size on GPU"
+}
+
+Arg {
+  arg = partition
+  parent = evaluate_cut
+  role = input
+  tensor = partition_state
+}
+
+Arg {
+  arg = weights
+  parent = evaluate_cut
+  role = param
+  tensor = edge_weights
+}
+
+Arg {
+  arg = cut_value
+  parent = evaluate_cut
+  role = output
+  tensor = cut_size
+}
+
+Arg {
+  arg = energy
+  parent = evaluate_cut
+  role = output
+  tensor = system_energy
+}
+
+Layer {
+  layer = tsu_annealing_layer
+  type = sampling
+  desc = "Direct TSU quantum annealing emulation"
+}
+
+Op {
+  op = tsu_anneal
+  parent = tsu_annealing_layer
+  kernel = tsu_qubo_kernel
+}
+
+Arg {
+  arg = weights
+  parent = tsu_anneal
+  role = input
+  tensor = edge_weights
+}
+
+Arg {
+  arg = annealed_solutions
+  parent = tsu_anneal
+  role = output
+  tensor = tsu_samples
+}
+
+SamplingOp {
+  sampling_op = quantum_anneal_emulation
+  parent = tsu_anneal
+  distribution = boltzmann
+  temperature = variable
+  algorithm = simulated_annealing
+  tsu_hint = force_tsu
+  energy_fn = maxcut_energy
+  desc = "TSU-based annealing schedule"
+}
+
+TSUSamplingOp {
+  tsu_op = tsu_qubo_anneal
+  parent = quantum_anneal_emulation
+  hardware = tsu_extropic_1
+  tsu_device = tsu0
+  sample_shape = "batch=64,variables=100"
+  control_lines = "V_ctrl[0:99] = map_qubo_weights(edge_weights)"
+  calibration = per_annealing_run
+  desc = "Hardware annealing on TSU with temperature schedule"
+}
+
+// =========================================================================
+// ENERGY FUNCTION
+// =========================================================================
+
+EnergyFunction {
+  energy_fn = maxcut_energy
+  expression = "E(x) = -sum_{(i,j) in E} w_ij * (x_i XOR x_j) = -sum_{(i,j)} w_ij * (x_i + x_j - 2*x_i*x_j)"
+  variables = "x"
+  params = edge_weights
+  source = symbolic
+  desc = "MAX-CUT objective as energy minimization (negative cut size)"
+}
+
+EnergyFunction {
+  energy_fn = qubo_energy
+  expression = "E(x) = x^T Q x = sum_{i,j} Q_ij * x_i * x_j"
+  variables = "x"
+  params = qubo_matrix
+  source = symbolic
+  desc = "General QUBO formulation"
+}
+
+EnergyFactor {
+  factor = edge_cut_factor
+  type = pairwise
+  variables = partition_state
+  potential = "phi(x_i, x_j) = -w_ij * (x_i + x_j - 2*x_i*x_j)"
+  learned = false
+  param_tensor = edge_weights
+  sparse = true
+  tsu_native = true
+  desc = "Edge contribution to cut (maximized when x_i != x_j)"
+}
+
+EnergyFactor {
+  factor = qubo_quadratic
+  type = pairwise
+  variables = partition_state
+  potential = "phi(x_i, x_j) = Q_ij * x_i * x_j"
+  learned = false
+  param_tensor = qubo_matrix
+  sparse = false
+  tsu_native = true
+  desc = "General QUBO quadratic term"
+}
+
+EnergyFactor {
+  factor = qubo_linear
+  type = unary
+  variables = partition_state
+  potential = "phi(x_i) = Q_ii * x_i"
+  learned = false
+  param_tensor = qubo_matrix
+  sparse = false
+  tsu_native = true
+  desc = "QUBO diagonal (linear) terms"
+}
+
+// =========================================================================
+// TENSORS
+// =========================================================================
+
+// State Tensors
+Tensor {
+  tensor = partition_state
+  parent = MaxCutQUBO
+  shape = [100]
+  dtype = binary
+  layout = dense
+  role = latent
+  pgm_node = true
+  distribution = boltzmann
+  desc = "Binary partition: x_i in {0, 1} or {-1, +1}"
+}
+
+Tensor {
+  tensor = partition_state_out
+  parent = MaxCutQUBO
+  shape = [100]
+  dtype = binary
+  layout = dense
+  role = latent
+  pgm_node = true
+  desc = "Updated partition after Gibbs sweep"
+}
+
+Tensor {
+  tensor = tsu_samples
+  parent = MaxCutQUBO
+  shape = [64, 100]
+  dtype = binary
+  layout = dense
+  role = latent
+  desc = "Batch of 64 annealed solutions from TSU"
+}
+
+// Parameter Tensors
+Tensor {
+  tensor = edge_weights
+  parent = MaxCutQUBO
+  shape = [100, 100]
+  dtype = fp32
+  layout = sparse_csr
+  role = factor_param
+  desc = "Graph adjacency with edge weights: W_ij = weight of edge (i,j)"
+}
+
+Tensor {
+  tensor = qubo_matrix
+  parent = MaxCutQUBO
+  shape = [100, 100]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "QUBO Q matrix: minimize x^T Q x"
+}
+
+// Output Tensors
+Tensor {
+  tensor = cut_size
+  parent = MaxCutQUBO
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  desc = "Total cut size (objective value)"
+}
+
+Tensor {
+  tensor = system_energy
+  parent = MaxCutQUBO
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  desc = "System energy (negative cut size)"
+}
+
+Tensor {
+  tensor = best_partition
+  parent = MaxCutQUBO
+  shape = [100]
+  dtype = binary
+  layout = dense
+  desc = "Best partition found during annealing"
+}
+
+Tensor {
+  tensor = best_cut
+  parent = MaxCutQUBO
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  desc = "Best cut size achieved"
+}
+
+// Annealing Schedule Tensors
+Tensor {
+  tensor = temperature_schedule
+  parent = MaxCutQUBO
+  shape = [1000]
+  dtype = fp32
+  layout = dense
+  role = param
+  desc = "Temperature values for annealing: T[0] = 100.0, T[999] = 0.01"
+}
+
+// =========================================================================
+// TSU HARDWARE DEFINITION
+// =========================================================================
+
+Hardware {
+  hardware = tsu_extropic_1
+  backend = tsu
+  emulation = false
+  constraints = "sample_rate=1e12/s, T=300K, max_vars=10000"
+  energy_model = "E_sample = kT * ln(2) * complexity"
+  latency_model = "t_sample = 10ns"
+  desc = "Extropic TSU chip optimized for combinatorial optimization"
+}
+
+TSU {
+  tsu_id = tsu0
+  parent = tsu_extropic_1
+  process_node = 3nm
+  operating_T = 300
+  sample_rate = 1000000000000
+  entropy_budget = "dS/dt <= 1e-12 W/K"
+  precision = 12
+  connectivity = CXL-3
+  programmable_energy = true
+  physical_implementation = CMOS-stochastic
+  thermal_noise = "gaussian_0.01"
+  desc = "TSU core with 12-bit precision for QUBO weights"
+}
+
+// =========================================================================
+// TSU COMPILATION PLAN
+// =========================================================================
+
+TSUCompilation {
+  plan_id = maxcut_to_tsu0
+  source = MaxCutQUBO
+  hardware = tsu_extropic_1
+  target = tsu0
+  mapping = "partition_state -> physical_spins[0:99], edge_weights -> control_voltages, Q_matrix -> voltage_mesh"
+  clocking = event_driven
+  control_bus = 128
+  calibration = "per_weight_calibration + thermal_drift_compensation"
+  fidelity = "98.5%"
+  desc = "Map MAX-CUT QUBO to TSU with annealing schedule"
+}
+
+TSUSubstrateModel {
+  substrate = extropic_qubo_substrate
+  max_vars = 10000
+  max_factors = 50000
+  connectivity = programmable
+  interaction = QUBO
+  kT_per_step = "1.5 kT"
+  min_energy_gap = "0.1 kT"
+  desc = "TSU substrate optimized for dense QUBO problems"
+}
+
+// =========================================================================
+// FRAMEWORK DEFINITION
+// =========================================================================
+
+Framework {
+  framework = thrml_jax
+  language = jax
+  paradigm = energy_based
+  runtime = gpu
+  desc = "THRML library on JAX with GPU acceleration"
+}
+
+THRML {
+  thrml_id = thrml_v0_4
+  parent = thrml_jax
+  version = "0.4.0"
+  features = "qubo_solver, simulated_annealing, gibbs_sampling, tsu_offload, temperature_schedules"
+  hardware_accel = gpu
+  tsu_emulation = noisy
+  jit_compile = true
+  control_flow = scan
+  desc = "THRML v0.4 with QUBO and annealing support"
+}
+
+// =========================================================================
+// CONFIGURATIONS
+// =========================================================================
+
+// TSU Hardware Annealing
+Config {
+  config = tsu_annealing
+  target = tsu_extropic_1
+  batch = 64
+  sample_budget = 10000000
+  desc = "Hardware annealing on TSU with geometric cooling"
+}
+
+Schedule {
+  seq = 1
+  parent = tsu_annealing
+  layer = tsu_annealing_layer
+  op = tsu_anneal
+  desc = "TSU annealing with T: 100.0 -> 0.01 over 1000 steps"
+}
+
+Schedule {
+  seq = 2
+  parent = tsu_annealing
+  layer = cut_evaluation
+  op = evaluate_cut
+  desc = "Evaluate final cut size"
+}
+
+// GPU Simulated Annealing (Baseline)
+Config {
+  config = gpu_simulated_annealing
+  parent = MaxCutQUBO
+  target = gpu_a100
+  batch = 64
+  sample_budget = 1000000
+  desc = "Classical simulated annealing on GPU via THRML"
+}
+
+Schedule {
+  seq = 1
+  parent = gpu_simulated_annealing
+  layer = partition_sampling_layer
+  op = qubo_gibbs_update
+  desc = "Gibbs sweep at current temperature"
+}
+
+Schedule {
+  seq = 2
+  parent = gpu_simulated_annealing
+  layer = cut_evaluation
+  op = evaluate_cut
+  desc = "Evaluate cut and update best solution"
+}
+
+// CPU Exact Solver (Small Instances Only)
+Config {
+  config = cpu_branch_bound
+  parent = MaxCutQUBO
+  target = cpu_x86
+  batch = 1
+  sample_budget = 100000
+  desc = "Branch-and-bound exact solver (up to 40 variables)"
+}
+
+// Hybrid: GPU + TSU
+Config {
+  config = hybrid_gpu_tsu
+  parent = MaxCutQUBO
+  target = tsu_extropic_1
+  batch = 64
+  sample_budget = 5000000
+  desc = "GPU preprocessing + TSU annealing + GPU postprocessing"
+}
+
+Schedule {
+  seq = 1
+  parent = hybrid_gpu_tsu
+  layer = partition_sampling_layer
+  op = qubo_gibbs_update
+  desc = "Warm start on GPU (100 sweeps at T=50)"
+}
+
+Schedule {
+  seq = 2
+  parent = hybrid_gpu_tsu
+  layer = tsu_annealing_layer
+  op = tsu_anneal
+  desc = "Transfer to TSU for fine annealing"
+}
+
+Schedule {
+  seq = 3
+  parent = hybrid_gpu_tsu
+  layer = cut_evaluation
+  op = evaluate_cut
+  desc = "Final evaluation on GPU"
+}
+
+// =========================================================================
+// SIMULATION & VALIDATION
+// =========================================================================
+
+ThermodynamicSimulation {
+  sim_id = maxcut_thermo_analysis
+  parent = MaxCutQUBO
+  T = variable
+  kT = "4.11e-21 * T"
+  entropy_traced = true
+  landauer_limit = "2.85e-21 J/bit"
+  desc = "Track thermodynamic cost during annealing"
+}
+
+Validation {
+  rule = solution_quality
+  target = MaxCutQUBO
+  condition = "found_cut >= 0.90 * known_upper_bound"
+  desc = "Compare to best known solution or theoretical bound"
+}
+
+PhysicalConstraint {
+  constraint = tsu_power_budget
+  parent = solution_quality
+  target = tsu0
+  condition = "power_dissipation < 5W during annealing"
+  severity = error
+  thermodynamic = true
+  desc = "TSU thermal budget for QUBO"
+}
+
+PhysicalConstraint {
+  constraint = energy_gap_resolution
+  parent = solution_quality
+  target = tsu0
+  condition = "min_energy_difference >= 0.1 * kT"
+  severity = warning
+  thermodynamic = true
+  desc = "TSU must resolve energy differences between solutions"
+}
+
+Validation {
+  rule = annealing_convergence
+  target = MaxCutQUBO
+  condition = "energy_variance < 0.001 for last 100 samples"
+  desc = "Check if system has frozen into solution"
+}
+
+PhysicalConstraint {
+  constraint = temperature_schedule_validity
+  parent = annealing_convergence
+  target = qubo_gibbs_update
+  condition = "T[i+1] <= 0.95 * T[i] for all i (geometric cooling)"
+  severity = warning
+  thermodynamic = true
+  desc = "Ensure proper annealing schedule"
+}
+
+
+// =========================================================================
+// DOMAIN KNOWLEDGE - TSU KERNELS
+// =========================================================================
+
+Domain {
+  name = qubo_kernels
+  version = "1.0.0"
+  desc = "QUBO and MAX-CUT kernel implementations for TSU"
+}
+
+Kernel {
+  kernel = tsu_qubo_kernel
+  hardware = tsu_extropic_1
+  desc = "TSU-native QUBO solver with annealing"
+  signature = "void tsu_qubo_anneal(TSUDevice* dev, float* Q, int8_t* solution, float* T_schedule, int steps);"
+  body = """
+    // TSU QUBO Annealing:
+    // 1. Program QUBO matrix Q as energy landscape
+    // 2. Initialize at high temperature
+    // 3. Gradually cool following schedule
+    // 4. Read final low-energy state
+    
+    void tsu_qubo_anneal(
+        TSUDevice* device,
+        float* Q_matrix,           // QUBO matrix (N x N)
+        int8_t* solution_output,   // Binary solution vector
+        float* temperature_schedule, // T[0..steps-1]
+        int num_vars,
+        int num_steps,
+        int num_samples
+    ) {
+        // Map Q matrix to control voltages
+        for (int i = 0; i < num_vars; i++) {
+            for (int j = 0; j < num_vars; j++) {
+                device->set_qubo_coupling(i, j, Q_matrix[i * num_vars + j]);
+            }
+        }
+        
+        // Initialize random state at high temperature
+        device->set_temperature(temperature_schedule[0]);
+        device->randomize();
+        
+        // Annealing loop
+        for (int step = 0; step < num_steps; step++) {
+            device->set_temperature(temperature_schedule[step]);
+            device->thermalize(/*time_ns=*/100);  // Let system equilibrate
+            
+            // Optional: track energy
+            // float E = device->read_energy();
+        }
+        
+        // Read final solutions (multiple samples from final distribution)
+        for (int s = 0; s < num_samples; s++) {
+            device->read_state(&solution_output[s * num_vars], num_vars);
+            device->small_perturbation();  // Slight kick for diversity
+        }
+    }
+  """
+  stochastic = true
+  thermodynamic = true
+  energy_fn = "E(x) = x^T Q x"
+}
+
+TSUKernel {
+  tsu_kernel = tsu_maxcut_native
+  parent = tsu_qubo_kernel
+  tsu_target = tsu0
+  energy_fn = "E(x) = -sum_{(i,j)} w_ij * (x_i + x_j - 2*x_i*x_j)"
+  sample_shape = "batch=64,variables=100"
+  thermal_relax = "tau = 100ns per step"
+  control_voltage = "V_range = [-1.2V, +1.2V] for weight encoding"
+  desc = "MAX-CUT specialized kernel on TSU"
+}
+
+Kernel {
+  kernel = cut_energy_cuda
+  hardware = gpu_a100
+  desc = "GPU kernel for MAX-CUT energy evaluation"
+  signature = "void compute_cut(int8_t* partition, float* weights, float* cut_out, int N);"
+  body = """
+    __global__ void maxcut_energy_kernel(
+        int8_t* partition,     // Binary partition {0,1}
+        float* edge_weights,   // W[i,j] = edge weight
+        float* cut_value,      // Output: total cut size
+        float* energy_value,   // Output: system energy
+        int num_vertices
+    ) {
+        __shared__ float partial_cut[256];
+        int tid = threadIdx.x;
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        
+        float local_cut = 0.0f;
+        
+        // Compute cut contribution
+        if (idx < num_vertices) {
+            int8_t x_i = partition[idx];
+            for (int j = idx + 1; j < num_vertices; j++) {
+                int8_t x_j = partition[j];
+                float w_ij = edge_weights[idx * num_vertices + j];
+                
+                // Edge (i,j) contributes if x_i != x_j
+                if (x_i != x_j) {
+                    local_cut += w_ij;
+                }
+            }
+        }
+        
+        partial_cut[tid] = local_cut;
+        __syncthreads();
+        
+        // Reduction
+        for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+            if (tid < s) {
+                partial_cut[tid] += partial_cut[tid + s];
+            }
+            __syncthreads();
+        }
+        
+        if (tid == 0) {
+            atomicAdd(cut_value, partial_cut[0]);
+            atomicAdd(energy_value, -partial_cut[0]);  // Energy = -cut
+        }
+    }
+  """
+  stochastic = false
+  thermodynamic = false
+}
+
+// =========================================================================
+// OPTIMIZATION RULES
+// =========================================================================
+
+Optimization {
+  target = tsu_extropic_1
+  type = annealing_schedule_optimization
+  params = "geometric_ratio=0.95, adaptive_cooling=true"
+  desc = "Optimize cooling schedule for MAX-CUT landscape"
+}
+
+Optimization {
+  target = tsu_extropic_1
+  type = weight_encoding_optimization
+  params = "precision=12bit, dynamic_range_compression=log_scale"
+  desc = "Efficiently encode wide range of edge weights"
+}
+
+Fusion {
+  fusion = anneal_evaluate_fusion
+  pattern = "tsu_anneal + evaluate_cut"
+  fused_kernel = tsu_qubo_kernel
+  hardware = tsu_extropic_1
+  desc = "TSU can track energy during annealing, no need for separate evaluation"
+}
+
+// =========================================================================
+// ENUMERATION RULES
+// =========================================================================
+
+DistributionRule {
+  distribution = boltzmann
+  params = "energy_fn, temperature"
+  reparam = false
+  tsu_native = true
+  energy_based = true
+  desc = "Boltzmann distribution for QUBO: p(x) ∝ exp(-E(x)/kT)"
+}
+
+SamplingAlgorithmRule {
+  algorithm = gibbs_annealing
+  discrete = true
+  tsu_accel = true
+  jax_pattern = "lax.scan with temperature decay"
+  desc = "Gibbs sampling with annealing schedule"
+}
+
+SamplingAlgorithmRule {
+  algorithm = simulated_annealing
+  discrete = true
+  tsu_accel = true
+  jax_pattern = "lax.fori_loop with T schedule"
+  desc = "Classical simulated annealing for QUBO"
+}
+
+BackendRule {
+  backend = tsu
+  execution = thermodynamic
+  desc = "TSU backend for quantum-annealing-style problems"
+}
+
+HardwareRule {
+  hardware = tsu_extropic_1
+  vendor = extropic
+  arch = thermodynamic_3nm_qubo
+  desc = "Extropic TSU optimized for combinatorial optimization"
+}
+
+// =========================================================================
+// PROJECT DEFINITION
+// =========================================================================
+
+Project {
+  project = MaxCutMultiTarget
+  domain = qubo_kernels
+  model = MaxCutQUBO
+  desc = "Multi-target MAX-CUT: TSU hardware + GPU baseline + validation"
+}
+
+// Target 1: Production TSU with Annealing
+TargetConfig {
+  target_id = tsu_production
+  parent = MaxCutMultiTarget
+  hardware = tsu_extropic_1
+  mode = production
+  config = tsu_annealing
+  codegen = true
+  priority = primary
+  desc = "Production TSU deployment with hardware annealing"
+}
+
+// Target 2: GPU Simulated Annealing (Baseline)
+TargetConfig {
+  target_id = gpu_baseline
+  parent = MaxCutMultiTarget
+  hardware = gpu_a100
+  mode = simulation
+  config = gpu_simulated_annealing
+  codegen = true
+  priority = validation
+  desc = "GPU-based simulated annealing for comparison"
+}
+
+// Target 3: Hybrid GPU+TSU
+TargetConfig {
+  target_id = hybrid_mode
+  parent = MaxCutMultiTarget
+  hardware = tsu_extropic_1
+  mode = production
+  config = hybrid_gpu_tsu
+  codegen = true
+  priority = primary
+  desc = "Hybrid: GPU warm start + TSU fine annealing"
+}
+
+// Build Rules
+BuildRule {
+  build_id = generate_all_maxcut
+  parent = MaxCutMultiTarget
+  targets = "tsu_production,gpu_baseline,hybrid_mode"
+  output_dir = "./build/maxcut_multi"
+  template = multi_target
+  validate_against = gpu_baseline
+  desc = "Generate all targets, validate TSU against GPU baseline"
+}
+
+BuildRule {
+  build_id = tsu_fast_iteration
+  parent = MaxCutMultiTarget
+  targets = "tsu_production"
+  output_dir = "./build/maxcut_tsu"
+  template = tsu
+  desc = "Fast TSU-only build for rapid iteration"
+}
+
+// =========================================================================
+// ADDITIONAL HARDWARE DEFINITIONS
+// =========================================================================
+
+Hardware {
+  hardware = gpu_a100
+  backend = gpu
+  emulation = false
+  constraints = "memory=80GB, fp32_tflops=19.5"
+  desc = "NVIDIA A100 GPU for classical QUBO solving"
+}
+
+Hardware {
+  hardware = cpu_x86
+  backend = cpu
+  emulation = false
+  desc = "CPU for exact small-instance solver"
+}

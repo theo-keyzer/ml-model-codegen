@@ -160,13 +160,14 @@ Comp AutoTuneConfig parent Config FindIn
 ----------------------------------------------------------------
 * Automatic tuning configuration
 ----------------------------------------------------------------
-	Element autotune       key   .              + AutoTune identifier
-	Element enabled        word  .              + true/false
-	Element strategy       ref   EvolutionStrategy + Optimization strategy
-	Element budget         word  .              + Max trials or time
-	Element early_stop     word  .              * Stop if no improvement for N trials
-	Element resume_from    ref   Checkpoint     * Resume from checkpoint
-	Element desc           text  .              * Description
+	Element autotune    key  .                 + AutoTune identifier
+	Element enabled     word .                 + true/false
+	Element strategy    ref  EvolutionStrategy + Optimization strategy
+	Element budget      word .                 + Max trials or time
+	Element early_stop  word .                 * Stop if no improvement for N trials
+	Element opt_from    ref  OptimizationRun   * Run that discovered this
+	Element resume_from ref_child Checkpoint   * Resume from checkpoint
+	Element desc        text .                 * Description
 
 Comp SensitivityAnalysis parent . Find
 ----------------------------------------------------------------

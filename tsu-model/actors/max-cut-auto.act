@@ -1,0 +1,1339 @@
+// =========================================================================
+// AUTO-TUNING ACTOR SCRIPT FOR MAX-CUT
+// Generates evolutionary optimization code for hyperparameter search
+// =========================================================================
+
+Actor main
+
+Map _:tensor
+Map _:config
+
+All Project generate_autotuner_project
+
+// =========================================================================
+// PROJECT STRUCTURE FOR AUTO-TUNER
+// =========================================================================
+
+Actor generate_autotuner_project Project
+C # =========================================================================
+C # Auto-Tuning Project: ${project}
+C # Evolutionary Optimization for MAX-CUT Annealing
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C import os
+C import sys
+C from pathlib import Path
+C import json
+C import pickle
+C from datetime import datetime
+C
+C # Create output directories
+C output_dirs = [
+Its BuildRule create_autotuner_directories
+C ]
+C
+C for dir_path in output_dirs:
+C     Path(dir_path).mkdir(parents=True, exist_ok=True)
+C     print(f"Created directory: {dir_path}")
+C
+C print(f"\\nAuto-tuning project: ${project}")
+C print(f"Model: ${model}")
+C
+All SearchSpace generate_search_space_module
+All EvolutionStrategy generate_evolution_module
+All OptimizationPattern generate_pattern_module
+All MetaLearning generate_metalearning_module
+
+Actor create_autotuner_directories BuildRule
+C     "${output_dir}",
+C     "${output_dir}/checkpoints",
+C     "${output_dir}/results",
+C     "${output_dir}/learned_patterns",
+
+// =========================================================================
+// SEARCH SPACE MODULE
+// =========================================================================
+
+Actor generate_search_space_module SearchSpace
+C
+C # =========================================================================
+C # SEARCH SPACE DEFINITION: ${search_space}
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C import jax
+C import jax.numpy as jnp
+C import numpy as np
+C from typing import Dict, Any, List, Tuple, Optional
+C from dataclasses import dataclass, field
+C import random
+C
+C @dataclass
+C class SearchSpaceConfig_${search_space:l}:
+C     """
+C     Search Space: ${search_space}
+C     Target: ${target}
+C     Objective: ${objective}
+C     Constraints: ${constraints}
+C     From: ${._lno}
+C     """
+C     search_space_id: str = "${search_space}"
+C     target_config: str = "${target}"
+C     objective: str = "${objective}"
+C     constraints: str = "${constraints}"
+C     
+C     # Parameter bounds
+All SearchParameter declare_param_bounds
+C     
+C     def validate_constraints(self, params: Dict[str, Any]) -> bool:
+C         """Check if parameter set satisfies constraints"""
+C         # Parse constraints: ${constraints}
+Du generate_constraint_validation
+C         return True
+C     
+C     def generate_random_individual(self, key) -> Dict[str, Any]:
+C         """Generate random parameter configuration"""
+C         individual = {}
+All SearchParameter generate_random_param
+C         return individual
+C     
+C     def mutate(self, individual: Dict[str, Any], key) -> Dict[str, Any]:
+C         """Mutate an individual"""
+C         mutated = individual.copy()
+All SearchParameter generate_mutation_logic
+C         return mutated
+C     
+C     def crossover(self, parent1: Dict[str, Any], parent2: Dict[str, Any], key) -> Dict[str, Any]:
+C         """Crossover two parents"""
+C         offspring = {}
+All SearchParameter generate_crossover_logic
+C         return offspring
+C
+C # Global search space instance
+C search_space_${search_space:l} = SearchSpaceConfig_${search_space:l}()
+
+Actor declare_param_bounds SearchParameter
+C     ${param:l}_min: float = ${range_min::0.0}
+C     ${param:l}_max: float = ${range_max::1.0}
+C     ${param:l}_initial: float = ${initial_value::0.5}
+C     ${param:l}_mutation_rate: float = ${mutation_rate::0.1}
+C     ${param:l}_type: str = "${param_type}"  # ${param_type}
+Du declare_categorical_values
+
+Actor declare_categorical_values SearchParameter
+C     ${param:l}_values: List[str] = field(default_factory=lambda: "${values::none}".split(","))
+
+Actor generate_constraint_validation SearchSpace
+C         # Constraint parsing for: ${constraints}
+C         constraint_str = "${constraints}"
+C         # Example: "power < 5W, time < 60s"
+C         # In production, parse and evaluate dynamically
+C         # For now, simple validation
+C         return True  # Placeholder
+
+Actor generate_random_param SearchParameter
+C         # Parameter: ${param} (${param_type})
+Du generate_random_continuous
+Du generate_random_discrete
+Du generate_random_categorical
+
+Actor generate_random_continuous SearchParameter
+C         key, subkey = jax.random.split(key)
+C         individual["${param}"] = float(jax.random.uniform(
+C             subkey, 
+C             minval=self.${param:l}_min, 
+C             maxval=self.${param:l}_max
+C         ))
+
+Actor generate_random_discrete SearchParameter
+C         key, subkey = jax.random.split(key)
+C         individual["${param}"] = int(jax.random.randint(
+C             subkey, 
+C             shape=(), 
+C             minval=int(self.${param:l}_min), 
+C             maxval=int(self.${param:l}_max) + 1
+C         ))
+
+Actor generate_random_categorical SearchParameter
+C         key, subkey = jax.random.split(key)
+C         idx = int(jax.random.randint(subkey, shape=(), minval=0, maxval=len(self.${param:l}_values)))
+C         individual["${param}"] = self.${param:l}_values[idx]
+
+Actor generate_mutation_logic SearchParameter
+C         # Mutate ${param} with probability ${mutation_rate}
+C         if random.random() < self.${param:l}_mutation_rate:
+Du mutate_continuous_param
+Du mutate_discrete_param
+Du mutate_categorical_param
+
+Actor mutate_continuous_param SearchParameter
+C             # Gaussian mutation for continuous parameter
+C             sigma = (self.${param:l}_max - self.${param:l}_min) * 0.1
+C             mutated["${param}"] = np.clip(
+C                 individual["${param}"] + np.random.normal(0, sigma),
+C                 self.${param:l}_min,
+C                 self.${param:l}_max
+C             )
+
+Actor mutate_discrete_param SearchParameter
+C             # Integer mutation
+C             delta = np.random.randint(-5, 6)
+C             mutated["${param}"] = int(np.clip(
+C                 individual["${param}"] + delta,
+C                 self.${param:l}_min,
+C                 self.${param:l}_max
+C             ))
+
+Actor mutate_categorical_param SearchParameter
+C             # Random categorical value
+C             mutated["${param}"] = random.choice(self.${param:l}_values)
+
+Actor generate_crossover_logic SearchParameter
+C         # Crossover for ${param}
+Du crossover_continuous
+Du crossover_discrete
+Du crossover_categorical
+
+Actor crossover_continuous SearchParameter
+C         # Arithmetic crossover
+C         alpha = random.random()
+C         offspring["${param}"] = alpha * parent1["${param}"] + (1 - alpha) * parent2["${param}"]
+
+Actor crossover_discrete SearchParameter
+C         # Random selection
+C         offspring["${param}"] = random.choice([parent1["${param}"], parent2["${param}"]])
+
+Actor crossover_categorical SearchParameter
+C         # Random selection
+C         offspring["${param}"] = random.choice([parent1["${param}"], parent2["${param}"]])
+
+// =========================================================================
+// EVOLUTION STRATEGY MODULE
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+C
+C # =========================================================================
+C # EVOLUTION STRATEGY: ${strategy}
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C @dataclass
+C class EvolutionConfig_${strategy:l}:
+C     """
+C     Evolution Strategy: ${strategy}
+C     Algorithm: ${algorithm}
+C     Population: ${population}
+C     Generations: ${generations}
+C     From: ${._lno}
+C     """
+C     strategy_id: str = "${strategy}"
+C     algorithm: str = "${algorithm}"
+C     population_size: int = ${population}
+C     num_generations: int = ${generations}
+C     elite_count: int = ${elite_count::5}
+C     crossover_rate: float = ${crossover_rate::0.7}
+C     mutation_rate: float = ${mutation_rate::0.2}
+C     selection_method: str = "${selection}"
+C     parallel_eval: bool = ${parallel::True}
+C     
+All FitnessFunction declare_fitness_function
+C
+C class EvolutionaryOptimizer_${strategy:l}:
+C     """Evolutionary optimizer for ${strategy}"""
+C     
+C     def __init__(self, search_space, config: EvolutionConfig_${strategy:l}):
+C         self.search_space = search_space
+C         self.config = config
+C         self.population: List[Dict[str, Any]] = []
+C         self.fitness_scores: List[float] = []
+C         self.best_individual: Optional[Dict[str, Any]] = None
+C         self.best_fitness: float = -float('inf')
+C         self.generation: int = 0
+C         self.history: List[Dict[str, Any]] = []
+C         
+C     def initialize_population(self, key):
+C         """Initialize random population"""
+C         print(f"Initializing population of {self.config.population_size}...")
+C         self.population = []
+C         for i in range(self.config.population_size):
+C             key, subkey = jax.random.split(key)
+C             individual = self.search_space.generate_random_individual(subkey)
+C             self.population.append(individual)
+C         print(f"Population initialized: {len(self.population)} individuals")
+C     
+All FitnessFunction generate_fitness_evaluation
+C     
+C     def select_parents(self, key) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+C         """Select two parents using ${selection}"""
+Du generate_tournament_selection
+Du generate_roulette_selection
+Du generate_rank_selection
+Du generate_elitist_selection
+C     
+C     def evolve_generation(self, key):
+C         """Evolve one generation"""
+C         print(f"\\nGeneration {self.generation + 1}/{self.config.num_generations}")
+C         
+C         # Evaluate fitness
+C         print("  Evaluating fitness...")
+C         self.fitness_scores = []
+C         for idx, individual in enumerate(self.population):
+C             fitness = self.evaluate_fitness(individual)
+C             self.fitness_scores.append(fitness)
+C             
+C             # Update best
+C             if fitness > self.best_fitness:
+C                 self.best_fitness = fitness
+C                 self.best_individual = individual.copy()
+C                 print(f"  âœ" New best! Fitness: {fitness:.4f}, Individual: {individual}")
+C             
+C             if idx % 10 == 0:
+C                 print(f"    Evaluated {idx}/{len(self.population)}")
+C         
+C         # Record history
+C         self.history.append({
+C             'generation': self.generation,
+C             'best_fitness': self.best_fitness,
+C             'avg_fitness': np.mean(self.fitness_scores),
+C             'std_fitness': np.std(self.fitness_scores),
+C             'best_individual': self.best_individual.copy()
+C         })
+C         
+C         print(f"  Best fitness: {self.best_fitness:.4f}")
+C         print(f"  Avg fitness: {np.mean(self.fitness_scores):.4f} ± {np.std(self.fitness_scores):.4f}")
+C         
+C         # Create next generation
+C         next_population = []
+C         
+C         # Elitism: keep top individuals
+C         elite_indices = np.argsort(self.fitness_scores)[-self.config.elite_count:]
+C         for idx in elite_indices:
+C             next_population.append(self.population[idx].copy())
+C         print(f"  Preserved {len(elite_indices)} elite individuals")
+C         
+C         # Generate offspring
+C         while len(next_population) < self.config.population_size:
+C             key, subkey = jax.random.split(key)
+C             
+C             # Selection
+C             parent1, parent2 = self.select_parents(subkey)
+C             
+C             # Crossover
+C             if random.random() < self.config.crossover_rate:
+C                 key, subkey = jax.random.split(key)
+C                 offspring = self.search_space.crossover(parent1, parent2, subkey)
+C             else:
+C                 offspring = parent1.copy()
+C             
+C             # Mutation
+C             key, subkey = jax.random.split(key)
+C             offspring = self.search_space.mutate(offspring, subkey)
+C             
+C             next_population.append(offspring)
+C         
+C         self.population = next_population
+C         self.generation += 1
+C     
+C     def run(self, key, num_generations: Optional[int] = None):
+C         """Run evolutionary optimization"""
+C         if num_generations is None:
+C             num_generations = self.config.num_generations
+C         
+C         print(f"\\n{'='*70}")
+C         print(f"EVOLUTIONARY OPTIMIZATION: ${strategy}")
+C         print(f"{'='*70}")
+C         print(f"Algorithm: ${algorithm}")
+C         print(f"Population: ${population}")
+C         print(f"Generations: {num_generations}")
+C         print(f"Search Space: {self.search_space.search_space_id}")
+C         print(f"{'='*70}\\n")
+C         
+C         # Initialize
+C         key, subkey = jax.random.split(key)
+C         self.initialize_population(subkey)
+C         
+C         # Evolution loop
+C         for gen in range(num_generations):
+C             key, subkey = jax.random.split(key)
+C             self.evolve_generation(subkey)
+C             
+Du generate_early_stopping_check
+Du generate_checkpoint_save
+C         
+C         print(f"\\n{'='*70}")
+C         print(f"OPTIMIZATION COMPLETE")
+C         print(f"{'='*70}")
+C         print(f"Best fitness: {self.best_fitness:.4f}")
+C         print(f"Best individual: {self.best_individual}")
+C         print(f"{'='*70}\\n")
+C         
+C         return self.best_individual, self.best_fitness, self.history
+C
+C # Global optimizer instance
+C optimizer_${strategy:l} = None
+
+Actor declare_fitness_function FitnessFunction
+C     
+C     # Fitness Function: ${fitness_fn}
+C     # Expression: ${expression}
+C     # Components: ${components}
+C     # Normalization: ${normalization}
+C     # Higher Better: ${higher_better}
+
+Actor generate_fitness_evaluation FitnessFunction
+C     
+C     def evaluate_fitness(self, individual: Dict[str, Any]) -> float:
+C         """
+C         Fitness Function: ${fitness_fn}
+C         Expression: ${expression}
+C         Components: ${components}
+C         Normalization: ${normalization}
+C         Higher Better: ${higher_better}
+C         From: ${._lno}
+C         """
+C         # In production: run actual MAX-CUT inference with these parameters
+C         # For now, simulate fitness evaluation
+C         
+C         # Parse components: ${components}
+C         # Example: "cut_quality:0.6, time_efficiency:0.3, energy_cost:0.1"
+C         
+C         # Simulate quality (higher is better)
+C         cut_quality = 0.8 + 0.2 * random.random()
+C         
+C         # Simulate time efficiency (faster is better)
+C         time_efficiency = 1.0 / (1.0 + abs(individual.get("T_initial", 100) - 100) / 1000.0)
+C         
+C         # Simulate energy cost (lower is better)
+C         energy_cost = 1.0 / (1.0 + abs(individual.get("cooling_rate", 0.95) - 0.95) * 10)
+C         
+C         # Weighted combination: ${components}
+C         fitness = (0.6 * cut_quality + 
+C                   0.3 * time_efficiency + 
+C                   0.1 * energy_cost)
+C         
+C         # Normalization: ${normalization}
+C         # In production: apply z-score or min-max normalization
+C         
+C         return fitness
+
+Actor generate_tournament_selection EvolutionStrategy
+C         # Tournament selection
+C         tournament_size = 3
+C         tournament_indices = random.sample(range(len(self.population)), tournament_size * 2)
+C         
+C         # First parent
+C         tournament1 = tournament_indices[:tournament_size]
+C         winner1_idx = max(tournament1, key=lambda i: self.fitness_scores[i])
+C         parent1 = self.population[winner1_idx]
+C         
+C         # Second parent
+C         tournament2 = tournament_indices[tournament_size:]
+C         winner2_idx = max(tournament2, key=lambda i: self.fitness_scores[i])
+C         parent2 = self.population[winner2_idx]
+C         
+C         return parent1, parent2
+
+Actor generate_roulette_selection EvolutionStrategy
+C         # Roulette wheel selection
+C         total_fitness = sum(self.fitness_scores)
+C         if total_fitness <= 0:
+C             # Fallback to random selection
+C             idx1, idx2 = random.sample(range(len(self.population)), 2)
+C             return self.population[idx1], self.population[idx2]
+C         
+C         def select_one():
+C             r = random.random() * total_fitness
+C             cumsum = 0
+C             for i, fitness in enumerate(self.fitness_scores):
+C                 cumsum += fitness
+C                 if cumsum >= r:
+C                     return self.population[i]
+C             return self.population[-1]
+C         
+C         return select_one(), select_one()
+
+Actor generate_rank_selection EvolutionStrategy
+C         # Rank-based selection
+C         ranks = np.argsort(np.argsort(self.fitness_scores)) + 1
+C         rank_sum = np.sum(ranks)
+C         probabilities = ranks / rank_sum
+C         
+C         indices = np.random.choice(len(self.population), size=2, p=probabilities, replace=False)
+C         return self.population[indices[0]], self.population[indices[1]]
+
+Actor generate_elitist_selection EvolutionStrategy
+C         # Elitist selection: always pick from top 20%
+C         top_k = max(1, len(self.population) // 5)
+C         top_indices = np.argsort(self.fitness_scores)[-top_k:]
+C         
+C         idx1, idx2 = random.sample(list(top_indices), 2)
+C         return self.population[idx1], self.population[idx2]
+
+Actor generate_early_stopping_check EvolutionStrategy
+C             
+C             # Early stopping check
+C             if len(self.history) >= ${early_stop::50}:
+C                 recent_best = [h['best_fitness'] for h in self.history[-${early_stop::50}:]]
+C                 if max(recent_best) - min(recent_best) < 1e-6:
+C                     print(f"\\n  Early stopping: no improvement for ${early_stop::50} generations")
+C                     break
+
+Actor generate_checkpoint_save EvolutionStrategy
+C             
+C             # Save checkpoint every 10 generations
+C             if (gen + 1) % 10 == 0:
+C                 checkpoint = {
+C                     'generation': self.generation,
+C                     'population': self.population,
+C                     'fitness_scores': self.fitness_scores,
+C                     'best_individual': self.best_individual,
+C                     'best_fitness': self.best_fitness,
+C                     'history': self.history
+C                 }
+C                 checkpoint_path = Path("./build/autotuner/checkpoints") / f"gen_{self.generation:04d}.pkl"
+C                 with open(checkpoint_path, 'wb') as f:
+C                     pickle.dump(checkpoint, f)
+C                 print(f"  Checkpoint saved: {checkpoint_path}")
+
+// =========================================================================
+// LEARNED PATTERNS MODULE
+// =========================================================================
+
+Actor generate_pattern_module OptimizationPattern
+C
+C # =========================================================================
+C # LEARNED OPTIMIZATION PATTERNS
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C @dataclass
+C class OptimizationPattern:
+C     """
+C     Pattern: ${pattern_id}
+C     Problem Class: ${problem_class}
+C     Type: ${pattern_type}
+C     Success Rate: ${success_rate}
+C     From: ${._lno}
+C     """
+C     pattern_id: str = "${pattern_id}"
+C     problem_class: str = "${problem_class}"
+C     pattern_type: str = "${pattern_type}"
+C     precondition: str = "${precondition}"
+C     recommendation: str = "${recommendation}"
+C     success_rate: float = ${success_rate::0.5}
+C     discovered_by: Optional[str] = ${discovered_by::None}
+C     
+C     def matches(self, problem_features: Dict[str, Any]) -> bool:
+C         """Check if pattern applies to problem"""
+C         # Parse precondition: ${precondition}
+Du generate_precondition_check
+C         return False
+C     
+C     def apply(self, base_params: Dict[str, Any]) -> Dict[str, Any]:
+C         """Apply pattern recommendation to parameters"""
+C         # Parse recommendation: ${recommendation}
+C         params = base_params.copy()
+Du generate_recommendation_application
+C         return params
+C
+C # Pattern database
+C learned_patterns_${problem_class:l} = [
+C     OptimizationPattern(
+C         pattern_id="${pattern_id}",
+C         problem_class="${problem_class}",
+C         pattern_type="${pattern_type}",
+C         precondition="${precondition}",
+C         recommendation="${recommendation}",
+C         success_rate=${success_rate::0.5}
+C     )
+C ]
+C
+C def apply_learned_patterns(problem_features: Dict[str, Any], base_params: Dict[str, Any]) -> Dict[str, Any]:
+C     """Apply all matching learned patterns"""
+C     params = base_params.copy()
+C     
+C     for pattern in learned_patterns_${problem_class:l}:
+C         if pattern.matches(problem_features):
+C             print(f"Applying pattern: {pattern.pattern_id} (success rate: {pattern.success_rate:.1%})")
+C             params = pattern.apply(params)
+C     
+C     return params
+
+Actor generate_precondition_check OptimizationPattern
+C         # Evaluate: ${precondition}
+C         # Example: "graph_density > 0.5 AND num_vertices > 500"
+C         try:
+C             # Simple parser for common patterns
+C             condition = "${precondition}"
+C             if "graph_density" in condition:
+C                 if ">" in condition and "graph_density" in problem_features:
+C                     threshold = float(condition.split(">")[1].split()[0])
+C                     if problem_features.get("graph_density", 0) <= threshold:
+C                         return False
+C             if "num_vertices" in condition:
+C                 if ">" in condition and "num_vertices" in problem_features:
+C                     threshold = int(condition.split(">")[1].strip())
+C                     if problem_features.get("num_vertices", 0) <= threshold:
+C                         return False
+C             return True
+C         except:
+C             return False
+
+Actor generate_recommendation_application OptimizationPattern
+C         # Parse: ${recommendation}
+C         # Example: "use T_initial=500, cooling_rate=0.98, slow_cooling"
+C         recommendation = "${recommendation}"
+C         if "T_initial=" in recommendation:
+C             val = float(recommendation.split("T_initial=")[1].split(",")[0])
+C             params["T_initial"] = val
+C         if "cooling_rate=" in recommendation:
+C             val = float(recommendation.split("cooling_rate=")[1].split(",")[0])
+C             params["cooling_rate"] = val
+C         if "num_steps=" in recommendation:
+C             val = int(recommendation.split("num_steps=")[1].split(",")[0])
+C             params["num_annealing_steps"] = val
+
+// =========================================================================
+// META-LEARNING MODULE
+// =========================================================================
+
+Actor generate_metalearning_module MetaLearning
+C
+C # =========================================================================
+C # META-LEARNING: ${meta_id}
+C # Generated from: ${._lno}
+C # =========================================================================
+C
+C class MetaLearner_${meta_id:l}:
+C     """
+C     Meta-Learner: ${meta_id}
+C     Type: ${learner_type}
+C     Source Runs: ${source_runs}
+C     Improvement: ${improvement}
+C     From: ${._lno}
+C     """
+C     
+C     def __init__(self):
+C         self.learner_type = "${learner_type}"
+C         self.model = None
+C         self.trained = False
+C     
+C     def load_source_runs(self) -> List[Dict[str, Any]]:
+C         """Load data from source optimization runs"""
+C         source_runs = "${source_runs}".split(",")
+C         data = []
+C         
+C         for run_id in source_runs:
+C             run_id = run_id.strip()
+C             checkpoint_path = Path(f"./build/autotuner/results/{run_id}.pkl")
+C             if checkpoint_path.exists():
+C                 with open(checkpoint_path, 'rb') as f:
+C                     run_data = pickle.load(f)
+C                     data.append(run_data)
+C                 print(f"Loaded run: {run_id}")
+C         
+C         return data
+C     
+C     def extract_features(self, problem_instance: Dict[str, Any]) -> np.ndarray:
+C         """Extract features from problem instance"""
+C         # Example features for MAX-CUT:
+C         # - num_vertices
+C         # - graph_density
+C         # - avg_edge_weight
+C         # - variance_edge_weight
+C         # - clustering_coefficient
+C         
+C         features = []
+C         features.append(problem_instance.get("num_vertices", 100))
+C         features.append(problem_instance.get("graph_density", 0.3))
+C         features.append(problem_instance.get("avg_edge_weight", 5.0))
+C         features.append(problem_instance.get("variance_edge_weight", 2.0))
+C         
+C         return np.array(features)
+C     
+C     def train_surrogate_model(self):
+C         """Train surrogate model from source runs"""
+C         print(f"\\nTraining meta-learner: ${meta_id}")
+C         print(f"Learner type: ${learner_type}")
+C         
+C         data = self.load_source_runs()
+C         if len(data) == 0:
+C             print("WARNING: No source data found")
+C             return
+C         
+C         # Extract features and targets
+C         X_train = []
+C         y_train = []
+C         
+C         for run_data in data:
+C             # Extract problem features
+C             features = self.extract_features(run_data.get("problem_features", {}))
+C             
+C             # Extract best parameters found
+C             best_params = run_data.get("best_individual", {})
+C             
+C             X_train.append(features)
+C             y_train.append(best_params)
+C         
+C         # Train surrogate model (placeholder)
+C         # In production: use Gaussian Process, Random Forest, or Neural Network
+C         print(f"Training on {len(X_train)} examples...")
+C         print(f"Feature dimension: {len(X_train[0])}")
+C         print(f"Meta-learning model: ${learner_type}")
+C         
+C         # Store training data
+C         self.X_train = np.array(X_train)
+C         self.y_train = y_train
+C         self.trained = True
+C         
+C         print(f"âœ" Meta-learner trained successfully")
+C         print(f"Expected improvement: ${improvement}")
+C     
+C     def predict_warm_start(self, problem_features: Dict[str, Any]) -> Dict[str, Any]:
+C         """Predict good starting parameters for new problem"""
+C         if not self.trained:
+C             print("WARNING: Meta-learner not trained, using defaults")
+C             return {}
+C         
+C         features = self.extract_features(problem_features)
+C         
+C         # Simple nearest-neighbor prediction (placeholder)
+C         # In production: use trained surrogate model
+C         distances = np.linalg.norm(self.X_train - features, axis=1)
+C         nearest_idx = np.argmin(distances)
+C         
+C         predicted_params = self.y_train[nearest_idx].copy()
+C         
+C         print(f"\\nMeta-learner prediction:")
+C         print(f"  Nearest neighbor distance: {distances[nearest_idx]:.4f}")
+C         print(f"  Predicted parameters: {predicted_params}")
+C         
+C         return predicted_params
+C
+C # Global meta-learner instance
+C meta_learner_${meta_id:l} = MetaLearner_${meta_id:l}()
+
+// =========================================================================
+// PERFORMANCE METRICS MODULE
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+All PerformanceMetric generate_metrics_module
+
+Actor generate_metrics_module PerformanceMetric
+C
+C # =========================================================================
+C # PERFORMANCE METRICS
+C # =========================================================================
+C
+C @dataclass
+C class PerformanceMetric_${metric:l}:
+C     """
+C     Metric: ${metric}
+C     Type: ${type}
+C     Measurement: ${measurement}
+C     Target: ${target_value}
+C     From: ${._lno}
+C     """
+C     metric_id: str = "${metric}"
+C     metric_type: str = "${type}"
+C     measurement: str = "${measurement}"
+C     target_value: float = ${target_value::1.0}
+C     tolerance: float = ${tolerance::0.1}
+C     
+C     def evaluate(self, trial_results: Dict[str, Any]) -> float:
+C         """Evaluate metric on trial results"""
+Du evaluate_solution_quality
+Du evaluate_runtime_metric
+Du evaluate_energy_metric
+Du evaluate_convergence_metric
+C         return 0.0
+C     
+C     def check_target(self, value: float) -> bool:
+C         """Check if metric meets target"""
+C         return abs(value - self.target_value) <= self.tolerance
+C
+C # Metric registry
+C performance_metrics = [
+C     PerformanceMetric_${metric:l}()
+C ]
+
+Actor evaluate_solution_quality PerformanceMetric
+C         # Solution quality metric: ${measurement}
+C         if self.metric_type == "solution_quality":
+C             achieved_cut = trial_results.get("cut_value", 0.0)
+C             theoretical_bound = trial_results.get("upper_bound", 1.0)
+C             if theoretical_bound > 0:
+C                 return achieved_cut / theoretical_bound
+C             return 0.0
+
+Actor evaluate_runtime_metric PerformanceMetric
+C         # Runtime metric: ${measurement}
+C         if self.metric_type == "runtime":
+C             runtime = trial_results.get("elapsed_time", float('inf'))
+C             return 1.0 / (1.0 + runtime)  # Normalized
+
+Actor evaluate_energy_metric PerformanceMetric
+C         # Energy metric: ${measurement}
+C         if self.metric_type == "energy":
+C             energy = trial_results.get("energy_consumption", 0.0)
+C             return 1.0 / (1.0 + energy)
+
+Actor evaluate_convergence_metric PerformanceMetric
+C         # Convergence metric: ${measurement}
+C         if self.metric_type == "convergence":
+C             steps_to_converge = trial_results.get("convergence_steps", float('inf'))
+C             return self.target_value / max(steps_to_converge, 1.0)
+
+// =========================================================================
+// DIAGNOSTIC RULES MODULE
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+All DiagnosticRule generate_diagnostics_module
+
+Actor generate_diagnostics_module DiagnosticRule
+C
+C # =========================================================================
+C # DIAGNOSTIC RULES
+C # =========================================================================
+C
+C @dataclass
+C class DiagnosticRule_${rule_id:l}:
+C     """
+C     Diagnostic Rule: ${rule_id}
+C     Symptom: ${symptom}
+C     Diagnosis: ${diagnosis}
+C     Remedy: ${remedy}
+C     Confidence: ${confidence}
+C     From: ${._lno}
+C     """
+C     rule_id: str = "${rule_id}"
+C     symptom: str = "${symptom}"
+C     diagnosis: str = "${diagnosis}"
+C     remedy: str = "${remedy}"
+C     confidence: str = "${confidence}"
+C     
+C     def check_symptom(self, trial_data: Dict[str, Any]) -> bool:
+C         """Check if symptom is present"""
+Du check_premature_freezing
+Du check_slow_convergence
+Du check_energy_divergence
+C         return False
+C     
+C     def diagnose(self) -> str:
+C         """Return diagnosis"""
+C         return f"[{self.confidence.upper()}] {self.diagnosis}"
+C     
+C     def suggest_remedy(self) -> str:
+C         """Return suggested remedy"""
+C         return self.remedy
+C
+C # Diagnostic system
+C diagnostic_rules = [
+C     DiagnosticRule_${rule_id:l}()
+C ]
+C
+C def run_diagnostics(trial_data: Dict[str, Any]) -> List[Dict[str, str]]:
+C     """Run all diagnostic rules on trial data"""
+C     issues = []
+C     
+C     for rule in diagnostic_rules:
+C         if rule.check_symptom(trial_data):
+C             issues.append({
+C                 'rule_id': rule.rule_id,
+C                 'diagnosis': rule.diagnose(),
+C                 'remedy': rule.suggest_remedy(),
+C                 'confidence': rule.confidence
+C             })
+C     
+C     return issues
+
+Actor check_premature_freezing DiagnosticRule
+C         # Check for: ${symptom}
+C         if "energy_variance" in trial_data and "step" in trial_data:
+C             variance = trial_data.get("energy_variance", 1.0)
+C             step = trial_data.get("step", 0)
+C             # Symptom: "energy_variance drops to 0 before step 100"
+C             if variance < 1e-6 and step < 100:
+C                 return True
+C         return False
+
+Actor check_slow_convergence DiagnosticRule
+C         # Check for slow convergence
+C         if "convergence_steps" in trial_data:
+C             steps = trial_data.get("convergence_steps", 0)
+C             if steps > 5000:
+C                 return True
+C         return False
+
+Actor check_energy_divergence DiagnosticRule
+C         # Check for energy divergence
+C         if "energy_history" in trial_data:
+C             history = trial_data.get("energy_history", [])
+C             if len(history) > 10:
+C                 recent_trend = np.diff(history[-10:])
+C                 if np.mean(recent_trend) > 0.1:  # Energy increasing
+C                     return True
+C         return False
+
+// =========================================================================
+// FAILURE MODE HANDLING
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+All FailureMode generate_failure_module
+
+Actor generate_failure_module FailureMode
+C
+C # =========================================================================
+C # FAILURE MODE RECOVERY
+C # =========================================================================
+C
+C @dataclass
+C class FailureMode_${failure_id:l}:
+C     """
+C     Failure Mode: ${failure_id}
+C     Pattern: ${pattern}
+C     Root Cause: ${root_cause}
+C     Mitigation: ${mitigation}
+C     Recovery: ${recovery}
+C     Frequency: ${frequency}
+C     From: ${._lno}
+C     """
+C     failure_id: str = "${failure_id}"
+C     pattern: str = "${pattern}"
+C     root_cause: str = "${root_cause}"
+C     mitigation: str = "${mitigation}"
+C     recovery: str = "${recovery}"
+C     frequency: str = "${frequency}"
+C     
+C     def detect(self, trial_data: Dict[str, Any]) -> bool:
+C         """Detect if failure pattern is present"""
+C         # Pattern: ${pattern}
+C         # Check for known failure patterns
+C         return False
+C     
+C     def recover(self, optimizer) -> bool:
+C         """Attempt recovery"""
+C         print(f"\\nâš ï¸ Failure detected: {self.failure_id}")
+C         print(f"  Root cause: {self.root_cause}")
+C         print(f"  Attempting recovery: {self.recovery}")
+C         
+C         # Recovery: ${recovery}
+C         # In production: implement specific recovery procedures
+C         
+C         return True
+C
+C # Failure mode database
+C known_failures = [
+C     FailureMode_${failure_id:l}()
+C ]
+
+// =========================================================================
+// MULTI-OBJECTIVE OPTIMIZATION
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+All MultiObjective generate_multiobjective_module
+
+Actor generate_multiobjective_module MultiObjective
+C
+C # =========================================================================
+C # MULTI-OBJECTIVE OPTIMIZATION (PARETO)
+C # =========================================================================
+C
+C class ParetoOptimizer_${parent.strategy:l}:
+C     """
+C     Multi-Objective Optimizer
+C     Objectives: ${objectives}
+C     Method: ${pareto_method}
+C     From: ${._lno}
+C     """
+C     
+C     def __init__(self):
+C         self.objectives = "${objectives}".split(",")
+C         self.pareto_method = "${pareto_method}"
+C         self.pareto_front: List[Dict[str, Any]] = []
+C         self.archive_size = ${archive_size::100}
+C     
+C     def dominates(self, obj1: Dict[str, float], obj2: Dict[str, float]) -> bool:
+C         """Check if obj1 dominates obj2 (Pareto dominance)"""
+C         better_in_one = False
+C         
+C         for objective in self.objectives:
+C             obj_name = objective.strip()
+C             if obj1.get(obj_name, 0) < obj2.get(obj_name, 0):
+C                 return False  # Worse in this objective (assuming minimization)
+C             if obj1.get(obj_name, 0) > obj2.get(obj_name, 0):
+C                 better_in_one = True
+C         
+C         return better_in_one
+C     
+C     def update_pareto_front(self, new_individual: Dict[str, Any], objectives: Dict[str, float]):
+C         """Update Pareto front with new solution"""
+C         # Check if new individual is dominated
+C         dominated = False
+C         to_remove = []
+C         
+C         for idx, front_member in enumerate(self.pareto_front):
+C             if self.dominates(front_member['objectives'], objectives):
+C                 dominated = True
+C                 break
+C             if self.dominates(objectives, front_member['objectives']):
+C                 to_remove.append(idx)
+C         
+C         # Remove dominated solutions
+C         for idx in reversed(to_remove):
+C             del self.pareto_front[idx]
+C         
+C         # Add if not dominated
+C         if not dominated:
+C             self.pareto_front.append({
+C                 'individual': new_individual.copy(),
+C                 'objectives': objectives.copy()
+C             })
+C         
+C         # Maintain archive size
+C         if len(self.pareto_front) > self.archive_size:
+C             # Use crowding distance to prune
+C             self.prune_by_crowding_distance()
+C     
+C     def prune_by_crowding_distance(self):
+C         """Prune Pareto front using crowding distance"""
+C         if len(self.pareto_front) <= self.archive_size:
+C             return
+C         
+C         # Calculate crowding distance for each solution
+C         distances = []
+C         for i, solution in enumerate(self.pareto_front):
+C             distance = 0.0
+C             
+C             for objective in self.objectives:
+C                 obj_name = objective.strip()
+C                 values = [s['objectives'].get(obj_name, 0) for s in self.pareto_front]
+C                 
+C                 if len(values) > 1:
+C                     obj_range = max(values) - min(values)
+C                     if obj_range > 0:
+C                         # Crowding distance contribution
+C                         sorted_indices = np.argsort(values)
+C                         if i == sorted_indices[0] or i == sorted_indices[-1]:
+C                             distance += float('inf')  # Boundary points
+C                         else:
+C                             rank = list(sorted_indices).index(i)
+C                             distance += (values[sorted_indices[rank+1]] - 
+C                                        values[sorted_indices[rank-1]]) / obj_range
+C             
+C             distances.append(distance)
+C         
+C         # Keep solutions with largest crowding distance
+C         keep_indices = np.argsort(distances)[-self.archive_size:]
+C         self.pareto_front = [self.pareto_front[i] for i in keep_indices]
+C     
+C     def get_pareto_front(self) -> List[Dict[str, Any]]:
+C         """Return current Pareto front"""
+C         return self.pareto_front
+C     
+C     def compute_hypervolume(self, reference_point: Dict[str, float]) -> float:
+C         """Compute hypervolume indicator"""
+C         # Simplified hypervolume calculation
+C         if len(self.pareto_front) == 0:
+C             return 0.0
+C         
+C         # For 2D case (can be extended)
+C         if len(self.objectives) == 2:
+C             obj1_name = self.objectives[0].strip()
+C             obj2_name = self.objectives[1].strip()
+C             
+C             points = [(s['objectives'].get(obj1_name, 0), 
+C                       s['objectives'].get(obj2_name, 0)) 
+C                      for s in self.pareto_front]
+C             points.sort()
+C             
+C             ref_x = reference_point.get(obj1_name, 0)
+C             ref_y = reference_point.get(obj2_name, 0)
+C             
+C             volume = 0.0
+C             prev_x = ref_x
+C             
+C             for x, y in points:
+C                 volume += (prev_x - x) * (ref_y - y)
+C                 prev_x = x
+C             
+C             return abs(volume)
+C         
+C         return 0.0
+C
+C # Multi-objective optimizer instance
+C pareto_optimizer_${parent.strategy:l} = ParetoOptimizer_${parent.strategy:l}()
+
+// =========================================================================
+// SENSITIVITY ANALYSIS
+// =========================================================================
+
+Actor generate_evolution_module EvolutionStrategy
+All SensitivityAnalysis generate_sensitivity_module
+
+Actor generate_sensitivity_module SensitivityAnalysis
+C
+C # =========================================================================
+C # SENSITIVITY ANALYSIS
+C # =========================================================================
+C
+C class SensitivityAnalyzer_${analysis_id:l}:
+C     """
+C     Sensitivity Analysis: ${analysis_id}
+C     Method: ${method}
+C     From: ${._lno}
+C     """
+C     
+C     def __init__(self, search_space):
+C         self.search_space = search_space
+C         self.method = "${method}"
+C         self.results = {}
+C         self.most_sensitive = []
+C     
+C     def sobol_analysis(self, num_samples: int = 1000) -> Dict[str, float]:
+C         """Sobol sensitivity analysis"""
+C         print(f"\\nRunning Sobol sensitivity analysis ({num_samples} samples)...")
+C         
+C         # Generate Sobol sequences (simplified)
+C         # In production: use scipy.stats.qmc.Sobol
+C         
+C         sensitivities = {}
+C         
+C         # For each parameter, measure variance contribution
+All SearchParameter compute_parameter_sensitivity
+C         
+C         # Normalize
+C         total = sum(sensitivities.values())
+C         if total > 0:
+C             sensitivities = {k: v/total for k, v in sensitivities.items()}
+C         
+C         self.results = sensitivities
+C         self.most_sensitive = sorted(sensitivities.items(), 
+C                                      key=lambda x: x[1], 
+C                                      reverse=True)
+C         
+C         print(f"\\nSensitivity Analysis Results:")
+C         for param, sensitivity in self.most_sensitive[:5]:
+C             print(f"  {param}: {sensitivity:.3f}")
+C         
+C         return sensitivities
+C     
+C     def plot_sensitivity(self, output_path: str):
+C         """Plot sensitivity indices"""
+C         import matplotlib.pyplot as plt
+C         
+C         if not self.results:
+C             print("No sensitivity results to plot")
+C             return
+C         
+C         params = list(self.results.keys())
+C         indices = list(self.results.values())
+C         
+C         plt.figure(figsize=(10, 6))
+C         plt.barh(params, indices)
+C         plt.xlabel("Sensitivity Index")
+C         plt.title("Parameter Sensitivity Analysis")
+C         plt.tight_layout()
+C         plt.savefig(output_path)
+C         print(f"Sensitivity plot saved: {output_path}")
+C
+C # Sensitivity analyzer instance
+C sensitivity_analyzer_${analysis_id:l} = None
+
+Actor compute_parameter_sensitivity SearchParameter
+C         # Parameter: ${param}
+C         # Vary this parameter while keeping others fixed
+C         param_variance = 0.0
+C         baseline_fitness = 0.8  # Placeholder
+C         
+C         # Sample parameter range
+C         num_param_samples = 50
+C         param_values = np.linspace(
+C             self.search_space.${param:l}_min,
+C             self.search_space.${param:l}_max,
+C             num_param_samples
+C         )
+C         
+C         fitness_values = []
+C         for val in param_values:
+C             # Simulate fitness with this parameter value
+C             # In production: actually run inference
+C             noise = np.random.normal(0, 0.05)
+C             fitness = baseline_fitness + noise
+C             fitness_values.append(fitness)
+C         
+C         param_variance = np.var(fitness_values)
+C         sensitivities["${param}"] = param_variance
+All FailureMode list_fail
+All MetaLearning list_meta
+
+Actor list_meta MetaLearning
+C # Global meta-learner instance
+C meta_learner_${meta_id:l} = MetaLearner_${meta_id:l}()
+
+Actor list_fail FailureMode
+C # Failure mode database
+C known_failures = [
+C     FailureMode_${failure_id:l}()
+C ]
+
+// =========================================================================
+// MAIN INTEGRATION
+// =========================================================================
+
+Actor get_search_space_instance SearchSpace
+C     search_space = search_space_${search_space:l}
+
+Actor apply_meta_learning MetaLearning
+C         try:
+C             meta_learner_${meta_id:l}.train_surrogate_model()
+C             warm_start_params = meta_learner_${meta_id:l}.predict_warm_start(problem_instance)
+C             if warm_start_params:
+C                 base_params.update(warm_start_params)
+C         except Exception as e:
+C             print(f"  Meta-learning failed: {e}")
+C             print("  Continuing with base parameters")
+
+Actor run_optimization EvolutionStrategy
+C     key = jax.random.PRNGKey(42)
+C     
+C     # Create optimizer with warm-started population
+C     optimizer_${strategy:l} = EvolutionaryOptimizer_${strategy:l}(
+C         search_space=search_space,
+C         config=EvolutionConfig_${strategy:l}()
+C     )
+C     
+C     # Initialize with warm start
+C     key, subkey = jax.random.split(key)
+C     optimizer_${strategy:l}.initialize_population(subkey)
+C     
+C     # Inject warm-started individual into population
+C     optimizer_${strategy:l}.population[0] = warm_start_params.copy()
+C     
+C     # Run optimization
+C     key, subkey = jax.random.split(key)
+C     best_params, best_fitness, history = optimizer_${strategy:l}.run(subkey)
+
+Actor generate_training_call MetaLearning
+C         meta_learner_${meta_id:l}.train_surrogate_model()
+
+Actor generate_autotuner_project Project
+C
+C # =========================================================================
+C # MAIN AUTO-TUNING PIPELINE
+C # =========================================================================
+C
+C def run_autotuning_pipeline(
+C     problem_instance: Dict[str, Any],
+C     use_meta_learning: bool = True,
+C     use_learned_patterns: bool = True
+C ) -> Dict[str, Any]:
+C     """
+C     Complete auto-tuning pipeline
+C     
+C     1. Apply learned patterns (if available)
+C     2. Use meta-learning for warm start (if available)
+C     3. Run evolutionary optimization
+C     4. Return best configuration
+C     """
+C     
+C     print(f"\\n{'='*70}")
+C     print(f"AUTO-TUNING PIPELINE")
+C     print(f"{'='*70}\\n")
+C     
+C     # Get search space
+All SearchSpace get_search_space_instance
+C     
+C     # Base parameters
+C     base_params = search_space.generate_random_individual(jax.random.PRNGKey(0))
+C     
+C     # Apply learned patterns
+C     if use_learned_patterns:
+C         print("\\nStep 1: Applying Learned Patterns")
+C         base_params = apply_learned_patterns(problem_instance, base_params)
+C     
+C     # Meta-learning warm start
+C     warm_start_params = base_params.copy()
+C     if use_meta_learning:
+C         print("\\nStep 2: Meta-Learning Warm Start")
+All MetaLearning apply_meta_learning
+C     
+C     # Run evolutionary optimization
+C     print("\\nStep 3: Evolutionary Optimization")
+All EvolutionStrategy run_optimization
+C     
+C     # Save results
+C     print("\\nStep 4: Saving Results")
+C     results = {
+C         'problem_instance': problem_instance,
+C         'base_params': base_params,
+C         'warm_start_params': warm_start_params,
+C         'best_params': best_params,
+C         'best_fitness': best_fitness,
+C         'optimization_history': history,
+C         'timestamp': datetime.now().isoformat()
+C     }
+C     
+C     results_path = Path("./build/autotuner/results/latest_run.json")
+C     with open(results_path, 'w') as f:
+C         json.dump(results, f, indent=2, default=str)
+C     print(f"Results saved: {results_path}")
+C     
+C     return results
+C
+C # =========================================================================
+C # COMMAND LINE INTERFACE
+C # =========================================================================
+C
+C if __name__ == "__main__":
+C     import argparse
+C     
+C     parser = argparse.ArgumentParser(description="Auto-tune MAX-CUT annealing parameters")
+C     parser.add_argument("--num-vertices", type=int, default=100, help="Number of vertices")
+C     parser.add_argument("--graph-density", type=float, default=0.3, help="Graph density")
+C     parser.add_argument("--population", type=int, default=50, help="Population size")
+C     parser.add_argument("--generations", type=int, default=100, help="Number of generations")
+C     parser.add_argument("--no-meta-learning", action="store_true", help="Disable meta-learning")
+C     parser.add_argument("--no-patterns", action="store_true", help="Disable learned patterns")
+C     parser.add_argument("--train-meta-learner", action="store_true", help="Train meta-learner first")
+C     
+C     args = parser.parse_args()
+C     
+C     # Train meta-learner if requested
+C     if args.train_meta_learner:
+C         print("Training meta-learner...")
+All MetaLearning generate_training_call
+C     
+C     # Define problem instance
+C     problem_instance = {
+C         'num_vertices': args.num_vertices,
+C         'graph_density': args.graph_density,
+C         'avg_edge_weight': 5.0,
+C         'variance_edge_weight': 2.0
+C     }
+C     
+C     print(f"\\nProblem Instance:")
+C     print(f"  Vertices: {args.num_vertices}")
+C     print(f"  Density: {args.graph_density}")
+C     
+C     # Run auto-tuning
+C     results = run_autotuning_pipeline(
+C         problem_instance=problem_instance,
+C         use_meta_learning=not args.no_meta_learning,
+C         use_learned_patterns=not args.no_patterns
+C     )
+C     
+C     print(f"\\n{'='*70}")
+C     print(f"AUTO-TUNING COMPLETE")
+C     print(f"{'='*70}")
+C     print(f"\\nBest Parameters:")
+C     for key, value in results['best_params'].items():
+C         print(f"  {key}: {value}")
+C     print(f"\\nBest Fitness: {results['best_fitness']:.4f}")
+C     print(f"{'='*70}\\n")
