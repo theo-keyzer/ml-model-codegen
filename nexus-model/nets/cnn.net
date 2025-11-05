@@ -1,0 +1,751 @@
+// =========================================================================
+// SIMPLE CONVOLUTIONAL NEURAL NETWORK - Multi-Paradigm Example
+// =========================================================================
+// This demonstrates a simple CNN that can target:
+// - Classical GPU (CUDA)
+// - Neuromorphic hardware (Loihi-style spiking)
+// - Analog memristor arrays (for inference)
+// =========================================================================
+
+Project {
+  project = SimpleConvNet
+  version = 1.0.0
+  target_hardware = "gpu_cuda, loihi2, memristor_array"
+  desc = "Simple 3-layer CNN for MNIST-like classification"
+}
+
+// =========================================================================
+// COMPUTE GRAPH DEFINITION
+// =========================================================================
+
+ComputeGraph {
+  graph = mnist_classifier
+  entry_point = conv1
+  parallel = true
+  desc = "Simple CNN: Conv -> ReLU -> Pool -> FC -> Softmax"
+  project_ref = SimpleConvNet
+}
+
+// =========================================================================
+// DATA TENSORS
+// =========================================================================
+
+DataTensor {
+  tensor = input_image
+  shape = "1,28,28,1"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "Input grayscale image 28x28"
+}
+
+DataTensor {
+  tensor = conv1_out
+  shape = "1,26,26,16"
+  dtype = fp32
+  layout = nhwc
+  producer = conv1
+  desc = "Conv1 output feature maps"
+}
+
+DataTensor {
+  tensor = relu1_out
+  shape = "1,26,26,16"
+  dtype = fp32
+  layout = nhwc
+  producer = relu1
+  desc = "ReLU1 activations"
+}
+
+DataTensor {
+  tensor = pool1_out
+  shape = "1,13,13,16"
+  dtype = fp32
+  layout = nhwc
+  producer = pool1
+  desc = "MaxPool output"
+}
+
+DataTensor {
+  tensor = fc1_out
+  shape = "1,10"
+  dtype = fp32
+  layout = nhwc
+  producer = fc1
+  desc = "Fully connected output"
+}
+
+DataTensor {
+  tensor = softmax_out
+  shape = "1,10"
+  dtype = fp32
+  layout = nhwc
+  producer = softmax
+  desc = "Final class probabilities"
+}
+
+DataTensor {
+  tensor = conv1_weights
+  shape = "3,3,1,16"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "Conv1 3x3 kernel weights"
+}
+
+DataTensor {
+  tensor = fc1_weights
+  shape = "2704,10"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "FC weights (13*13*16 = 2704 inputs)"
+}
+
+// =========================================================================
+// OPERATIONS
+// =========================================================================
+
+Operation {
+  op = conv1
+  op_type = classical.conv2d
+  hardware_hint = gpu_cuda
+  kernel = conv2d_cuda
+  desc = "First convolutional layer"
+  hardware_target = gpu_cuda
+  kernel_ref = conv2d_cuda
+}
+
+OperationArg {
+  arg = input
+  role = input
+  tensor_ref = input_image
+  dtype = fp32
+  optional = false
+  desc = "Input image tensor"
+}
+
+OperationArg {
+  arg = weights
+  role = parameter
+  tensor_ref = conv1_weights
+  dtype = fp32
+  optional = false
+  desc = "Convolution kernel weights"
+}
+
+OperationArg {
+  arg = output
+  role = output
+  tensor_ref = conv1_out
+  dtype = fp32
+  optional = false
+  desc = "Output feature maps"
+}
+
+ClassicalOp {
+  classical_type = conv2d
+  tiling = "tile_h=8,tile_w=8"
+  dataflow = output_stationary
+  fusion_group = conv_relu_pool
+  desc = "2D convolution with 3x3 kernel"
+  fusion_pattern = conv_relu_fusion
+}
+
+// ---
+
+Operation {
+  op = relu1
+  op_type = classical.relu
+  hardware_hint = gpu_cuda
+  kernel = relu_cuda
+  desc = "ReLU activation"
+  hardware_target = gpu_cuda
+  kernel_ref = relu_cuda
+}
+
+OperationArg {
+  arg = input
+  role = input
+  tensor_ref = conv1_out
+  dtype = fp32
+  optional = false
+  desc = "Input activations"
+}
+
+OperationArg {
+  arg = output
+  role = output
+  tensor_ref = relu1_out
+  dtype = fp32
+  optional = false
+  desc = "ReLU output"
+}
+
+OpDependency {
+  predecessor = conv1
+  dependency_type = data
+  desc = "ReLU depends on conv1 output"
+  pred_op = conv1
+}
+
+ClassicalOp {
+  classical_type = relu
+  tiling = .
+  dataflow = .
+  fusion_group = conv_relu_pool
+  desc = "Element-wise ReLU"
+  fusion_pattern = conv_relu_fusion
+}
+
+// ---
+
+Operation {
+  op = pool1
+  op_type = classical.pool
+  hardware_hint = gpu_cuda
+  kernel = maxpool_cuda
+  desc = "2x2 max pooling"
+  hardware_target = gpu_cuda
+  kernel_ref = maxpool_cuda
+}
+
+OperationArg {
+  arg = input
+  role = input
+  tensor_ref = relu1_out
+  dtype = fp32
+  optional = false
+  desc = "Input from ReLU"
+}
+
+OperationArg {
+  arg = output
+  role = output
+  tensor_ref = pool1_out
+  dtype = fp32
+  optional = false
+  desc = "Pooled output"
+}
+
+OpDependency {
+  predecessor = relu1
+  dependency_type = data
+  desc = "Pool depends on relu1"
+  pred_op = relu1
+}
+
+ClassicalOp {
+  classical_type = pool
+  tiling = .
+  dataflow = .
+  fusion_group = .
+  desc = "2x2 max pooling with stride 2"
+  fusion_pattern = .
+}
+
+// ---
+
+Operation {
+  op = fc1
+  op_type = classical.matmul
+  hardware_hint = memristor_array
+  kernel = matmul_memristor
+  desc = "Fully connected layer"
+  hardware_target = memristor_array
+  kernel_ref = matmul_memristor
+}
+
+OperationArg {
+  arg = input
+  role = input
+  tensor_ref = pool1_out
+  dtype = fp32
+  optional = false
+  desc = "Flattened pooling output"
+}
+
+OperationArg {
+  arg = weights
+  role = parameter
+  tensor_ref = fc1_weights
+  dtype = fp32
+  optional = false
+  desc = "FC weight matrix"
+}
+
+OperationArg {
+  arg = output
+  role = output
+  tensor_ref = fc1_out
+  dtype = fp32
+  optional = false
+  desc = "FC output logits"
+}
+
+OpDependency {
+  predecessor = pool1
+  dependency_type = data
+  desc = "FC depends on pool1"
+  pred_op = pool1
+}
+
+ClassicalOp {
+  classical_type = matmul
+  tiling = "M=128,N=16,K=128"
+  dataflow = output_stationary
+  fusion_group = .
+  desc = "Matrix multiply for FC layer"
+  fusion_pattern = .
+}
+
+// ---
+
+Operation {
+  op = softmax
+  op_type = classical.softmax
+  hardware_hint = gpu_cuda
+  kernel = softmax_cuda
+  desc = "Softmax for class probabilities"
+  hardware_target = gpu_cuda
+  kernel_ref = softmax_cuda
+}
+
+OperationArg {
+  arg = input
+  role = input
+  tensor_ref = fc1_out
+  dtype = fp32
+  optional = false
+  desc = "Input logits"
+}
+
+OperationArg {
+  arg = output
+  role = output
+  tensor_ref = softmax_out
+  dtype = fp32
+  optional = false
+  desc = "Output probabilities"
+}
+
+OpDependency {
+  predecessor = fc1
+  dependency_type = data
+  desc = "Softmax depends on fc1"
+  pred_op = fc1
+}
+
+ClassicalOp {
+  classical_type = softmax
+  tiling = .
+  dataflow = .
+  fusion_group = .
+  desc = "Softmax normalization"
+  fusion_pattern = .
+}
+
+// =========================================================================
+// HARDWARE TARGETS
+// =========================================================================
+
+HardwareTarget {
+  hardware = gpu_cuda
+  priority = primary
+  partition = all_ops
+  desc = "Primary GPU execution"
+}
+
+HardwareTarget {
+  hardware = memristor_array
+  priority = secondary
+  partition = fc1
+  desc = "Analog memristor for FC layer"
+}
+
+// =========================================================================
+// HARDWARE DEFINITIONS
+// =========================================================================
+
+Hardware {
+  hardware = gpu_cuda
+  paradigm = classical
+  backend = cuda
+  vendor = nvidia
+  emulation = false
+  desc = "NVIDIA GPU for classical ops"
+}
+
+ClassicalHardware {
+  arch = ampere
+  compute_units = 108
+  memory_bw = 1555
+  peak_flops = 19.5
+  precision = "fp32,fp16,int8"
+  desc = "A100 GPU specs"
+}
+
+PhysicsModel {
+  model_id = gpu_power_model
+  energy_eq = "E = C*V^2*f*cycles"
+  thermal_model = "ambient_cooling"
+  noise_model = "negligible"
+  latency_model = "memory_bound"
+  power_budget = 250
+  operating_temp = 353
+  desc = "GPU thermal and power model"
+}
+
+// ---
+
+Hardware {
+  hardware = loihi2
+  paradigm = neuromorphic
+  backend = loihi
+  vendor = intel
+  emulation = false
+  desc = "Intel Loihi 2 neuromorphic chip"
+}
+
+NeuromorphicHardware {
+  chip_type = loihi2
+  neuron_count = 1000000
+  synapse_count = 120000000
+  spike_protocol = aer
+  timestep = 0.1
+  plasticity = true
+  desc = "Loihi 2 specs"
+}
+
+// ---
+
+Hardware {
+  hardware = memristor_array
+  paradigm = analog
+  backend = memristor
+  vendor = extropic
+  emulation = false
+  desc = "Analog memristor crossbar"
+}
+
+AnalogHardware {
+  compute_type = memristor
+  array_size = "128x128"
+  cell_type = ReRAM
+  precision = 8
+  endurance = 1000000
+  nonlinearity = "asymmetric_saturation"
+  read_noise = 50
+  desc = "128x128 ReRAM array"
+}
+
+// =========================================================================
+// KERNELS
+// =========================================================================
+
+Kernel {
+  kernel = conv2d_cuda
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void conv2d(float* in, float* weights, float* out, int N, int H, int W, int C)"
+  body = "// CUDA conv2d implementation"
+  language = cuda
+  performance_model = "FLOPS = 2*K*K*C_in*C_out*H_out*W_out"
+  desc = "Standard 2D convolution kernel"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+Kernel {
+  kernel = relu_cuda
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void relu(float* in, float* out, int size)"
+  body = "// CUDA ReLU: out[i] = max(0, in[i])"
+  language = cuda
+  performance_model = "FLOPS = size"
+  desc = "ReLU activation kernel"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+Kernel {
+  kernel = maxpool_cuda
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void maxpool(float* in, float* out, int N, int H, int W, int C)"
+  body = "// CUDA 2x2 maxpool"
+  language = cuda
+  performance_model = "FLOPS = N*H*W*C*4"
+  desc = "Max pooling kernel"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+Kernel {
+  kernel = matmul_memristor
+  paradigm = analog
+  hardware = memristor_array
+  signature = "void analog_matmul(float* in, float* out, int M, int K, int N)"
+  body = "// Analog crossbar matrix-vector multiply"
+  language = c++
+  performance_model = "latency = K*t_adc + t_dac"
+  desc = "Analog in-memory compute for matmul"
+  hardware_target = memristor_array
+  fusion_source = .
+}
+
+Kernel {
+  kernel = softmax_cuda
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void softmax(float* in, float* out, int size)"
+  body = "// CUDA softmax: exp normalization"
+  language = cuda
+  performance_model = "FLOPS = 3*size"
+  desc = "Softmax normalization"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+// =========================================================================
+// FUSION PATTERN
+// =========================================================================
+
+FusionPattern {
+  pattern = conv_relu_fusion
+  fused_kernel = conv_relu_fused
+  speedup = 1.3
+  applicable_hardware = "gpu_cuda"
+  desc = "Fuse conv2d + relu into single kernel"
+  fused_kernel_ref = conv_relu_fused
+}
+
+FusionOpTarget {
+  op_type = classical.conv2d
+  position = 1
+  mandatory = true
+  desc = "Convolution first"
+}
+
+FusionOpTarget {
+  op_type = classical.relu
+  position = 2
+  mandatory = true
+  desc = "ReLU second"
+}
+
+FusionHardwareTarget {
+  hardware = gpu_cuda
+  efficiency = 1.3
+  desc = "1.3x speedup on GPU"
+}
+
+Kernel {
+  kernel = conv_relu_fused
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void conv_relu_fused(float* in, float* weights, float* out)"
+  body = "// Fused conv + relu in single kernel"
+  language = cuda
+  performance_model = "FLOPS = conv_flops + relu_flops, memory_accesses = 0.7*unfused"
+  desc = "Fused convolution + ReLU"
+  hardware_target = gpu_cuda
+  fusion_source = conv_relu_fusion
+}
+
+// =========================================================================
+// ENERGY BUDGET
+// =========================================================================
+
+EnergyBudget {
+  budget_id = inference_budget
+  total_budget = 0.1
+  source = battery
+  dvfs_policy = conservative
+  sleep_states = "gate_unused_blocks"
+  desc = "100mJ per inference"
+}
+
+EnergyAllocation {
+  graph = mnist_classifier
+  operation = conv1
+  budget = 0.04
+  priority = high
+  flexible = false
+  desc = "40mJ for conv1"
+}
+
+EnergyAllocation {
+  graph = mnist_classifier
+  operation = fc1
+  budget = 0.03
+  priority = high
+  flexible = false
+  desc = "30mJ for FC layer"
+}
+
+// =========================================================================
+// SEARCH SPACE FOR AUTO-OPTIMIZATION
+// =========================================================================
+
+SearchSpace {
+  search_space = tile_size_search
+  objective = minimize_latency
+  constraints = "energy<0.1J,accuracy>0.95"
+  desc = "Find optimal tile sizes"
+}
+
+SearchTarget {
+  graph = mnist_classifier
+  operation = conv1
+  importance = high
+  tunable_params = "tile_h,tile_w"
+  desc = "Tune conv1 tiling"
+}
+
+SearchParameter {
+  param = tile_h
+  param_type = discrete
+  range_min = 4
+  range_max = 16
+  values = .
+  initial_value = 8
+  mutation_rate = 0.1
+  importance = high
+  desc = "Tile height"
+}
+
+SearchParameter {
+  param = tile_w
+  param_type = discrete
+  range_min = 4
+  range_max = 16
+  values = .
+  initial_value = 8
+  mutation_rate = 0.1
+  importance = high
+  desc = "Tile width"
+}
+
+// =========================================================================
+// OPTIMIZATION STRATEGY
+// =========================================================================
+
+OptimizationStrategy {
+  strategy = bayesian_tile_opt
+  algorithm = bayesian_opt
+  population = .
+  generations = .
+  learning_rate = .
+  parallel_trials = true
+  desc = "Bayesian optimization for tile sizes"
+  project_ref = SimpleConvNet
+  target_graph = mnist_classifier
+  search_space = tile_size_search
+  fitness_fn = latency_fitness
+}
+
+FitnessFunction {
+  fitness_fn = latency_fitness
+  normalization = min_max
+  higher_better = false
+  desc = "Minimize inference latency"
+}
+
+FitnessComponent {
+  metric = inference_latency
+  weight = 0.7
+  target = 5.0
+  normalize = min_max
+  desc = "Target 5ms latency"
+}
+
+FitnessComponent {
+  metric = energy_consumption
+  weight = 0.3
+  target = 0.1
+  normalize = min_max
+  desc = "Target 100mJ energy"
+}
+
+// =========================================================================
+// METRICS
+// =========================================================================
+
+Metric {
+  metric = inference_latency
+  category = performance
+  measurement = "end_to_end_time"
+  unit = ms
+  target_value = 5.0
+  tolerance = 0.5
+  desc = "Total inference time"
+  target_key = mnist_classifier
+}
+
+Metric {
+  metric = energy_consumption
+  category = hardware
+  measurement = "integrated_power"
+  unit = mJ
+  target_value = 100
+  tolerance = 10
+  desc = "Energy per inference"
+  target_key = mnist_classifier
+}
+
+Metric {
+  metric = throughput
+  category = performance
+  measurement = "inferences_per_second"
+  unit = Hz
+  target_value = 200
+  tolerance = 20
+  desc = "Inference throughput"
+  target_key = mnist_classifier
+}
+
+// =========================================================================
+// SIMULATOR
+// =========================================================================
+
+Simulator {
+  sim_id = cycle_accurate_sim
+  components = "mnist_classifier"
+  fidelity = cycle_accurate
+  solver = event_driven
+  time_scale = 1
+  energy_tracker = true
+  fault_injection = .
+  desc = "Cycle-accurate simulation"
+  project_ref = SimpleConvNet
+  target_graph = mnist_classifier
+  fault_models = .
+}
+
+// =========================================================================
+// VALIDATION
+// =========================================================================
+
+Constraint {
+  constraint_id = memory_limit
+  target = gpu_cuda
+  condition = "total_memory < 8GB"
+  severity = error
+  temporal = static
+  auto_repair = "reduce_batch_size"
+  desc = "GPU memory constraint"
+  target_key = gpu_cuda
+}
+
+Constraint {
+  constraint_id = latency_target
+  target = mnist_classifier
+  condition = "latency < 10ms"
+  severity = warning
+  temporal = per_step
+  auto_repair = "enable_fusion"
+  desc = "Inference latency requirement"
+  target_key = mnist_classifier
+}

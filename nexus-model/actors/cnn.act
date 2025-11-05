@@ -1,0 +1,476 @@
+# =========================================================================
+# CNN NET PYTHON ACTOR SCRIPT FOR MULTI-PARADIGM INFERENCE
+# Fixed version with correct syntax and logic
+# =========================================================================
+
+Actor main
+
+Map _:tensor
+
+All Project generate_project_files
+
+# =========================================================================
+# PROJECT FILE GENERATION
+# =========================================================================
+
+Actor generate_project_files Project  
+C # Generated Python inference code for ${project}
+C # Multi-paradigm targets: ${target_hardware}
+C # WARNING: Auto-generated file, do not edit manually
+C
+C import numpy as np
+C from typing import Dict, Any, List, Optional, Tuple
+C
+C # Hardware-specific imports
+C try:
+C     import cupy as cp
+C     CUDA_AVAILABLE = True
+C except ImportError:
+C     CUDA_AVAILABLE = False
+C     print("Warning: CuPy not available, using NumPy fallback")
+C
+C # =========================================================================
+C # 1. Project Configuration
+C # =========================================================================
+C PROJECT_NAME = "${project}"
+C VERSION = "${version}"
+C TARGET_HARDWARE = "${target_hardware}".split(",")
+C
+C # =========================================================================
+C # 2. Tensor Declarations and Memory Management
+C # =========================================================================
+C
+C class TensorRegistry:
+C     """Global tensor storage"""
+C     def __init__(self):
+C         self.tensors = {}
+C         self.shapes = {}
+C         self.dtypes = {}
+C         self.layouts = {}
+C     
+C     def register(self, name, shape, dtype, layout):
+C         self.shapes[name] = shape
+C         self.dtypes[name] = dtype
+C         self.layouts[name] = layout
+C         self.tensors[name] = None
+C     
+C     def get(self, name):
+C         return self.tensors.get(name)
+C     
+C     def set(self, name, value):
+C         self.tensors[name] = value
+C
+C tensors = TensorRegistry()
+C
+All DataTensor declare_tensor
+C
+C # =========================================================================
+C # 3. Hardware-Specific Kernel Implementations
+C # =========================================================================
+All Kernel generate_kernel_implementation
+C
+C # =========================================================================
+C # 4. Operation Implementations
+C # =========================================================================
+All Operation generate_op_implementation
+C
+C # =========================================================================
+C # 5. Compute Graph Execution
+C # =========================================================================
+All ComputeGraph generate_graph_execution
+C
+C # =========================================================================
+C # 6. Energy and Performance Monitoring
+C # =========================================================================
+All EnergyBudget generate_energy_monitoring
+C
+C # =========================================================================
+C # 7. Main Inference Entry Point
+C # =========================================================================
+C
+C if __name__ == "__main__":
+C     print(f"Generated inference code for {PROJECT_NAME} v{VERSION}")
+C     print(f"Target hardware: {TARGET_HARDWARE}")
+C     
+C     # Initialize system
+C     if CUDA_AVAILABLE:
+C         print("CUDA backend initialized")
+C     else:
+C         print("Using CPU fallback")
+C     
+C     # Run sample inference
+C     sample_input = np.random.randn(1, 28, 28, 1).astype(np.float32)
+All ComputeGraph generate_main_execution
+C     print(f"Inference completed. Output shape: {result.shape}")
+C     print(f"Class probabilities: {result.flatten()}")
+
+# =========================================================================
+# TENSOR DECLARATIONS
+# =========================================================================
+
+Actor declare_tensor DataTensor
+C # Tensor: ${tensor} [${shape}] ${dtype} ${layout}
+C tensors.register("${tensor}", tuple(map(int, "${shape}".split(","))), np.float32, "${layout}")
+
+# =========================================================================
+# KERNEL IMPLEMENTATIONS
+# =========================================================================
+
+Actor generate_kernel_implementation Kernel
+C
+C def kernel_${kernel}(${signature}):
+C     """
+C     Kernel: ${kernel}
+C     Hardware: ${hardware}
+C     Paradigm: ${paradigm}
+C     ${desc}
+C     """
+C     # Performance model: ${performance_model}
+C     pass  # Kernel implementation placeholder
+
+# =========================================================================
+# OPERATION IMPLEMENTATIONS
+# =========================================================================
+
+Actor generate_op_implementation Operation
+C
+C def op_${op}(tensors: TensorRegistry) -> np.ndarray:
+C     """
+C     Operation: ${op}
+C     Type: ${op_type}
+C     ${desc}
+C     """
+Its OperationArg generate_input_fetch
+C     
+Its ClassicalOp generate_classical_op_body
+Its SpikingOp generate_spiking_op_body
+Its AnalogOp generate_analog_op_body
+Its QuantumOp generate_quantum_op_body
+Its PhotonicOp generate_photonic_op_body
+Its MolecularOp generate_molecular_op_body
+C     
+Its OperationArg generate_output_store
+C     
+Its OperationArg generate_op_return
+
+# Input fetching
+Actor generate_input_fetch OperationArg role = input
+C     ${arg} = tensors.get("${tensor_ref}")
+C     if ${arg} is None:
+C         raise ValueError(f"Input tensor ${tensor_ref} not initialized")
+
+Actor generate_input_fetch OperationArg role = parameter
+C     ${arg} = tensors.get("${tensor_ref}")
+C     if ${arg} is None:
+C         # Initialize parameter with random weights
+C         shape = tensors.shapes["${tensor_ref}"]
+C         ${arg} = np.random.randn(*shape).astype(np.float32) * 0.01
+
+# Output storage
+Actor generate_output_store OperationArg role = output
+C     tensors.set("${tensor_ref}", output)
+
+# Return statement
+Actor generate_op_return OperationArg role = output
+C     return output
+
+# =========================================================================
+# CLASSICAL OPERATION BODIES
+# =========================================================================
+
+Actor generate_classical_op_body ClassicalOp classical_type = conv2d
+C     # 2D Convolution
+C     # Tiling: ${tiling}
+C     # Dataflow: ${dataflow}
+Its parent.OperationArg generate_conv2d_inputs
+C     
+C     # Simple convolution implementation (valid padding)
+C     batch, in_h, in_w, in_c = input.shape
+C     k_h, k_w, _, out_c = weights.shape
+C     out_h = in_h - k_h + 1
+C     out_w = in_w - k_w + 1
+C     
+C     output = np.zeros((batch, out_h, out_w, out_c), dtype=np.float32)
+C     
+C     for b in range(batch):
+C         for oc in range(out_c):
+C             for h in range(out_h):
+C                 for w in range(out_w):
+C                     patch = input[b, h:h+k_h, w:w+k_w, :]
+C                     output[b, h, w, oc] = np.sum(patch * weights[:, :, :, oc])
+
+Actor generate_conv2d_inputs OperationArg role = input
+C     input = ${arg}
+Break
+
+Actor generate_conv2d_inputs OperationArg role = parameter
+C     weights = ${arg}
+Break
+
+Actor generate_classical_op_body ClassicalOp classical_type = relu
+C     # ReLU activation
+Its parent.OperationArg generate_relu_input
+C     output = np.maximum(0, input)
+
+Actor generate_relu_input OperationArg role = input
+C     input = ${arg}
+
+Actor generate_classical_op_body ClassicalOp classical_type = pool
+C     # Max pooling (2x2 with stride 2)
+Its parent.OperationArg generate_pool_input
+C     
+C     batch, in_h, in_w, channels = input.shape
+C     out_h = in_h // 2
+C     out_w = in_w // 2
+C     
+C     output = np.zeros((batch, out_h, out_w, channels), dtype=np.float32)
+C     
+C     for b in range(batch):
+C         for c in range(channels):
+C             for h in range(out_h):
+C                 for w in range(out_w):
+C                     h_start = h * 2
+C                     w_start = w * 2
+C                     pool_region = input[b, h_start:h_start+2, w_start:w_start+2, c]
+C                     output[b, h, w, c] = np.max(pool_region)
+
+Actor generate_pool_input OperationArg role = input
+C     input = ${arg}
+
+Actor generate_classical_op_body ClassicalOp classical_type = matmul
+C     # Matrix multiplication (fully connected)
+C     # Tiling: ${tiling}
+Its parent.OperationArg generate_matmul_inputs
+C     
+C     # Flatten input
+C     input_flat = input.reshape(-1)
+C     
+C     # Matrix-vector multiply
+C     output = np.dot(input_flat, weights)
+
+Actor generate_matmul_inputs OperationArg role = input
+C     input = ${arg}
+Break
+
+Actor generate_matmul_inputs OperationArg role = parameter
+C     weights = ${arg}
+Break
+
+Actor generate_classical_op_body ClassicalOp classical_type = softmax
+C     # Softmax normalization
+Its parent.OperationArg generate_softmax_input
+C     
+C     # Numerically stable softmax
+C     input_flat = input.flatten()
+C     exp_values = np.exp(input_flat - np.max(input_flat))
+C     output = exp_values / np.sum(exp_values)
+C     output = output.reshape(input.shape)
+
+Actor generate_softmax_input OperationArg role = input
+C     input = ${arg}
+
+Actor generate_classical_op_body ClassicalOp classical_type = .
+C     # Generic classical operation
+Its parent.OperationArg generate_generic_input
+C     output = input.copy()
+
+Actor generate_generic_input OperationArg role = input
+C     input = ${arg}
+
+# =========================================================================
+# OTHER PARADIGM OPERATION BODIES (PLACEHOLDERS)
+# =========================================================================
+
+Actor generate_spiking_op_body SpikingOp
+C     # Spiking neural network operation
+C     # Neuron model: ${neuron_model}
+C     # Spike encoding: ${spike_encoding}
+C     # TODO: Implement spiking operation
+C     raise NotImplementedError("Spiking operations not yet implemented")
+
+Actor generate_analog_op_body AnalogOp
+C     # Analog computation operation
+C     # Type: ${analog_type}
+C     # TODO: Implement analog operation
+C     raise NotImplementedError("Analog operations not yet implemented")
+
+Actor generate_quantum_op_body QuantumOp
+C     # Quantum operation
+C     # Type: ${quantum_type}
+C     # TODO: Implement quantum operation
+C     raise NotImplementedError("Quantum operations not yet implemented")
+
+Actor generate_photonic_op_body PhotonicOp
+C     # Photonic operation
+C     # Type: ${photonic_type}
+C     # TODO: Implement photonic operation
+C     raise NotImplementedError("Photonic operations not yet implemented")
+
+Actor generate_molecular_op_body MolecularOp
+C     # Molecular computing operation
+C     # Type: ${molecular_type}
+C     # TODO: Implement molecular operation
+C     raise NotImplementedError("Molecular operations not yet implemented")
+
+# =========================================================================
+# COMPUTE GRAPH EXECUTION
+# =========================================================================
+
+Actor generate_graph_execution ComputeGraph
+C
+C def execute_${graph}(input_data: np.ndarray) -> np.ndarray:
+C     """
+C     Execute compute graph: ${graph}
+C     ${desc}
+C     Entry point: ${entry_point}
+C     """
+C     print(f"Executing compute graph: ${graph}")
+C     
+C     # Store input tensor
+Its DataTensor init_input_tensor
+C     
+C     # Execute operations in dependency order
+C     # Entry point: ${entry_point}
+C     op_${entry_point}(tensors)
+C     
+C     # Execute dependent operations
+All OpDependency execute_dependent_op
+C     
+C     # Return final output
+Its DataTensor get_final_output
+C     
+C     return result
+
+Actor init_input_tensor DataTensor producer = . tensor = input_image
+C     tensors.set("${tensor}", input_data)
+
+Actor execute_dependent_op OpDependency
+C     op_${pred_op.op}(tensors)
+
+Actor get_final_output DataTensor producer = softmax
+C     result = tensors.get("${tensor}")
+
+Actor get_final_output DataTensor producer in conv,pool,fc,matmul,relu
+C     # Intermediate tensor: ${tensor}
+
+# =========================================================================
+# MAIN EXECUTION
+# =========================================================================
+
+Actor generate_main_execution ComputeGraph
+C     result = execute_${graph}(sample_input)
+
+# =========================================================================
+# ENERGY MONITORING
+# =========================================================================
+
+Actor generate_energy_monitoring EnergyBudget
+C
+C class EnergyMonitor:
+C     """Energy monitoring and budget tracking"""
+C     def __init__(self):
+C         self.total_budget = ${total_budget}
+C         self.source = "${source}"
+C         self.consumed = 0.0
+C         self.operation_energy = {}
+C         
+All EnergyAllocation generate_allocation_init
+C     
+C     def record_operation(self, op_name: str, actual_energy: float):
+C         """Record actual energy consumption"""
+C         self.operation_energy[op_name] = actual_energy
+C         self.consumed += actual_energy
+C     
+C     def get_remaining_budget(self) -> float:
+C         return self.total_budget - self.consumed
+C     
+C     def check_violation(self) -> bool:
+C         return self.consumed > self.total_budget
+C     
+C     def report(self):
+C         print(f"Energy Budget: {self.total_budget}J")
+C         print(f"Energy Consumed: {self.consumed}J")
+C         print(f"Remaining: {self.get_remaining_budget()}J")
+C         for op, energy in self.operation_energy.items():
+C             print(f"  {op}: {energy}J")
+C
+C energy_monitor = EnergyMonitor()
+
+Actor generate_allocation_init EnergyAllocation
+C         # ${operation}: ${budget}J (${priority} priority)
+C         self.operation_energy["${operation}"] = 0.0
+
+# =========================================================================
+# HARDWARE ABSTRACTION
+# =========================================================================
+
+All Hardware generate_hardware_backend
+
+Actor generate_hardware_backend Hardware
+C
+C class ${hardware}Backend:
+C     """${desc}"""
+C     def __init__(self):
+C         self.name = "${hardware}"
+C         self.paradigm = "${paradigm}"
+C         self.backend = "${backend}"
+C         self.vendor = "${vendor}"
+C         self.emulation = ${emulation::False}
+C     
+C     def is_available(self) -> bool:
+C         if self.emulation:
+C             return True
+C         # Check hardware availability
+C         if self.paradigm == "classical" and self.backend == "cuda":
+C             return CUDA_AVAILABLE
+C         return False
+C     
+C     def execute(self, op_name: str, tensors: TensorRegistry):
+C         """Execute operation on this hardware"""
+C         op_func = globals().get(f"op_{op_name}")
+C         if op_func:
+C             return op_func(tensors)
+C         else:
+C             raise ValueError(f"Operation {op_name} not found")
+C
+C # ${hardware}_backend = ${hardware}Backend()
+C
+
+# =========================================================================
+# OPTIMIZATION AND SEARCH
+# =========================================================================
+
+All OptimizationStrategy generate_optimizer
+
+Actor generate_optimizer OptimizationStrategy
+C
+C class ${strategy}Optimizer:
+C     """${desc}"""
+C     def __init__(self):
+C         self.strategy = "${strategy}"
+C         self.algorithm = "${algorithm}"
+C         self.parallel = ${parallel_trials::False}
+All SearchSpace generate_search_config
+C     
+C     def optimize(self, objective_fn):
+C         """Run optimization"""
+C         print(f"Running {self.algorithm} optimization...")
+C         # TODO: Implement optimization algorithm
+C         return None
+C
+C # ${strategy}_optimizer = ${strategy}Optimizer()
+C
+
+Actor generate_search_config SearchSpace
+C         self.objective = "${objective}"
+C         self.constraints = "${constraints}"
+C         self.parameters = {}
+Its SearchParameter generate_param_config
+
+Actor generate_param_config SearchParameter
+C         self.parameters["${param}"] = {
+C             "type": "${param_type}",
+C             "range": (${range_min}, ${range_max}),
+C             "initial": ${initial_value},
+C             "mutation_rate": ${mutation_rate}
+C         }

@@ -1,0 +1,1014 @@
+// =========================================================================
+// SPIKING NEURAL NETWORK - Multi-Paradigm Neuromorphic Example
+// =========================================================================
+// This demonstrates a 3-layer SNN for event-based vision processing:
+// - Neuromorphic hardware (Loihi 2, TrueNorth)
+// - Classical GPU fallback for simulation
+// - STDP learning for synaptic plasticity
+// - Event-based input encoding (DVS camera data)
+// =========================================================================
+
+Project {
+  project = EventVisionSNN
+  version = 1.0.0
+  target_hardware = "loihi2, truenorth, gpu_cuda"
+  desc = "3-layer spiking neural network for event-based vision classification"
+}
+
+// =========================================================================
+// COMPUTE GRAPH DEFINITION
+// =========================================================================
+
+ComputeGraph {
+  graph = snn_classifier
+  entry_point = input_encoding
+  parallel = true
+  desc = "SNN: Input Encoding -> LIF Layer 1 -> LIF Layer 2 -> Output Decoder"
+  project_ref = EventVisionSNN
+}
+
+// =========================================================================
+// DATA TENSORS (Event Streams)
+// =========================================================================
+
+DataTensor {
+  tensor = dvs_events
+  shape = "1,1000,4"
+  dtype = event_based
+  layout = event_stream
+  producer = .
+  desc = "Input DVS events: [batch, max_events, (x,y,t,polarity)]"
+}
+
+DataTensor {
+  tensor = spike_train_input
+  shape = "1,784,100"
+  dtype = event_based
+  layout = event_stream
+  producer = input_encoding
+  desc = "Encoded spike trains: [batch, neurons, timesteps]"
+}
+
+DataTensor {
+  tensor = layer1_spikes
+  shape = "1,256,100"
+  dtype = event_based
+  layout = event_stream
+  producer = lif_layer1
+  desc = "Layer 1 LIF neuron spikes"
+}
+
+DataTensor {
+  tensor = layer2_spikes
+  shape = "1,128,100"
+  dtype = event_based
+  layout = event_stream
+  producer = lif_layer2
+  desc = "Layer 2 LIF neuron spikes"
+}
+
+DataTensor {
+  tensor = output_spikes
+  shape = "1,10,100"
+  dtype = event_based
+  layout = event_stream
+  producer = lif_output
+  desc = "Output layer spikes"
+}
+
+DataTensor {
+  tensor = class_probabilities
+  shape = "1,10"
+  dtype = fp32
+  layout = nhwc
+  producer = spike_decoder
+  desc = "Decoded class probabilities from spike rates"
+}
+
+DataTensor {
+  tensor = weights_in_l1
+  shape = "784,256"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "Synaptic weights: input -> layer 1"
+}
+
+DataTensor {
+  tensor = weights_l1_l2
+  shape = "256,128"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "Synaptic weights: layer 1 -> layer 2"
+}
+
+DataTensor {
+  tensor = weights_l2_out
+  shape = "128,10"
+  dtype = fp32
+  layout = nhwc
+  producer = .
+  desc = "Synaptic weights: layer 2 -> output"
+}
+
+// =========================================================================
+// OPERATIONS - INPUT ENCODING
+// =========================================================================
+
+Operation {
+  op = input_encoding
+  op_type = spiking.encoding
+  hardware_hint = loihi2
+  kernel = rate_encoding_kernel
+  desc = "Convert DVS events to spike trains using rate encoding"
+  hardware_target = loihi2
+  kernel_ref = rate_encoding_kernel
+}
+
+OperationArg {
+  arg = events
+  role = input
+  tensor_ref = dvs_events
+  dtype = event_based
+  optional = false
+  desc = "Raw DVS events"
+}
+
+OperationArg {
+  arg = spike_train
+  role = output
+  tensor_ref = spike_train_input
+  dtype = event_based
+  optional = false
+  desc = "Encoded spike trains"
+}
+
+SpikingOp {
+  neuron_model = .
+  spike_encoding = rate
+  threshold = .
+  refractory = .
+  plasticity_rule = .
+  synapse_model = .
+  timestep = 1.0
+  desc = "Rate-based encoding of events into spikes"
+}
+
+// =========================================================================
+// OPERATIONS - LAYER 1 (LIF NEURONS)
+// =========================================================================
+
+Operation {
+  op = lif_layer1
+  op_type = spiking.lif
+  hardware_hint = loihi2
+  kernel = lif_kernel
+  desc = "Layer 1: 256 LIF neurons with STDP"
+  hardware_target = loihi2
+  kernel_ref = lif_kernel
+}
+
+OperationArg {
+  arg = input_spikes
+  role = input
+  tensor_ref = spike_train_input
+  dtype = event_based
+  optional = false
+  desc = "Input spike trains"
+}
+
+OperationArg {
+  arg = weights
+  role = parameter
+  tensor_ref = weights_in_l1
+  dtype = fp32
+  optional = false
+  desc = "Synaptic weights"
+}
+
+OperationArg {
+  arg = output_spikes
+  role = output
+  tensor_ref = layer1_spikes
+  dtype = event_based
+  optional = false
+  desc = "Output spikes from layer 1"
+}
+
+OpDependency {
+  predecessor = input_encoding
+  dependency_type = data
+  desc = "Layer 1 depends on input encoding"
+  pred_op = input_encoding
+}
+
+SpikingOp {
+  neuron_model = lif
+  spike_encoding = temporal
+  threshold = 1.0
+  refractory = 2.0
+  plasticity_rule = stdp
+  synapse_model = exponential
+  timestep = 1.0
+  desc = "Leaky Integrate-and-Fire neurons with exponential synapses"
+}
+
+PlasticityRule {
+  rule_name = stdp
+  time_window = 20
+  A_plus = 0.01
+  A_minus = 0.012
+  tau_plus = 20.0
+  tau_minus = 20.0
+  weight_dependence = multiplicative
+  homeostasis = "target_rate=10Hz"
+  desc = "Spike-timing dependent plasticity with homeostasis"
+}
+
+// =========================================================================
+// OPERATIONS - LAYER 2 (LIF NEURONS)
+// =========================================================================
+
+Operation {
+  op = lif_layer2
+  op_type = spiking.lif
+  hardware_hint = loihi2
+  kernel = lif_kernel
+  desc = "Layer 2: 128 LIF neurons with STDP"
+  hardware_target = loihi2
+  kernel_ref = lif_kernel
+}
+
+OperationArg {
+  arg = input_spikes
+  role = input
+  tensor_ref = layer1_spikes
+  dtype = event_based
+  optional = false
+  desc = "Spikes from layer 1"
+}
+
+OperationArg {
+  arg = weights
+  role = parameter
+  tensor_ref = weights_l1_l2
+  dtype = fp32
+  optional = false
+  desc = "Synaptic weights"
+}
+
+OperationArg {
+  arg = output_spikes
+  role = output
+  tensor_ref = layer2_spikes
+  dtype = event_based
+  optional = false
+  desc = "Output spikes from layer 2"
+}
+
+OpDependency {
+  predecessor = lif_layer1
+  dependency_type = data
+  desc = "Layer 2 depends on layer 1"
+  pred_op = lif_layer1
+}
+
+SpikingOp {
+  neuron_model = lif
+  spike_encoding = temporal
+  threshold = 1.0
+  refractory = 2.0
+  plasticity_rule = stdp
+  synapse_model = exponential
+  timestep = 1.0
+  desc = "Leaky Integrate-and-Fire neurons"
+}
+
+PlasticityRule {
+  rule_name = stdp
+  time_window = 20
+  A_plus = 0.008
+  A_minus = 0.01
+  tau_plus = 20.0
+  tau_minus = 20.0
+  weight_dependence = multiplicative
+  homeostasis = "target_rate=8Hz"
+  desc = "STDP with reduced learning rate for deeper layer"
+}
+
+// =========================================================================
+// OPERATIONS - OUTPUT LAYER
+// =========================================================================
+
+Operation {
+  op = lif_output
+  op_type = spiking.lif
+  hardware_hint = loihi2
+  kernel = lif_kernel
+  desc = "Output layer: 10 LIF neurons (one per class)"
+  hardware_target = loihi2
+  kernel_ref = lif_kernel
+}
+
+OperationArg {
+  arg = input_spikes
+  role = input
+  tensor_ref = layer2_spikes
+  dtype = event_based
+  optional = false
+  desc = "Spikes from layer 2"
+}
+
+OperationArg {
+  arg = weights
+  role = parameter
+  tensor_ref = weights_l2_out
+  dtype = fp32
+  optional = false
+  desc = "Synaptic weights"
+}
+
+OperationArg {
+  arg = output_spikes
+  role = output
+  tensor_ref = output_spikes
+  dtype = event_based
+  optional = false
+  desc = "Output layer spikes"
+}
+
+OpDependency {
+  predecessor = lif_layer2
+  dependency_type = data
+  desc = "Output layer depends on layer 2"
+  pred_op = lif_layer2
+}
+
+SpikingOp {
+  neuron_model = lif
+  spike_encoding = rate
+  threshold = 1.0
+  refractory = 1.0
+  plasticity_rule = .
+  synapse_model = exponential
+  timestep = 1.0
+  desc = "Output neurons without plasticity"
+}
+
+// =========================================================================
+// OPERATIONS - SPIKE DECODER
+// =========================================================================
+
+Operation {
+  op = spike_decoder
+  op_type = spiking.decoding
+  hardware_hint = gpu_cuda
+  kernel = rate_decoder_kernel
+  desc = "Decode spike rates to class probabilities"
+  hardware_target = gpu_cuda
+  kernel_ref = rate_decoder_kernel
+}
+
+OperationArg {
+  arg = spikes
+  role = input
+  tensor_ref = output_spikes
+  dtype = event_based
+  optional = false
+  desc = "Output spikes"
+}
+
+OperationArg {
+  arg = probabilities
+  role = output
+  tensor_ref = class_probabilities
+  dtype = fp32
+  optional = false
+  desc = "Class probabilities"
+}
+
+OpDependency {
+  predecessor = lif_output
+  dependency_type = data
+  desc = "Decoder depends on output layer"
+  pred_op = lif_output
+}
+
+SpikingOp {
+  neuron_model = .
+  spike_encoding = rate
+  threshold = .
+  refractory = .
+  plasticity_rule = .
+  synapse_model = .
+  timestep = 1.0
+  desc = "Rate-based decoding with softmax normalization"
+}
+
+// =========================================================================
+// HARDWARE TARGETS
+// =========================================================================
+
+HardwareTarget {
+  hardware = loihi2
+  priority = primary
+  partition = all_ops
+  desc = "Primary neuromorphic execution on Loihi 2"
+}
+
+HardwareTarget {
+  hardware = truenorth
+  priority = secondary
+  partition = lif_layer1,lif_layer2,lif_output
+  desc = "Fallback to TrueNorth for LIF layers"
+}
+
+HardwareTarget {
+  hardware = gpu_cuda
+  priority = fallback
+  partition = all_ops
+  desc = "GPU simulation fallback"
+}
+
+// =========================================================================
+// HARDWARE DEFINITIONS
+// =========================================================================
+
+Hardware {
+  hardware = loihi2
+  paradigm = neuromorphic
+  backend = loihi
+  vendor = intel
+  emulation = false
+  desc = "Intel Loihi 2 neuromorphic chip"
+}
+
+NeuromorphicHardware {
+  chip_type = loihi2
+  neuron_count = 1000000
+  synapse_count = 120000000
+  spike_protocol = aer
+  timestep = 0.1
+  plasticity = true
+  desc = "Loihi 2 with on-chip STDP learning"
+}
+
+PhysicsModel {
+  model_id = loihi2_power_model
+  energy_eq = "E = E_spike * spike_count + E_static * time"
+  thermal_model = "passive_cooling"
+  noise_model = "shot_noise"
+  latency_model = "event_driven"
+  power_budget = 1.0
+  operating_temp = 300
+  desc = "Loihi 2 energy model: ~1W typical"
+}
+
+// ---
+
+Hardware {
+  hardware = truenorth
+  paradigm = neuromorphic
+  backend = truenorth
+  vendor = ibm
+  emulation = false
+  desc = "IBM TrueNorth neuromorphic chip"
+}
+
+NeuromorphicHardware {
+  chip_type = truenorth
+  neuron_count = 1000000
+  synapse_count = 256000000
+  spike_protocol = aer
+  timestep = 1.0
+  plasticity = false
+  desc = "TrueNorth: 1M neurons, no on-chip learning"
+}
+
+PhysicsModel {
+  model_id = truenorth_power_model
+  energy_eq = "E = 26pJ_per_spike * spike_count"
+  thermal_model = "passive_cooling"
+  noise_model = "negligible"
+  latency_model = "synchronous_tick"
+  power_budget = 0.1
+  operating_temp = 300
+  desc = "TrueNorth ultra-low power: ~70mW"
+}
+
+// ---
+
+Hardware {
+  hardware = gpu_cuda
+  paradigm = classical
+  backend = cuda
+  vendor = nvidia
+  emulation = true
+  desc = "GPU for SNN simulation fallback"
+}
+
+ClassicalHardware {
+  arch = ampere
+  compute_units = 108
+  memory_bw = 1555
+  peak_flops = 19.5
+  precision = "fp32,fp16"
+  desc = "A100 GPU for SNN simulation"
+}
+
+PhysicsModel {
+  model_id = gpu_snn_sim_model
+  energy_eq = "E = C*V^2*f*cycles"
+  thermal_model = "active_cooling"
+  noise_model = "negligible"
+  latency_model = "compute_bound"
+  power_budget = 250
+  operating_temp = 353
+  desc = "GPU simulation (much higher power than neuromorphic)"
+}
+
+// =========================================================================
+// KERNELS
+// =========================================================================
+
+Kernel {
+  kernel = rate_encoding_kernel
+  paradigm = neuromorphic
+  hardware = loihi2
+  signature = "void rate_encode(Event* events, int n_events, Spike* spikes, float rate)"
+  body = "// Convert DVS events to Poisson spike trains"
+  language = c++
+  performance_model = "latency = n_events * 0.1us"
+  desc = "Rate-based encoding from events to spikes"
+  hardware_target = loihi2
+  fusion_source = .
+}
+
+Kernel {
+  kernel = lif_kernel
+  paradigm = neuromorphic
+  hardware = loihi2
+  signature = "void lif_update(Spike* input, float* weights, Spike* output, LIFState* state, int n_neurons)"
+  body = "// LIF neuron dynamics: dV/dt = (V_rest - V + I) / tau_m"
+  language = c++
+  performance_model = "energy = 23pJ_per_spike * output_spike_count"
+  desc = "Leaky Integrate-and-Fire neuron kernel"
+  hardware_target = loihi2
+  fusion_source = .
+}
+
+Kernel {
+  kernel = stdp_update_kernel
+  paradigm = neuromorphic
+  hardware = loihi2
+  signature = "void stdp_update(Spike* pre, Spike* post, float* weights, STDPParams params)"
+  body = "// STDP weight update: dw = A_plus * exp(-dt/tau_plus) or A_minus * exp(dt/tau_minus)"
+  language = c++
+  performance_model = "energy = 5pJ_per_update * n_synapses"
+  desc = "Spike-timing dependent plasticity update"
+  hardware_target = loihi2
+  fusion_source = .
+}
+
+Kernel {
+  kernel = rate_decoder_kernel
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void rate_decode(Spike* spikes, float* rates, int n_neurons, int timesteps)"
+  body = "// Count spikes per neuron, normalize, apply softmax"
+  language = cuda
+  performance_model = "FLOPS = n_neurons * timesteps + 3 * n_neurons"
+  desc = "Decode spike rates to probabilities"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+Kernel {
+  kernel = lif_sim_kernel
+  paradigm = classical
+  hardware = gpu_cuda
+  signature = "void lif_simulate(float* input, float* weights, float* output, int n_neurons, int timesteps)"
+  body = "// Software LIF simulation on GPU"
+  language = cuda
+  performance_model = "FLOPS = n_neurons * timesteps * 10"
+  desc = "GPU-based LIF simulation fallback"
+  hardware_target = gpu_cuda
+  fusion_source = .
+}
+
+// =========================================================================
+// ENERGY BUDGET
+// =========================================================================
+
+EnergyBudget {
+  budget_id = snn_inference_budget
+  total_budget = 0.001
+  source = battery
+  dvfs_policy = conservative
+  sleep_states = "power_gate_inactive_neurons"
+  desc = "1mJ per inference (neuromorphic efficiency)"
+}
+
+EnergyAllocation {
+  graph = snn_classifier
+  operation = lif_layer1
+  budget = 0.0004
+  priority = high
+  flexible = false
+  desc = "400uJ for layer 1 (largest layer)"
+}
+
+EnergyAllocation {
+  graph = snn_classifier
+  operation = lif_layer2
+  budget = 0.0003
+  priority = high
+  flexible = false
+  desc = "300uJ for layer 2"
+}
+
+EnergyAllocation {
+  graph = snn_classifier
+  operation = lif_output
+  budget = 0.0002
+  priority = high
+  flexible = false
+  desc = "200uJ for output layer"
+}
+
+EnergyAllocation {
+  graph = snn_classifier
+  operation = input_encoding
+  budget = 0.0001
+  priority = medium
+  flexible = true
+  desc = "100uJ for encoding"
+}
+
+// =========================================================================
+// SEARCH SPACE FOR AUTO-OPTIMIZATION
+// =========================================================================
+
+SearchSpace {
+  search_space = neuron_params_search
+  objective = maximize_throughput
+  constraints = "energy<1mJ,accuracy>0.90,spike_rate<50Hz"
+  desc = "Optimize LIF neuron parameters and STDP learning rates"
+}
+
+SearchTarget {
+  graph = snn_classifier
+  operation = lif_layer1
+  importance = high
+  tunable_params = "threshold,refractory,A_plus,A_minus"
+  desc = "Tune layer 1 neuron parameters"
+}
+
+SearchTarget {
+  graph = snn_classifier
+  operation = lif_layer2
+  importance = high
+  tunable_params = "threshold,refractory,A_plus,A_minus"
+  desc = "Tune layer 2 neuron parameters"
+}
+
+SearchParameter {
+  param = threshold
+  param_type = continuous
+  range_min = 0.5
+  range_max = 2.0
+  values = .
+  initial_value = 1.0
+  mutation_rate = 0.1
+  importance = high
+  desc = "LIF firing threshold"
+}
+
+SearchParameter {
+  param = refractory
+  param_type = continuous
+  range_min = 1.0
+  range_max = 5.0
+  values = .
+  initial_value = 2.0
+  mutation_rate = 0.1
+  importance = medium
+  desc = "Refractory period (ms)"
+}
+
+SearchParameter {
+  param = A_plus
+  param_type = continuous
+  range_min = 0.001
+  range_max = 0.05
+  values = .
+  initial_value = 0.01
+  mutation_rate = 0.15
+  importance = high
+  desc = "STDP potentiation amplitude"
+}
+
+SearchParameter {
+  param = A_minus
+  param_type = continuous
+  range_min = 0.001
+  range_max = 0.05
+  values = .
+  initial_value = 0.012
+  mutation_rate = 0.15
+  importance = high
+  desc = "STDP depression amplitude"
+}
+
+// =========================================================================
+// OPTIMIZATION STRATEGY
+// =========================================================================
+
+OptimizationStrategy {
+  strategy = evolutionary_snn_opt
+  algorithm = cma_es
+  population = 50
+  generations = 100
+  learning_rate = .
+  parallel_trials = true
+  desc = "CMA-ES optimization for SNN parameters"
+  project_ref = EventVisionSNN
+  target_graph = snn_classifier
+  search_space = neuron_params_search
+  fitness_fn = snn_fitness
+}
+
+FitnessFunction {
+  fitness_fn = snn_fitness
+  normalization = min_max
+  higher_better = true
+  desc = "Multi-objective: accuracy + energy efficiency + spike sparsity"
+}
+
+FitnessComponent {
+  metric = classification_accuracy
+  weight = 0.5
+  target = 0.92
+  normalize = min_max
+  desc = "Target 92% accuracy"
+}
+
+FitnessComponent {
+  metric = energy_consumption
+  weight = 0.3
+  target = 0.001
+  normalize = min_max
+  desc = "Target 1mJ energy (minimize)"
+}
+
+FitnessComponent {
+  metric = spike_sparsity
+  weight = 0.2
+  target = 0.9
+  normalize = min_max
+  desc = "Target 90% sparsity (higher is better)"
+}
+
+// =========================================================================
+// METRICS
+// =========================================================================
+
+Metric {
+  metric = classification_accuracy
+  category = performance
+  measurement = "correct_predictions / total_predictions"
+  unit = percentage
+  target_value = 92.0
+  tolerance = 2.0
+  desc = "Classification accuracy on test set"
+  target_key = snn_classifier
+}
+
+Metric {
+  metric = energy_consumption
+  category = hardware
+  measurement = "integrated_power_over_time"
+  unit = mJ
+  target_value = 1.0
+  tolerance = 0.2
+  desc = "Energy per inference"
+  target_key = snn_classifier
+}
+
+Metric {
+  metric = spike_sparsity
+  category = neuromorphic
+  measurement = "1 - (active_neurons / total_neurons)"
+  unit = percentage
+  target_value = 90.0
+  tolerance = 5.0
+  desc = "Fraction of inactive neurons (sparsity)"
+  target_key = snn_classifier
+}
+
+Metric {
+  metric = average_spike_rate
+  category = neuromorphic
+  measurement = "total_spikes / (neurons * timesteps)"
+  unit = Hz
+  target_value = 10.0
+  tolerance = 5.0
+  desc = "Average firing rate across all neurons"
+  target_key = snn_classifier
+}
+
+Metric {
+  metric = inference_latency
+  category = performance
+  measurement = "timesteps * timestep_duration"
+  unit = ms
+  target_value = 100.0
+  tolerance = 20.0
+  desc = "Total inference time (100 timesteps @ 1ms)"
+  target_key = snn_classifier
+}
+
+Metric {
+  metric = synaptic_operations
+  category = neuromorphic
+  measurement = "input_spikes * synapses_per_neuron"
+  unit = SOPs
+  target_value = 1000000
+  tolerance = 200000
+  desc = "Synaptic operations per inference"
+  target_key = snn_classifier
+}
+
+// =========================================================================
+// SIMULATOR
+// =========================================================================
+
+Simulator {
+  sim_id = snn_event_simulator
+  components = "snn_classifier"
+  fidelity = cycle_accurate
+  solver = event_driven
+  time_scale = 0.1
+  energy_tracker = true
+  fault_injection = .
+  desc = "Event-driven SNN simulator with spike-accurate timing"
+  project_ref = EventVisionSNN
+  target_graph = snn_classifier
+  fault_models = .
+}
+
+// =========================================================================
+// VALIDATION CONSTRAINTS
+// =========================================================================
+
+Constraint {
+  constraint_id = spike_rate_limit
+  target = snn_classifier
+  condition = "avg_spike_rate < 50Hz"
+  severity = warning
+  temporal = per_step
+  auto_repair = "increase_threshold"
+  desc = "Prevent excessive firing rates"
+  target_key = snn_classifier
+}
+
+Constraint {
+  constraint_id = energy_limit
+  target = loihi2
+  condition = "total_energy < 1mJ"
+  severity = error
+  temporal = cumulative
+  auto_repair = "reduce_timesteps"
+  desc = "Stay within energy budget"
+  target_key = loihi2
+}
+
+Constraint {
+  constraint_id = neuron_capacity
+  target = loihi2
+  condition = "total_neurons < 1000000"
+  severity = error
+  temporal = static
+  auto_repair = "reduce_layer_sizes"
+  desc = "Loihi 2 neuron count limit"
+  target_key = loihi2
+}
+
+Constraint {
+  constraint_id = synapse_capacity
+  target = loihi2
+  condition = "total_synapses < 120000000"
+  severity = error
+  temporal = static
+  auto_repair = "prune_synapses"
+  desc = "Loihi 2 synapse count limit"
+  target_key = loihi2
+}
+
+// =========================================================================
+// DATA FORMAT CONVERSION
+// =========================================================================
+
+DataFormatConverter {
+  converter = spike_to_tensor
+  input_format = spike_train
+  output_format = fp32_tensor
+  conversion_kernel = spike_rate_converter
+  latency = 10.0
+  energy = 0.0001
+  desc = "Convert spike trains to rate-coded tensors for GPU processing"
+}
+
+DataFormatConverter {
+  converter = tensor_to_spike
+  input_format = fp32_tensor
+  output_format = spike_train
+  conversion_kernel = rate_to_spike_converter
+  latency = 10.0
+  energy = 0.0001
+  desc = "Convert rate-coded tensors to spike trains for neuromorphic hardware"
+}
+
+// =========================================================================
+// ADAPTIVE PARAMETERS
+// =========================================================================
+
+AdaptiveParameter {
+  param = homeostatic_threshold
+  adaptation = feedback_based
+  update_rule = "threshold += learning_rate * (target_rate - actual_rate)"
+  update_freq = 100
+  bounds = "0.5,2.0"
+  initial_value = 1.0
+  desc = "Adaptive threshold for homeostatic plasticity"
+}
+
+AdaptiveParameter {
+  param = stdp_learning_rate
+  adaptation = schedule_based
+  update_rule = "learning_rate *= 0.95 every 1000 steps"
+  update_freq = 1000
+  bounds = "0.0001,0.05"
+  initial_value = 0.01
+  desc = "Decay STDP learning rate over time"
+}
+
+// =========================================================================
+// PROFILING AND TELEMETRY
+// =========================================================================
+
+ProfilingHook {
+  hook_id = layer1_profiler
+  metrics = "spike_rate,energy,latency,membrane_voltage"
+  sampling_rate = 0.1
+  overhead = 2.0
+  desc = "Profile layer 1 at 10% sampling rate"
+  metrics_ref = average_spike_rate
+}
+
+ProfilingHook {
+  hook_id = stdp_profiler
+  metrics = "weight_updates,potentiation_events,depression_events"
+  sampling_rate = 0.05
+  overhead = 1.0
+  desc = "Monitor STDP learning dynamics"
+  metrics_ref = synaptic_operations
+}
+
+// =========================================================================
+// FAULT TOLERANCE
+// =========================================================================
+
+FaultModel {
+  fault_id = neuron_stuck_fault
+  fault_type = permanent
+  distribution = exponential
+  affected_key = "lif_layer1,lif_layer2"
+  rate = 0.0001
+  mitigation = redundancy
+  desc = "Neuron stuck at zero or firing continuously (MTBF: 10000 hours)"
+  target_key = lif_layer1
+}
+
+RedundancyStrategy {
+  replication_factor = 3
+  voting = majority
+  rollback_checkpoints = .
+  overhead = 1.2
+  desc = "Triple modular redundancy for critical neurons"
+  checkpoints = .
+}
+
+// =========================================================================
+// PROVENANCE
+// =========================================================================
+
+Provenance {
+  git_commit = a3f5c2d
+  dataset_hash = 8f4e7a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f
+  random_seed = 42
+  hardware_version = loihi2_rev_c
+  timestamp = 2025-11-05T14:30:00Z
+  desc = "Reproducibility tracking for this SNN model"
+}
