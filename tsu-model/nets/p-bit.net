@@ -1,0 +1,771 @@
+// =========================================================================
+// ML MODEL SPECIFICATION - P-BIT MEMRISTOR ARRAY WITH TSU - pbit-model
+// =========================================================================
+
+Model {
+  model = PBitMemristorArray
+  type = energy_based
+  framework = thrml_jax
+  pgm_schema = sigmoid_pbit_network
+  tsu_use = preferred
+  desc = "1T1M-based p-bit network with Gaussian noise and sigmoid activation"
+}
+
+// =========================================================================
+// PGM SCHEMA DEFINITION
+// =========================================================================
+
+PGMSchema {
+  schema = sigmoid_pbit_network
+  variables = "p_0, p_1, ..., p_255"
+  domains = "binary"
+  factors = "sigmoid: P(p_i=1) = Q((V_TH - k*V_READ*G_M) / sigma)"
+  graph_sparsity = dense
+  factor_graph = false
+  energy_based = true
+  tsu_suitable = true
+  desc = "256-element p-bit array with memristor-controlled sigmoid activation"
+}
+
+// =========================================================================
+// LAYERS AND THEIR OPERATIONS
+// =========================================================================
+
+Layer {
+  layer = pbit_sampling_layer
+  type = sampling
+  desc = "P-bit stochastic sampling with memristor weights"
+}
+
+Op {
+  op = pbit_sample_op
+  parent = pbit_sampling_layer
+  kernel = pbit_sigmoid_kernel
+}
+
+Arg {
+  arg = conductance
+  parent = pbit_sample_op
+  role = input
+  tensor = G_memristor
+}
+
+Arg {
+  arg = noise_level
+  parent = pbit_sample_op
+  role = param
+  tensor = sigma_noise
+}
+
+Arg {
+  arg = samples
+  parent = pbit_sample_op
+  role = output
+  tensor = pbit_output
+}
+
+SamplingOp {
+  sampling_op = pbit_sigmoid_sample
+  parent = pbit_sample_op
+  distribution = sigmoid_gaussian
+  temperature = sigma_noise
+  algorithm = threshold_noise
+  tsu_hint = preferred
+  energy_fn = pbit_threshold_energy
+  desc = "Sigmoid sampling via Gaussian noise and voltage thresholding"
+}
+
+TSUSamplingOp {
+  tsu_op = tsu_pbit_native
+  parent = pbit_sigmoid_sample
+  hardware = tsu_memristor_1
+  tsu_device = tsu_pbit0
+  sample_shape = "batch=1000,pbits=256"
+  control_lines = "V_ctrl[0:255] = map_conductance(G_memristor)"
+  calibration = per_batch
+  desc = "Native TSU p-bit sampling with memristor programming"
+}
+
+Layer {
+  layer = probability_layer
+  type = energy
+  desc = "Calculate theoretical probabilities for validation"
+}
+
+Op {
+  op = prob_calc
+  parent = probability_layer
+  kernel = probability_cuda
+}
+
+Arg {
+  arg = conductance
+  parent = prob_calc
+  role = input
+  tensor = G_memristor
+}
+
+Arg {
+  arg = noise
+  parent = prob_calc
+  role = param
+  tensor = sigma_noise
+}
+
+Arg {
+  arg = probabilities
+  parent = prob_calc
+  role = output
+  tensor = P_theoretical
+}
+
+Layer {
+  layer = beta_tuning_layer
+  type = sampling
+  desc = "Adaptive inverse temperature (beta) control"
+}
+
+Op {
+  op = noise_modulation
+  parent = beta_tuning_layer
+  kernel = noise_control_kernel
+}
+
+Arg {
+  arg = target_beta
+  parent = noise_modulation
+  role = input
+  tensor = beta_control
+}
+
+Arg {
+  arg = noise_output
+  parent = noise_modulation
+  role = output
+  tensor = sigma_noise
+}
+
+// =========================================================================
+// ENERGY FUNCTION
+// =========================================================================
+
+EnergyFunction {
+  energy_fn = pbit_threshold_energy
+  expression = "E(p) = -(V_TH - k * V_READ * G_M) * p"
+  variables = "p"
+  params = G_memristor, V_READ, V_TH, k_scaling
+  source = symbolic
+  desc = "P-bit energy from memristor voltage vs threshold"
+}
+
+EnergyFactor {
+  factor = sigmoid_activation
+  type = unary
+  variables = pbit_output
+  potential = "phi(p) = 0.5 * (1 - erf((V_TH - mu_V) / (sqrt(2) * sigma_V)))"
+  learned = false
+  param_tensor = G_memristor
+  sparse = false
+  tsu_native = true
+  desc = "Sigmoid activation via Q-function (complementary error function)"
+}
+
+EnergyFactor {
+  factor = noise_modulation
+  type = unary
+  variables = pbit_output
+  potential = "sigma_V = k * sigma_noise"
+  learned = false
+  param_tensor = sigma_noise
+  sparse = false
+  tsu_native = true
+  desc = "Noise-controlled stochasticity (inverse temperature beta)"
+}
+
+// =========================================================================
+// TENSORS
+// =========================================================================
+
+// State Tensors
+Tensor {
+  tensor = pbit_output
+  parent = PBitMemristorArray
+  shape = [1, 256]
+  dtype = binary
+  layout = dense
+  role = latent
+  pgm_node = true
+  distribution = sigmoid_gaussian
+  desc = "P-bit binary outputs (0 or 1)"
+}
+
+Tensor {
+  tensor = pbit_samples_batch
+  parent = PBitMemristorArray
+  shape = [1000, 256]
+  dtype = binary
+  layout = dense
+  role = latent
+  desc = "Batch of 1000 samples for statistical validation"
+}
+
+// Parameter Tensors - Physical Constants
+Tensor {
+  tensor = G_memristor
+  parent = PBitMemristorArray
+  shape = [256]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Memristor conductance values (Siemens) - analog weights"
+}
+
+Tensor {
+  tensor = V_READ
+  parent = PBitMemristorArray
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Read voltage applied to 1T1M cell (V)"
+}
+
+Tensor {
+  tensor = V_TH
+  parent = PBitMemristorArray
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Threshold voltage of comparator (V)"
+}
+
+Tensor {
+  tensor = k_scaling
+  parent = PBitMemristorArray
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Proportionality constant V=k*I (V/A)"
+}
+
+Tensor {
+  tensor = sigma_noise
+  parent = PBitMemristorArray
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Noise current standard deviation (A) - controls beta"
+}
+
+Tensor {
+  tensor = beta_control
+  parent = PBitMemristorArray
+  shape = [1]
+  dtype = fp32
+  layout = dense
+  role = factor_param
+  desc = "Inverse temperature beta = 1/sigma_noise"
+}
+
+// Output Tensors
+Tensor {
+  tensor = P_theoretical
+  parent = PBitMemristorArray
+  shape = [256]
+  dtype = fp32
+  layout = dense
+  desc = "Theoretical probabilities P(output=1) from Q-function"
+}
+
+Tensor {
+  tensor = P_empirical
+  parent = PBitMemristorArray
+  shape = [256]
+  dtype = fp32
+  layout = dense
+  desc = "Empirical probabilities from sampled outputs"
+}
+
+// =========================================================================
+// TSU HARDWARE DEFINITION (Memristor-based)
+// =========================================================================
+
+Hardware {
+  hardware = tsu_memristor_1
+  backend = tsu
+  emulation = false
+  constraints = "sample_rate=1e9/s, T=300K, max_pbits=4096"
+  energy_model = "E_sample = k * V_READ^2 * C_parasitics + kT * ln(2)"
+  latency_model = "t_sample = 1us (memristor read + noise settle)"
+  desc = "Memristor-based TSU for p-bit sampling"
+}
+
+TSU {
+  tsu_id = tsu_pbit0
+  parent = tsu_memristor_1
+  process_node = 28nm
+  operating_T = 300
+  sample_rate = 1000000000
+  entropy_budget = "dS/dt <= 1e-9 W/K"
+  precision = 10
+  connectivity = PCIe-4
+  programmable_energy = true
+  physical_implementation = memristor-1T1M
+  thermal_noise = "johnson_nyquist"
+  desc = "256-element 1T1M p-bit array"
+}
+
+// =========================================================================
+// TSU COMPILATION PLAN
+// =========================================================================
+
+TSUCompilation {
+  plan_id = pbit_to_tsu_memristor
+  source = PBitMemristorArray
+  hardware = tsu_memristor_1
+  target = tsu_pbit0
+  mapping = "G_memristor -> memristor_cells[256], sigma_noise -> noise_current_DAC"
+  clocking = synchronous
+  control_bus = 16
+  calibration = "periodic_noise_calibration"
+  fidelity = "99.5%"
+  desc = "Map p-bit network to 1T1M memristor array"
+}
+
+TSUSubstrateModel {
+  substrate = memristor_1t1m_substrate
+  max_vars = 4096
+  max_factors = 4096
+  connectivity = dense
+  interaction = sigmoid_threshold
+  kT_per_step = "0.8 kT"
+  min_energy_gap = "0.3 kT"
+  desc = "1T1M memristor substrate with Gaussian noise injection"
+}
+
+// =========================================================================
+// FRAMEWORK DEFINITION
+// =========================================================================
+
+Framework {
+  framework = thrml_jax
+  language = jax
+  paradigm = energy_based
+  runtime = gpu
+  desc = "THRML library on JAX with GPU acceleration"
+}
+
+THRML {
+  thrml_id = thrml_v0_3_pbit
+  parent = thrml_jax
+  version = "0.3.1"
+  features = "sigmoid_sampling, memristor_modeling, noise_control, tsu_offload"
+  hardware_accel = gpu
+  tsu_emulation = noisy
+  jit_compile = true
+  control_flow = scan
+  desc = "THRML v0.3 with p-bit and memristor support"
+}
+
+// =========================================================================
+// CONFIGURATIONS
+// =========================================================================
+
+Config {
+  config = inference_tsu_pbit
+  target = tsu_memristor_1
+  batch = 1000
+  sample_budget = 10000
+  desc = "TSU-native p-bit sampling"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_tsu_pbit
+  layer = pbit_sampling_layer
+  op = pbit_sample_op
+  desc = "Sample from p-bits using TSU hardware"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_tsu_pbit
+  layer = probability_layer
+  op = prob_calc
+  desc = "Compute theoretical probabilities for validation"
+}
+
+Config {
+  config = inference_gpu_emulated
+  parent = PBitMemristorArray
+  target = gpu_a100
+  batch = 1000
+  sample_budget = 10000
+  desc = "GPU-emulated p-bit sampling (THRML)"
+}
+
+Schedule {
+  seq = 1
+  parent = inference_gpu_emulated
+  layer = pbit_sampling_layer
+  op = pbit_sample_op
+  desc = "Emulate p-bit sampling on GPU"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_gpu_emulated
+  layer = probability_layer
+  op = prob_calc
+  desc = "Validate with theoretical probabilities"
+}
+
+Config {
+  config = inference_cpu_python
+  parent = PBitMemristorArray
+  target = cpu_x86
+  batch = 100
+  sample_budget = 1000
+  desc = "Python/NumPy simulation (reference implementation)"
+}
+
+// =========================================================================
+// SIMULATION & VALIDATION
+// =========================================================================
+
+ThermodynamicSimulation {
+  sim_id = pbit_thermo_sim
+  parent = PBitMemristorArray
+  T = 300
+  kT = "4.11e-21"
+  entropy_traced = true
+  landauer_limit = "2.85e-21 J/bit"
+  desc = "Track thermodynamic cost of stochastic sampling"
+}
+
+Validation {
+  rule = probability_convergence
+  target = PBitMemristorArray
+  condition = "abs(P_empirical - P_theoretical) < 0.01 for N >= 10000"
+  desc = "Ensure empirical samples match theoretical sigmoid"
+}
+
+PhysicalConstraint {
+  constraint = memristor_voltage_limit
+  parent = probability_convergence
+  target = tsu_pbit0
+  condition = "V_READ <= 0.2V (device breakdown)"
+  severity = error
+  thermodynamic = false
+  desc = "Memristor programming voltage constraint"
+}
+
+PhysicalConstraint {
+  constraint = noise_power_budget
+  parent = probability_convergence
+  target = pbit_sample_op
+  condition = "noise_power < 1mW"
+  severity = warning
+  thermodynamic = true
+  desc = "Thermal noise generation power budget"
+}
+
+PhysicalConstraint {
+  constraint = beta_range
+  parent = probability_convergence
+  target = pbit_sample_op
+  condition = "beta >= 1e8 and beta <= 1e12"
+  severity = error
+  thermodynamic = true
+  desc = "Inverse temperature beta must be in physical range"
+}
+
+// =========================================================================
+// DOMAIN KNOWLEDGE - P-BIT KERNELS
+// =========================================================================
+
+Domain {
+  name = pbit_kernels
+  version = "1.0.0"
+  desc = "P-bit kernel implementations for 1T1M memristor arrays"
+}
+
+Kernel {
+  kernel = pbit_sigmoid_kernel
+  hardware = tsu_memristor_1
+  desc = "TSU-native p-bit sigmoid sampling kernel"
+  signature = "void pbit_sample(TSUDevice* dev, float* G_M, float sigma, int8_t* output);"
+  body = """
+    // P-Bit TSU Sampling:
+    // 1. Program memristor conductances (G_M)
+    // 2. Apply read voltage (V_READ)
+    // 3. Inject Gaussian noise (sigma_noise)
+    // 4. Threshold comparison (V_node vs V_TH)
+    // 5. Output: P(out=1) = Q((V_TH - mu_V) / sigma_V)
+    
+    void pbit_tsu_sample(
+        TSUDevice* device,
+        float* G_memristor,   // Conductance array [pbits]
+        float V_READ,         // Read voltage
+        float V_TH,           // Threshold voltage
+        float k_scaling,      // V = k*I proportionality
+        float sigma_noise,    // Noise current std dev
+        int8_t* output,       // Binary outputs [pbits]
+        int num_pbits,
+        int num_samples
+    ) {
+        // Program memristor array
+        for (int i = 0; i < num_pbits; i++) {
+            device->set_memristor_conductance(i, G_memristor[i]);
+        }
+        
+        // Set read voltage
+        device->set_read_voltage(V_READ);
+        
+        // Configure noise injection (controls beta)
+        device->set_noise_current_sigma(sigma_noise);
+        
+        // Sample loop
+        for (int s = 0; s < num_samples; s++) {
+            // 1. Apply V_READ, memristor conducts I_mem = G_M * V_READ
+            // 2. Noise current I_noise ~ N(0, sigma_noise)
+            // 3. Node voltage V_node = k * (I_mem + I_noise)
+            // 4. Comparator: out = (V_node > V_TH) ? 1 : 0
+            
+            device->trigger_read_cycle();
+            device->inject_thermal_noise();
+            device->threshold_compare(V_TH);
+            device->read_output(&output[s * num_pbits], num_pbits);
+        }
+    }
+  """
+  thermodynamic = true
+  energy_fn = "E(p) = -(V_TH - k*V_READ*G_M) * p"
+}
+
+TSUKernel {
+  tsu_kernel = tsu_pbit_sigmoid
+  parent = pbit_sigmoid_kernel
+  tsu_target = tsu_pbit0
+  energy_fn = "E(p) = -(V_TH - k*V_READ*G_M) * p / (k*sigma_noise)"
+  sample_shape = "batch=1000,pbits=256"
+  thermal_relax = "tau = 10us (RC time constant)"
+  control_voltage = "V_READ = 0.1V, V_TH = 0.05V"
+  desc = "Native 1T1M p-bit kernel with sigmoid activation"
+}
+
+Kernel {
+  kernel = probability_cuda
+  hardware = gpu_a100
+  desc = "GPU kernel for theoretical probability calculation"
+  signature = "void compute_pbit_prob(float* G_M, float sigma, float* P_out);"
+  body = """
+    #include <math.h>
+    
+    __device__ float Q_function(float x) {
+        // Q(x) = 0.5 * (1 - erf(x / sqrt(2)))
+        return 0.5f * (1.0f - erf(x * 0.70710678118f));
+    }
+    
+    __global__ void pbit_probability_kernel(
+        float* G_memristor,
+        float V_READ,
+        float V_TH,
+        float k_scaling,
+        float sigma_noise,
+        float* P_output,
+        int num_pbits
+    ) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        
+        if (idx < num_pbits) {
+            // Mean node voltage
+            float mu_V = k_scaling * V_READ * G_memristor[idx];
+            
+            // Voltage noise std dev
+            float sigma_V = k_scaling * sigma_noise;
+            
+            // Standardized threshold
+            float argument = (V_TH - mu_V) / (sqrtf(2.0f) * sigma_V);
+            
+            // P(output=1) via Q-function
+            P_output[idx] = Q_function(argument);
+        }
+    }
+  """
+}
+
+Kernel {
+  kernel = noise_control_kernel
+  hardware = tsu_memristor_1
+  desc = "Adaptive noise control for beta tuning"
+  signature = "void set_beta(TSUDevice* dev, float beta);"
+  body = """
+    void tsu_set_inverse_temperature(
+        TSUDevice* device,
+        float beta_target
+    ) {
+        // beta = 1 / sigma_noise
+        float sigma_noise = 1.0f / beta_target;
+        
+        // Program noise injection DAC
+        device->set_noise_current_sigma(sigma_noise);
+        
+        // Calibrate thermal noise source
+        device->calibrate_noise_source();
+    }
+  """
+  thermodynamic = true
+}
+
+// =========================================================================
+// OPTIMIZATION RULES
+// =========================================================================
+
+Optimization {
+  target = tsu_memristor_1
+  type = thermodynamic_fusion
+  params = "vectorize_pbits=true, batch_sampling=1000"
+  desc = "Vectorize p-bit array for parallel sampling"
+}
+
+Fusion {
+  fusion = sample_and_validate
+  pattern = "pbit_sample_op + prob_calc"
+  fused_kernel = pbit_sigmoid_kernel
+  hardware = tsu_memristor_1
+  desc = "Fuse sampling and probability calculation"
+}
+
+// =========================================================================
+// ENUMERATION RULES
+// =========================================================================
+
+DistributionRule {
+  distribution = sigmoid_gaussian
+  params = "mu_V, sigma_V, V_TH"
+  reparam = false
+  tsu_native = true
+  energy_based = true
+  desc = "Sigmoid via Gaussian noise and thresholding: P(1) = Q((V_TH-mu)/sigma)"
+}
+
+SamplingAlgorithmRule {
+  algorithm = threshold_noise
+  discrete = true
+  tsu_accel = true
+  jax_pattern = "jax.random.bernoulli"
+  desc = "Threshold-based sampling with Gaussian noise injection"
+}
+
+BackendRule {
+  backend = tsu
+  execution = thermodynamic
+  desc = "Thermodynamic Sampling Unit execution"
+}
+
+HardwareRule {
+  hardware = tsu_memristor_1
+  vendor = custom
+  arch = memristor_1T1M
+  desc = "1T1M memristor-based p-bit array"
+}
+
+// =========================================================================
+// PROJECT & MULTI-TARGET CODE GENERATION
+// =========================================================================
+
+Project {
+  project = PBitMultiTarget
+  domain = pbit_kernels
+  model = PBitMemristorArray
+  desc = "Generate for TSU hardware + GPU emulation + Python reference"
+}
+
+// Target 1: Production TSU hardware (memristor array)
+TargetConfig {
+  target_id = tsu_production
+  parent = PBitMultiTarget
+  hardware = tsu_memristor_1
+  mode = production
+  config = inference_tsu_pbit
+  codegen = true
+  priority = primary
+  desc = "Production deployment on 1T1M memristor TSU"
+}
+
+// Target 2: GPU emulation (THRML/JAX)
+TargetConfig {
+  target_id = gpu_emulation
+  parent = PBitMultiTarget
+  hardware = gpu_a100
+  mode = emulation
+  config = inference_gpu_emulated
+  codegen = true
+  priority = validation
+  desc = "GPU-based p-bit emulation using THRML"
+}
+
+// Target 3: Python/NumPy reference
+TargetConfig {
+  target_id = python_reference
+  parent = PBitMultiTarget
+  hardware = cpu_x86
+  mode = simulation
+  config = inference_cpu_python
+  codegen = true
+  priority = fallback
+  desc = "Python reference implementation (your p3.py code)"
+}
+
+// Build rule: Generate all targets
+BuildRule {
+  build_id = generate_all
+  parent = PBitMultiTarget
+  targets = "tsu_production,gpu_emulation,python_reference"
+  output_dir = "./build/pbit_multi"
+  template = multi_target
+  validate_against = python_reference
+  desc = "Generate for all targets, validate TSU against Python reference"
+}
+
+// Build rule: TSU-only fast build
+BuildRule {
+  build_id = tsu_only
+  parent = PBitMultiTarget
+  targets = "tsu_production"
+  output_dir = "./build/pbit_tsu"
+  template = tsu
+  desc = "Fast TSU-only build for hardware iteration"
+}
+
+// Build rule: Python + GPU for development
+BuildRule {
+  build_id = dev_build
+  parent = PBitMultiTarget
+  targets = "python_reference,gpu_emulation"
+  output_dir = "./build/pbit_dev"
+  template = python_jax
+  desc = "Development build with Python and GPU emulation"
+}
+
+// ================================================================
+// HARDWARE DEFINITIONS FOR MULTI-TARGET
+// ================================================================
+
+Hardware {
+  hardware = gpu_a100
+  backend = gpu
+  emulation = false
+  desc = "NVIDIA A100 GPU for p-bit emulation via THRML"
+}
+
+Hardware {
+  hardware = cpu_x86
+  backend = cpu
+  emulation = false
+  desc = "CPU for Python/NumPy reference implementation"
+}

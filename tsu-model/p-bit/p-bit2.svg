@@ -1,0 +1,156 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Coupled P-Bit System: Analog Neighbor Influence</text>
+  
+  <!-- Main Container -->
+  <rect x="50" y="50" width="700" height="400" fill="#f8f9fa" stroke="#333" stroke-width="2" rx="10"/>
+  
+  <!-- ===== LEFT P-BIT (P-BIT A) ===== -->
+  <text x="200" y="80" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#1976D2">P-Bit A</text>
+  
+  <!-- P-Bit A Core Circuit -->
+  <rect x="100" y="100" width="200" height="150" fill="white" stroke="#1976D2" stroke-width="2" rx="5"/>
+  
+  <!-- Memristor A -->
+  <rect x="140" y="120" width="40" height="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <line x1="160" y1="120" x2="160" y2="140" stroke="#1976D2" stroke-width="2"/>
+  <text x="160" y="115" text-anchor="middle" font-family="Arial" font-size="8">G_M_A</text>
+  
+  <!-- Noise Source A -->
+  <rect x="140" y="160" width="40" height="15" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+  <path d="M 140,167 Q 145,157, 150,167 Q 155,177, 160,167 Q 165,157, 170,167 Q 175,177, 180,167" 
+        fill="none" stroke="#FF9800" stroke-width="1"/>
+  
+  <!-- Central Node A -->
+  <circle cx="190" cy="140" r="12" fill="#1976D2" stroke="#0D47A1" stroke-width="2"/>
+  <text x="190" y="143" text-anchor="middle" font-family="Arial" font-size="7" fill="white">V_A</text>
+  
+  <!-- Comparator A -->
+  <polygon points="220,130 240,130 240,150 220,150" fill="#E8F5E8" stroke="#4CAF50" stroke-width="1"/>
+  <text x="230" y="140" text-anchor="middle" font-family="Arial" font-size="6">Comp</text>
+  
+  <!-- Output A -->
+  <line x1="240" y1="140" x2="270" y2="140" stroke="#333" stroke-width="1.5"/>
+  <text x="275" y="143" text-anchor="start" font-family="Arial" font-size="9">Output A</text>
+  
+  <!-- Internal Connections A -->
+  <line x1="180" y1="130" x2="190" y2="130" stroke="#1976D2" stroke-width="2"/>
+  <line x1="180" y1="150" x2="190" y2="150" stroke="#1976D2" stroke-width="2"/>
+  <line x1="190" y1="140" x2="220" y2="140" stroke="#1976D2" stroke-width="2"/>
+  <line x1="160" y1="167" x2="175" y2="167" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <line x1="175" y1="167" x2="175" y2="150" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="2,2"/>
+  
+  <!-- ===== RIGHT P-BIT (P-BIT B) ===== -->
+  <text x="600" y="80" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#D32F2F">P-Bit B</text>
+  
+  <!-- P-Bit B Core Circuit -->
+  <rect x="500" y="100" width="200" height="150" fill="white" stroke="#D32F2F" stroke-width="2" rx="5"/>
+  
+  <!-- Memristor B -->
+  <rect x="540" y="120" width="40" height="20" fill="#FFEBEE" stroke="#D32F2F" stroke-width="1"/>
+  <line x1="560" y1="120" x2="560" y2="140" stroke="#D32F2F" stroke-width="2"/>
+  <text x="560" y="115" text-anchor="middle" font-family="Arial" font-size="8">G_M_B</text>
+  
+  <!-- Noise Source B -->
+  <rect x="540" y="160" width="40" height="15" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+  <path d="M 540,167 Q 545,157, 550,167 Q 555,177, 560,167 Q 565,157, 570,167 Q 575,177, 580,167" 
+        fill="none" stroke="#FF9800" stroke-width="1"/>
+  
+  <!-- Central Node B -->
+  <circle cx="590" cy="140" r="12" fill="#D32F2F" stroke="#B71C1C" stroke-width="2"/>
+  <text x="590" y="143" text-anchor="middle" font-family="Arial" font-size="7" fill="white">V_B</text>
+  
+  <!-- Comparator B -->
+  <polygon points="620,130 640,130 640,150 620,150" fill="#E8F5E8" stroke="#4CAF50" stroke-width="1"/>
+  <text x="630" y="140" text-anchor="middle" font-family="Arial" font-size="6">Comp</text>
+  
+  <!-- Output B -->
+  <line x1="640" y1="140" x2="670" y2="140" stroke="#333" stroke-width="1.5"/>
+  <text x="675" y="143" text-anchor="start" font-family="Arial" font-size="9">Output B</text>
+  
+  <!-- Internal Connections B -->
+  <line x1="580" y1="130" x2="590" y2="130" stroke="#D32F2F" stroke-width="2"/>
+  <line x1="580" y1="150" x2="590" y2="150" stroke="#D32F2F" stroke-width="2"/>
+  <line x1="590" y1="140" x2="620" y2="140" stroke="#D32F2F" stroke-width="2"/>
+  <line x1="560" y1="167" x2="575" y2="167" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <line x1="575" y1="167" x2="575" y2="150" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="2,2"/>
+  
+  <!-- ===== COUPLING NETWORK ===== -->
+  <text x="400" y="280" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#7B1FA2">Analog Coupling Network</text>
+  
+  <!-- Coupling Resistor/Memristor -->
+  <rect x="380" y="300" width="40" height="15" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1"/>
+  <line x1="400" y1="300" x2="400" y2="315" stroke="#7B1FA2" stroke-width="2"/>
+  <text x="400" y="295" text-anchor="middle" font-family="Arial" font-size="8">J_AB</text>
+  <text x="400" y="330" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Coupling Weight</text>
+  
+  <!-- Coupling Connections -->
+  <line x1="300" y1="140" x2="350" y2="140" stroke="#7B1FA2" stroke-width="2"/>
+  <line x1="350" y1="140" x2="350" y2="307" stroke="#7B1FA2" stroke-width="2"/>
+  <line x1="350" y1="307" x2="380" y2="307" stroke="#7B1FA2" stroke-width="2"/>
+  
+  <line x1="420" y1="307" x2="450" y2="307" stroke="#7B1FA2" stroke-width="2"/>
+  <line x1="450" y1="307" x2="450" y2="140" stroke="#7B1FA2" stroke-width="2"/>
+  <line x1="450" y1="140" x2="500" y2="140" stroke="#7B1FA2" stroke-width="2"/>
+  
+  <!-- Coupling Current Arrows -->
+  <polygon points="375,307 365,302 365,312" fill="#7B1FA2"/>
+  <polygon points="425,307 435,302 435,312" fill="#7B1FA2"/>
+  
+  <!-- ===== MATHEMATICAL MODEL ===== -->
+  <rect x="150" y="350" width="500" height="80" fill="#E1F5FE" stroke="#0288D1" stroke-width="1" rx="5"/>
+  
+  <text x="400" y="370" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold">Coupled Energy Function</text>
+  
+  <!-- Energy Equation -->
+  <text x="400" y="390" text-anchor="middle" font-family="Arial" font-size="11">
+    E(V_A, V_B) = -V_READ·G_M_A·V_A - V_READ·G_M_B·V_B - J_AB·V_A·V_B + noise
+  </text>
+  
+  <!-- Probability Equations -->
+  <text x="400" y="410" text-anchor="middle" font-family="Arial" font-size="10">
+    P(Output_A=1) ∝ exp(-E/kT) with neighbor influence from V_B
+  </text>
+  
+  <!-- ===== INFLUENCE INDICATORS ===== -->
+  
+  <!-- Influence from A to B -->
+  <path d="M 300,180 Q 350,200 400,220" fill="none" stroke="#1976D2" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="350" y="190" text-anchor="middle" font-family="Arial" font-size="8" fill="#1976D2">A → B influence</text>
+  <polygon points="400,220 395,215 395,225" fill="#1976D2"/>
+  
+  <!-- Influence from B to A -->
+  <path d="M 500,180 Q 450,200 400,220" fill="none" stroke="#D32F2F" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="450" y="190" text-anchor="middle" font-family="Arial" font-size="8" fill="#D32F2F">B → A influence</text>
+  <polygon points="400,220 405,215 405,225" fill="#D32F2F"/>
+  
+  <!-- ===== BEHAVIOR EXAMPLES ===== -->
+  
+  <!-- Example 1: Ferromagnetic Coupling -->
+  <rect x="100" y="200" width="120" height="40" fill="#E8F5E8" stroke="#4CAF50" stroke-width="1" rx="3"/>
+  <text x="110" y="215" text-anchor="start" font-family="Arial" font-size="8" font-weight="bold">J_AB > 0:</text>
+  <text x="110" y="225" text-anchor="start" font-family="Arial" font-size="7">"Ferromagnetic"</text>
+  <text x="110" y="235" text-anchor="start" font-family="Arial" font-size="7">P-bits tend to align</text>
+  
+  <!-- Example 2: Antiferromagnetic Coupling -->
+  <rect x="580" y="200" width="120" height="40" fill="#FFEBEE" stroke="#F44336" stroke-width="1" rx="3"/>
+  <text x="590" y="215" text-anchor="start" font-family="Arial" font-size="8" font-weight="bold">J_AB  0:</text>
+  <text x="590" y="225" text-anchor="start" font-family="Arial" font-size="7">"Antiferromagnetic"</text>
+  <text x="590" y="235" text-anchor="start" font-family="Arial" font-size="7">P-bits tend to oppose</text>
+  
+  <!-- ===== ANALOG INTERACTION ===== -->
+  
+  <!-- Analog Voltage Levels -->
+  <text x="190" y="270" text-anchor="middle" font-family="Arial" font-size="9" fill="#1976D2">
+    V_A ∈ [0, V_READ]
+  </text>
+  <text x="590" y="270" text-anchor="middle" font-family="Arial" font-size="9" fill="#D32F2F">
+    V_B ∈ [0, V_READ]
+  </text>
+  
+  <!-- Continuous Influence -->
+  <text x="400" y="310" text-anchor="middle" font-family="Arial" font-size="8" fill="#7B1FA2">
+    I_couple = J_AB · (V_B - V_A) / R
+  </text>
+  
+</svg>
