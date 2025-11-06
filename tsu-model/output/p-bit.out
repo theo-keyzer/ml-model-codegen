@@ -1,0 +1,582 @@
+# Generated Python/JAX inference code for PBitMemristorArray
+# P-Bit Memristor Array with 1T1M Physics
+# WARNING: Auto-generated file, do not edit manually
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+from typing import Dict, Any, Tuple
+from scipy.special import erf
+
+# =========================================================================
+# 1. Physical Constants
+# =========================================================================
+V_READ = jnp.array([0.1])  # Read voltage (V)
+V_TH = jnp.array([0.05])  # Threshold voltage (V)
+k_scaling = jnp.array([1e4])  # Proportionality constant V=k*I (V/A)
+sigma_noise = jnp.array([1e-10])  # Noise current std dev (A)
+
+# =========================================================================
+# 2. Tensor Declarations
+# =========================================================================
+# pbit_output: P-bit binary outputs (0 or 1)
+# Shape: 1, 256, Layout: dense, DType: binary
+# pbit_samples_batch: Batch of 1000 samples for statistical validation
+# Shape: 1000, 256, Layout: dense, DType: binary
+# g_memristor: Memristor conductance values (Siemens) - analog weights
+# Shape: 256, Layout: dense, DType: fp32
+# v_read: Read voltage applied to 1T1M cell (V)
+# Shape: 1, Layout: dense, DType: fp32
+# v_th: Threshold voltage of comparator (V)
+# Shape: 1, Layout: dense, DType: fp32
+# k_scaling: Proportionality constant V=k*I (V/A)
+# Shape: 1, Layout: dense, DType: fp32
+# sigma_noise: Noise current standard deviation (A) - controls beta
+# Shape: 1, Layout: dense, DType: fp32
+# beta_control: Inverse temperature beta = 1/sigma_noise
+# Shape: 1, Layout: dense, DType: fp32
+# p_theoretical: Theoretical probabilities P(output=1) from Q-function
+# Shape: 256, Layout: dense, DType: fp32
+# p_empirical: Empirical probabilities from sampled outputs
+# Shape: 256, Layout: dense, DType: fp32
+
+# =========================================================================
+# 3. P-Bit Class Definition
+# =========================================================================
+
+class PBit:
+    """
+    JAX-based P-Bit implementation with 1T1M memristor physics.
+    Implements sigmoid activation via Gaussian noise and thresholding.
+    """
+    
+    def __init__(self, V_READ=0.1, V_TH=0.05, k_scaling=1e4, sigma_noise=1e-8):
+        self.V_READ = V_READ
+        self.V_TH = V_TH
+        self.k = k_scaling
+        self.sigma_noise = sigma_noise
+    
+    @property
+    def beta(self):
+        """Inverse temperature: beta = 1/sigma_noise"""
+        return 1.0 / self.sigma_noise
+    
+    def calculate_probability(self, G_M):
+        """
+        Calculate P(output=1) given memristor conductance G_M.
+        Uses Q-function (complementary error function).
+        """
+        # Mean node voltage
+        mu_V = self.k * self.V_READ * G_M
+        
+        # Voltage noise std dev
+        sigma_V = self.k * self.sigma_noise
+        
+        if sigma_V == 0:
+            return jnp.where(mu_V > self.V_TH, 1.0, 0.0)
+        
+        # Standardized threshold
+        argument = (self.V_TH - mu_V) / (jnp.sqrt(2.0) * sigma_V)
+        
+        # P(output=1) via Q-function
+        P_out = 0.5 * (1.0 - jax.scipy.special.erf(argument))
+        
+        return jnp.clip(P_out, 0.0, 1.0)
+    
+    def sample(self, G_M, key, n_samples=1):
+        """
+        Generate binary samples based on calculated probability.
+        """
+        P = self.calculate_probability(G_M)
+        samples = jax.random.bernoulli(key, P, shape=(n_samples,))
+        return samples.astype(jnp.int32)
+    
+    def sample_array(self, G_M_array, key, n_samples=1):
+        """
+        Vectorized sampling for array of memristor conductances.
+        """
+        P_array = jax.vmap(self.calculate_probability)(G_M_array)
+        samples = jax.random.bernoulli(key, P_array, shape=(n_samples, len(G_M_array)))
+        return samples.astype(jnp.int32)
+
+
+# =========================================================================
+# 4. Operation Forward Declarations
+# =========================================================================
+
+def op_pbit_sampling_layer_pbit_sample_op(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """Operation: pbit_sample_op"""
+    pass
+
+def op_probability_layer_prob_calc(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """Operation: prob_calc"""
+    pass
+
+def op_beta_tuning_layer_noise_modulation(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """Operation: noise_modulation"""
+    pass
+
+def sampling_op_pbit_sigmoid_sample(conductance: jnp.ndarray, 
+                                  pbit: PBit,
+                                  key: Any, 
+                                  params: Dict) -> Tuple[jnp.ndarray, Any]:
+    """Sampling: pbit_sigmoid_sample (sigmoid_gaussian)"""
+    pass
+
+def energy_function_pbit_threshold_energy(state: jnp.ndarray, 
+                                    G_M: jnp.ndarray,
+                                    pbit: PBit) -> float:
+    """Energy: E(p) = -(V_TH - k * V_READ * G_M) * p"""
+    pass
+
+# =========================================================================
+# 5. Operation Implementations
+# =========================================================================
+
+def op_pbit_sampling_layer_pbit_sample_op(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """
+    Operation: pbit_sample_op
+    Layer: pbit_sampling_layer
+    From: ../nets/p-bit.net:40, ../actors/p-bit.act:280
+    """
+    
+    conductance = state.get('G_memristor', None)
+    noise_level = state.get('sigma_noise', None)
+    # Output: samples -> pbit_output
+    
+    # Execute operation
+    key, subkey = jax.random.split(key)
+    
+    # Sampling operation: pbit_sigmoid_sample
+    samples, key = sampling_op_pbit_sigmoid_sample(
+        conductance,
+        noise_level,
+        pbit, subkey, 
+        params={'batch': 1000})
+    state['pbit_output'] = samples
+    
+    return state, key
+
+def op_probability_layer_prob_calc(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """
+    Operation: prob_calc
+    Layer: probability_layer
+    From: ../nets/p-bit.net:95, ../actors/p-bit.act:280
+    """
+    
+    conductance = state.get('G_memristor', None)
+    noise = state.get('sigma_noise', None)
+    # Output: probabilities -> P_theoretical
+    
+    # Execute operation
+    key, subkey = jax.random.split(key)
+    
+    
+    return state, key
+
+def op_beta_tuning_layer_noise_modulation(state: Dict[str, jnp.ndarray], 
+                                   pbit: PBit, 
+                                   key: Any) -> Tuple[Dict[str, jnp.ndarray], Any]:
+    """
+    Operation: noise_modulation
+    Layer: beta_tuning_layer
+    From: ../nets/p-bit.net:128, ../actors/p-bit.act:280
+    """
+    
+    target_beta = state.get('beta_control', None)
+    # Output: noise_output -> sigma_noise
+    
+    # Execute operation
+    key, subkey = jax.random.split(key)
+    
+    
+    return state, key
+
+def sampling_op_pbit_sigmoid_sample(conductance: jnp.ndarray,noise_level: jnp.ndarray,
+                                  pbit: PBit,
+                                  key: Any, 
+                                  params: Dict) -> Tuple[jnp.ndarray, Any]:
+    """
+    Sampling Operation: pbit_sigmoid_sample
+    Algorithm: threshold_noise
+    Distribution: sigmoid_gaussian
+    Temperature (sigma_noise): sigma_noise
+    From: ../nets/p-bit.net:67, ../actors/p-bit.act:338
+    """
+    
+    batch_size = params.get('batch', 1000)
+    
+    # Calculate theoretical probabilities
+    P_theoretical = jax.vmap(pbit.calculate_probability)(conductance)
+    
+    # Generate samples
+    key, subkey = jax.random.split(key)
+    samples = jax.random.bernoulli(subkey, P_theoretical, 
+                                   shape=(batch_size, len(conductance)))
+    samples = samples.astype(jnp.int32)
+    
+    # Optional: validate statistics
+    if params.get('validate', False):
+        validation = validate_pbit_statistics(samples, P_theoretical)
+        print(f"  Validation - Max Error: {validation['max_error']:.4f}, "
+              f"Passed: {validation['passed']}")
+    
+    
+
+    # TSU Hardware Sampling: tsu_pbit_native
+    # Hardware: tsu_memristor_1
+    # Device: tsu_pbit0
+    # Sample Shape: batch=1000,pbits=256
+    # Control Lines: V_ctrl[0:255] = map_conductance(G_memristor)
+    # Calibration: per_batch
+    # 
+    # NOTE: TSU hardware not available, falling back to JAX emulation
+    print("  [TSU Emulation] Would execute on tsu_memristor_1")
+    print("  [TSU Emulation] Calibration mode: per_batch")
+    return samples, key
+
+def energy_function_pbit_threshold_energy(state: jnp.ndarray, 
+                                    G_M: jnp.ndarray,
+                                    pbit: PBit) -> float:
+    """
+    Energy Function: pbit_threshold_energy
+    Expression: E(p) = -(V_TH - k * V_READ * G_M) * p
+    From: ../nets/p-bit.net:152, ../actors/p-bit.act:390
+    
+    Physical interpretation:
+    E(p) = -(V_TH - k*V_READ*G_M) * p
+    
+    The p-bit naturally samples from P(p=1) = Q((V_TH - mu_V)/sigma_V)
+    where mu_V = k*V_READ*G_M and sigma_V = k*sigma_noise
+    """
+    
+    # Mean node voltage for each p-bit
+    mu_V = pbit.k * pbit.V_READ * G_M
+    
+    # Energy contribution from each active p-bit
+    energy = -jnp.sum((pbit.V_TH - mu_V) * state)
+    
+    return float(energy)
+
+# =========================================================================
+# 6. Inference Configurations
+# =========================================================================
+
+# ============ Configuration: inference_tsu_pbit ============
+# Target: tsu_memristor_1
+# Batch: 1000
+# Sample Budget: 10000
+# Description: TSU-native p-bit sampling
+# From: ../nets/p-bit.net:377, ../actors/p-bit.act:418
+
+def inference_inference_tsu_pbit(G_M_array: jnp.ndarray, 
+                           pbit: PBit,
+                           key: Any, 
+                           params: Dict = None) -> Dict[str, Any]:
+    """
+    Run inference configuration: inference_tsu_pbit
+    """
+    if params is None:
+        params = {}
+    
+    print(f"\nStarting inference: inference_tsu_pbit")
+    print(f"  Target: tsu_memristor_1")
+    print(f"  Batch: 1000")
+    print(f"  Sample Budget: 10000")
+    print(f"  P-Bit Beta: {pbit.beta:.1e}")
+    
+    # Initialize state dictionary
+    state = {
+        'G_memristor': G_M_array,
+        'pbit_params': {
+            'V_READ': pbit.V_READ,
+            'V_TH': pbit.V_TH,
+            'k': pbit.k,
+            'sigma_noise': pbit.sigma_noise
+        }
+    }
+    
+    # Set default parameters
+    params.setdefault('batch', 1000)
+    params.setdefault('sample_budget', 10000)
+    params.setdefault('validate', True)
+    
+    results = {}
+    
+    # Execute schedule steps in order
+    
+    # ===== Step 1: Sample from p-bits using TSU hardware =====
+    print(f"  Executing layer: pbit_sampling_layer")
+    state, key = op_pbit_sampling_layer_pbit_sample_op(state, pbit, key)
+    # Sampling: pbit_sigmoid_sample (threshold_noise)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 1: Sample from p-bits using TSU hardware")
+    
+    # ===== Step 2: Compute theoretical probabilities for validation =====
+    print(f"  Executing layer: probability_layer")
+    state, key = op_probability_layer_prob_calc(state, pbit, key)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 2: Compute theoretical probabilities for validation")
+    
+    print(f"Inference complete: inference_tsu_pbit")
+    
+    return results
+
+# ============ Configuration: inference_gpu_emulated ============
+# Target: gpu_a100
+# Batch: 1000
+# Sample Budget: 10000
+# Description: GPU-emulated p-bit sampling (THRML)
+# From: ../nets/p-bit.net:401, ../actors/p-bit.act:418
+
+def inference_inference_gpu_emulated(G_M_array: jnp.ndarray, 
+                           pbit: PBit,
+                           key: Any, 
+                           params: Dict = None) -> Dict[str, Any]:
+    """
+    Run inference configuration: inference_gpu_emulated
+    """
+    if params is None:
+        params = {}
+    
+    print(f"\nStarting inference: inference_gpu_emulated")
+    print(f"  Target: gpu_a100")
+    print(f"  Batch: 1000")
+    print(f"  Sample Budget: 10000")
+    print(f"  P-Bit Beta: {pbit.beta:.1e}")
+    
+    # Initialize state dictionary
+    state = {
+        'G_memristor': G_M_array,
+        'pbit_params': {
+            'V_READ': pbit.V_READ,
+            'V_TH': pbit.V_TH,
+            'k': pbit.k,
+            'sigma_noise': pbit.sigma_noise
+        }
+    }
+    
+    # Set default parameters
+    params.setdefault('batch', 1000)
+    params.setdefault('sample_budget', 10000)
+    params.setdefault('validate', True)
+    
+    results = {}
+    
+    # Execute schedule steps in order
+    
+    # ===== Step 1: Emulate p-bit sampling on GPU =====
+    print(f"  Executing layer: pbit_sampling_layer")
+    state, key = op_pbit_sampling_layer_pbit_sample_op(state, pbit, key)
+    # Sampling: pbit_sigmoid_sample (threshold_noise)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 1: Emulate p-bit sampling on GPU")
+    
+    # ===== Step 2: Validate with theoretical probabilities =====
+    print(f"  Executing layer: probability_layer")
+    state, key = op_probability_layer_prob_calc(state, pbit, key)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 2: Validate with theoretical probabilities")
+    
+    print(f"Inference complete: inference_gpu_emulated")
+    
+    return results
+
+# ============ Configuration: inference_cpu_python ============
+# Target: cpu_x86
+# Batch: 100
+# Sample Budget: 1000
+# Description: Python/NumPy simulation (reference implementation)
+# From: ../nets/p-bit.net:426, ../actors/p-bit.act:418
+
+def inference_inference_cpu_python(G_M_array: jnp.ndarray, 
+                           pbit: PBit,
+                           key: Any, 
+                           params: Dict = None) -> Dict[str, Any]:
+    """
+    Run inference configuration: inference_cpu_python
+    """
+    if params is None:
+        params = {}
+    
+    print(f"\nStarting inference: inference_cpu_python")
+    print(f"  Target: cpu_x86")
+    print(f"  Batch: 100")
+    print(f"  Sample Budget: 1000")
+    print(f"  P-Bit Beta: {pbit.beta:.1e}")
+    
+    # Initialize state dictionary
+    state = {
+        'G_memristor': G_M_array,
+        'pbit_params': {
+            'V_READ': pbit.V_READ,
+            'V_TH': pbit.V_TH,
+            'k': pbit.k,
+            'sigma_noise': pbit.sigma_noise
+        }
+    }
+    
+    # Set default parameters
+    params.setdefault('batch', 100)
+    params.setdefault('sample_budget', 1000)
+    params.setdefault('validate', True)
+    
+    results = {}
+    
+    # Execute schedule steps in order
+    
+    # ===== Step 1: CPU reference sampling =====
+    print(f"  Executing layer: pbit_sampling_layer")
+    state, key = op_pbit_sampling_layer_pbit_sample_op(state, pbit, key)
+    # Sampling: pbit_sigmoid_sample (threshold_noise)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 1: CPU reference sampling")
+    
+    # ===== Step 2: Validate with theoretical probabilities =====
+    print(f"  Executing layer: probability_layer")
+    state, key = op_probability_layer_prob_calc(state, pbit, key)
+    if 'pbit_output' in state and 'G_memristor' in state:
+        samples = state['pbit_output']
+        G_M = state['G_memristor']
+        # Calculate energy for first sample
+        energy = energy_function_pbit_threshold_energy(samples[0], G_M, pbit)
+        results['energy_pbit_threshold_energy'] = energy
+        print(f"    Energy (pbit_threshold_energy): {energy:.4f}")
+    print(f"  ✓ Completed step 2: Validate with theoretical probabilities")
+    
+    print(f"Inference complete: inference_cpu_python")
+    
+    return results
+
+# =========================================================================
+# 7. Validation and Visualization
+# =========================================================================
+
+def validate_pbit_statistics(samples: jnp.ndarray, P_theoretical: jnp.ndarray, 
+                              tolerance: float = 0.01) -> Dict[str, Any]:
+    """
+    Validate that empirical samples match theoretical probabilities.
+    """
+    P_empirical = jnp.mean(samples, axis=0)
+    error = jnp.abs(P_empirical - P_theoretical)
+    max_error = jnp.max(error)
+    mean_error = jnp.mean(error)
+    
+    passed = max_error < tolerance
+    
+    return {
+        'P_empirical': P_empirical,
+        'P_theoretical': P_theoretical,
+        'max_error': float(max_error),
+        'mean_error': float(mean_error),
+        'tolerance': tolerance,
+        'passed': bool(passed)
+    }
+
+def plot_sigmoid_curve(G_M_range: jnp.ndarray, pbit: PBit, 
+                       sigma_noise_values: list = None):
+    """
+    Plot sigmoid activation curves for different noise levels.
+    """
+    try:
+        import matplotlib.pyplot as plt
+        
+        if sigma_noise_values is None:
+            sigma_noise_values = [1e-10, 5e-10, 1e-9]
+        
+        plt.figure(figsize=(10, 6))
+        
+        for sigma in sigma_noise_values:
+            pbit_temp = PBit(pbit.V_READ, pbit.V_TH, pbit.k, sigma)
+            P_values = jax.vmap(pbit_temp.calculate_probability)(G_M_range)
+            beta = pbit_temp.beta
+            plt.plot(G_M_range * 1e6, P_values, 
+                    label=f'σ={sigma:.1e} A (β={beta:.1e})', 
+                    linewidth=2)
+        
+        plt.xlabel('Memristor Conductance (µS)')
+        plt.ylabel('P(Output=1)')
+        plt.title('P-Bit Activation Function: Sigmoid via Q-function')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
+    except ImportError:
+        print("Matplotlib not available, skipping plot")
+
+# =========================================================================
+# 8. Main Inference Entry Point
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"Generated P-Bit inference code for PBitMemristorArray")
+    print("=" * 70)
+    
+    # Initialize JAX
+    key = jax.random.PRNGKey(42)
+    
+    # Initialize P-Bit with default parameters
+    pbit = PBit(V_READ=0.1, V_TH=0.05, k_scaling=1e4, sigma_noise=1e-10)
+    
+    print(f"P-Bit initialized:")
+    print(f"  V_READ = {pbit.V_READ} V")
+    print(f"  V_TH = {pbit.V_TH} V")
+    print(f"  k_scaling = {pbit.k:.1e} V/A")
+    print(f"  sigma_noise = {pbit.sigma_noise:.1e} A")
+    print(f"  beta (inverse temperature) = {pbit.beta:.1e}")
+    print("=" * 70)
+    
+    # Test single p-bit
+    G_M_test = 1e-6  # 1 µS
+    P_test = pbit.calculate_probability(G_M_test)
+    print(f"\nTest single p-bit:")
+    print(f"  G_M = {G_M_test*1e6:.2f} µS")
+    print(f"  P(output=1) = {P_test:.4f}")
+    
+    # Sample
+    key, subkey = jax.random.split(key)
+    samples = pbit.sample(G_M_test, subkey, n_samples=10000)
+    P_empirical = jnp.mean(samples)
+    print(f"  Empirical P (10k samples) = {P_empirical:.4f}")
+    print(f"  Error = {abs(P_test - P_empirical):.4f}")
+    
+    print("\nReady for inference")

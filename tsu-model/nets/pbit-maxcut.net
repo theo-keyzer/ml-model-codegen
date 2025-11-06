@@ -1,0 +1,130 @@
+// =========================================================================
+// ML MODEL SPECIFICATION - MAX-CUT QUBO ON P-BIT ARCHITECTURE
+// This configuration adapts the MaxCut QUBO problem (from max-cut.net)
+// to run on the PBitMemristorArray model (from p-bit.net).
+// =========================================================================
+
+// --- 1. MODEL DEFINITION ---
+// We use the PBitMemristorArray model as the base for our optimization.
+Model {
+model = PBitMemristorArray
+type = energy_based
+framework = thrml_jax
+pgm_schema = maxcut_qubo_pbit
+tsu_use = preferred
+desc = "Max-Cut QUBO problem run on the P-bit Memristor Array model"
+}
+
+// --- 2. PROBLEM SCHEMA DEFINITION (QUBO) ---
+// This schema defines the Max-Cut problem structure (100 variables, binary domain).
+PGMSchema {
+schema = maxcut_qubo_pbit
+variables = "x_0, x_1, ..., x_99" // 100 P-bits
+domains = "binary" // x_i in {0, 1}
+// The cost function factor for QUBO problems.
+factors = "qubo_energy: E = sum(Q_ij * x_i * x_j) + sum(Q_ii * x_i)"
+graph_sparsity = dense
+factor_graph = false
+energy_based = true
+tsu_suitable = true
+desc = "100-node graph for MAX-CUT, optimized for P-bit conductance mapping"
+}
+
+// --- 3. LAYERS AND OPERATIONS ---
+// We specify the operation as a Simulated Annealing process suitable for the TSU.
+Layer {
+layer = qubo_pbit_sampling_layer
+type = sampling
+desc = "P-bit stochastic sampling for QUBO minimization"
+}
+
+Op {
+op = qubo_gibbs_update
+parent = qubo_pbit_sampling_layer
+kernel = tsu_qubo_kernel // Use the core TSU kernel for solving QUBO/Ising
+}
+
+Arg {
+arg = partition
+parent = qubo_gibbs_update
+role = input_output // The partition state is updated iteratively
+tensor = binary_state_vector // The 100 binary variables {0, 1}
+}
+
+// --- 3. TENSOR DEFINITION (FIXED: binary_state_vector was missing) ---
+Tensor {
+tensor = binary_state_vector
+type = float32
+shape = [100] // 100 variables, one for each node
+role = state
+desc = "The current binary state vector {0, 1} of the 100 P-bits"
+}
+
+
+// --- 4. CONFIGURATION SETTINGS (SIMULATED ANNEALING SCHEDULE) ---
+
+Config {
+config = maxcut_tsu_annealing
+parent = DefaultTSUConfig
+target = cpu_x86
+// Parameters for the P-bit simulation / TSU hardware
+tsu_params = "V_READ=0.1, V_TH=0.05, k_scaling=1.0e+04"
+noise_sigma = 1.0e-08 // Moderate noise for sampling
+
+// Annealing Schedule: Crucial for optimization
+anneal_steps = 10000 // Total optimization steps
+temperature_schedule = geometric // Cooling curve type
+temp_start = 10.0 // High initial temperature (exploration)
+temp_end = 0.01 // Low final temperature (convergence)
+desc = "TSU annealing schedule tailored for QUBO Max-Cut"
+}
+
+// --- 5. TARGET DEFINITIONS (Code Generation) ---
+Project {
+  project = MaxCutMultiTarget
+  domain = pbit_kernels
+  model = PBitMemristorArray
+  desc = "Generate for TSU hardware + GPU emulation + Python reference"
+}
+
+TargetConfig-x {
+target_id = tsu_production
+parent = MaxCutMultiTarget // Inherit general target structure
+hardware = tsu_extropic_1
+mode = production
+config = maxcut_tsu_annealing
+codegen = true
+priority = primary
+desc = "Targeting physical TSU for Max-Cut"
+}
+
+// Reference Target (Using the CPU Python simulation from your initial output)
+TargetConfig {
+target_id = python_reference_maxcut
+parent = MaxCutMultiTarget
+hardware = cpu_x86
+mode = simulation
+config = maxcut_tsu_annealing
+codegen = true
+priority = fallback
+desc = "Python reference using inference_inference_cpu_python logic"
+}
+
+// Build rule: Generate all targets
+BuildRule {
+build_id = generate_maxcut_for_pbit
+parent = MaxCutMultiTarget
+targets = "tsu_production,python_reference_maxcut"
+output_dir = "./build/pbit_maxcut_build"
+template = multi_target
+validate_against = python_reference_maxcut
+desc = "Generate code for TSU and validate against Python reference for Max-Cut"
+}
+
+Hardware {
+  hardware = cpu_x86
+  backend = cpu
+  emulation = false
+  desc = "CPU for Python/NumPy reference implementation"
+}
+

@@ -1,5 +1,5 @@
 // =========================================================================
-// THRML/JAX PYTHON ACTOR SCRIPT FOR P-BIT MEMRISTOR MODEL
+// THRML/JAX PYTHON ACTOR SCRIPT FOR P-BIT MEMRISTOR MODEL - FIXED VERSION
 // =========================================================================
 
 Actor main
@@ -209,18 +209,20 @@ C     print("\nReady for inference")
 // PHYSICAL CONSTANTS DECLARATIONS
 // =========================================================================
 
-Actor declare_physical_constants Tensor
-If parent
-  If role
-    If role = factor_param
-      If tensor = V_READ
-        C V_READ = ${shape::[1]}  # Read voltage (V)
-      If tensor = V_TH
-        C V_TH = ${shape::[1]}  # Threshold voltage (V)
-      If tensor = k_scaling
-        C k_scaling = ${shape::[1]}  # Proportionality constant V=k*I (V/A)
-      If tensor = sigma_noise
-        C sigma_noise = ${shape::[1]}  # Noise current std dev (A)
+Actor declare_physical_constants Tensor role ?= factor_param
+Du declare_physical_constants_factor_param
+
+Actor declare_physical_constants_factor_param Tensor tensor = V_READ
+C V_READ = jnp.array([0.1])  # Read voltage (V)
+
+Actor declare_physical_constants_factor_param Tensor tensor = V_TH
+C V_TH = jnp.array([0.05])  # Threshold voltage (V)
+
+Actor declare_physical_constants_factor_param Tensor tensor = k_scaling
+C k_scaling = jnp.array([1e4])  # Proportionality constant V=k*I (V/A)
+
+Actor declare_physical_constants_factor_param Tensor tensor = sigma_noise
+C sigma_noise = jnp.array([1e-10])  # Noise current std dev (A)
 
 // =========================================================================
 // TENSOR DECLARATIONS
@@ -228,9 +230,11 @@ If parent
 
 Actor declare_tensor Tensor
 Add.break _.tensor:${tensor:l}
-If desc
-  C # ${tensor:l}: ${desc}
+Du declare_tensor_desc
 C # Shape: ${shape}, Layout: ${layout}, DType: ${dtype}
+
+Actor declare_tensor_desc Tensor desc ?
+C # ${tensor:l}: ${desc}
 
 // =========================================================================
 // OPERATION FORWARD DECLARATIONS
@@ -276,7 +280,7 @@ C     Layer: ${parent.layer}
 C     From: ${._lno}
 C     """
 C     
-All Arg generate_arg_extraction
+Its Arg generate_arg_extraction
 C     
 C     # Execute operation
 C     key, subkey = jax.random.split(key)
@@ -285,24 +289,34 @@ Its SamplingOp generate_sampling_call
 C     
 C     return state, key
 
-Actor generate_arg_extraction Arg
-If role = input
-  C     ${arg:l} = state.get('${tensor}', None)
-If role = param
-  C     ${arg:l}_val = state.get('${tensor}', None)
+Actor generate_arg_extraction Arg role = input
+C     ${arg:l} = state.get('${tensor}', None)
+
+Actor generate_arg_extraction Arg role = param
+C     ${arg:l} = state.get('${tensor}', None)
+
+Actor generate_arg_extraction Arg role = output
+C     # Output: ${arg:l} -> ${tensor}
+
 
 Actor generate_sampling_call SamplingOp
 C     # Sampling operation: ${sampling_op}
 C     samples, key = sampling_op_${sampling_op:l}(
-All ^.Arg generate_sampling_args
-C         pbit, subkey, params={'batch': ${../batch::1000}})
-C     state['${tensor::pbit_output}'] = samples
+Its parent.Arg generate_sampling_args
+C         pbit, subkey, 
+C         params={'batch': ${../../Config.batch::1000}})
+Cs     state['
+Its parent.Arg generate_sampling_out_args
+C '] = samples
 
-Actor generate_sampling_args Arg
-If role = input
-  C         ${tensor},
-If role = param
-  C         ${tensor},
+Actor generate_sampling_args Arg role = input
+C         ${arg},
+
+Actor generate_sampling_args Arg role = param
+C         ${arg},
+
+Actor generate_sampling_out_args Arg role = output
+Cs ${tensor::pbit_output}
 
 // =========================================================================
 // SAMPLING OPERATION IMPLEMENTATIONS
@@ -310,7 +324,9 @@ If role = param
 
 Actor generate_sampling_op_implementation SamplingOp
 C
-C def sampling_op_${sampling_op:l}(conductance: jnp.ndarray, 
+Cs def sampling_op_${sampling_op:l}(
+Its parent.Arg generate_sampling_signature_args
+C
 C                                   pbit: PBit,
 C                                   key: Any, 
 C                                   params: Dict) -> Tuple[jnp.ndarray, Any]:
@@ -339,8 +355,12 @@ C         validation = validate_pbit_statistics(samples, P_theoretical)
 C         print(f"  Validation - Max Error: {validation['max_error']:.4f}, "
 C               f"Passed: {validation['passed']}")
 C     
-C     return samples, key
+C     
 Its TSUSamplingOp generate_tsu_sampling_implementation
+C     return samples, key
+
+Actor generate_sampling_signature_args Arg role ?in input,param
+Cs ${arg:l}: jnp.ndarray,
 
 Actor generate_tsu_sampling_implementation TSUSamplingOp
 C
@@ -432,7 +452,7 @@ C
 C     results = {}
 C     
 C     # Execute schedule steps in order
-All Schedule execute_schedule_step_by_seq
+Its Schedule execute_schedule_step_by_seq
 C     
 C     print(f"Inference complete: ${config}")
 C     

@@ -432,6 +432,22 @@ Config {
   desc = "Python/NumPy simulation (reference implementation)"
 }
 
+Schedule {
+  seq = 1
+  parent = inference_cpu_python
+  layer = pbit_sampling_layer
+  op = pbit_sample_op
+  desc = "CPU reference sampling"
+}
+
+Schedule {
+  seq = 2
+  parent = inference_cpu_python
+  layer = probability_layer
+  op = prob_calc
+  desc = "Validate with theoretical probabilities"
+}
+
 // =========================================================================
 // SIMULATION & VALIDATION
 // =========================================================================

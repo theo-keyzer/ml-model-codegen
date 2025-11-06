@@ -9,3 +9,9 @@ if [ $? != 0 ]; then echo  max-cut.act  max-cut.net has errors; fi
 $run  ../actors/max-cut-auto.act  ../nets/max-cut.net,../nets/max-cut-auto.net >max-cut-auto.out
 if [ $? != 0 ]; then echo  max-cut-auto.act  max-cut.net,max-cut-auto.net has errors; fi
 
+$run  ../actors/p-bit.act  ../nets/p-bit.net >p-bit.out
+if [ $? != 0 ]; then echo p-bit.act p-bit.net has errors; fi
+
+$run  ../actors/pbit-maxcut.act  ../nets/pbit-maxcut.net >pbit-maxcut.out
+if [ $? != 0 ]; then echo  pbit-maxcut.act pbit-maxcut.net has errors; fi
+
