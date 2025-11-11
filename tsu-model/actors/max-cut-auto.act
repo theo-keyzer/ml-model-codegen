@@ -5,8 +5,8 @@
 
 Actor main
 
-Map _:tensor
-Map _:config
+Add.map _:tensor
+Add.map _:config
 
 All Project generate_autotuner_project
 

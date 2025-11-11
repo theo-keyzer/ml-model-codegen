@@ -6,8 +6,8 @@
 
 Actor main
 
-Map _:tensor
-Map _:config
+Add.map _:tensor
+Add.map _:config
 
 All Project generate_project_structure
 
@@ -198,7 +198,7 @@ C # Role: ${role::state}, From: ${._lno}
 // =========================================================================
 
 Actor generate_energy_function EnergyFunction
-Add.break _.energy_fn:${energy_fn:l}
+Add.break _.config:${energy_fn:l}
 C
 C @jax.jit
 C def energy_${energy_fn:l}(partition: jnp.ndarray, edge_weights: jnp.ndarray) -> float:

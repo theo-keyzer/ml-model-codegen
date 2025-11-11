@@ -4,7 +4,7 @@
 
 Actor main
 
-Map _:tensor
+Add.map _:tensor
 
 All Model generate_model_files
 

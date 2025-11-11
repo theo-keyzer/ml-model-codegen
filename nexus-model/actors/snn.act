@@ -5,7 +5,7 @@
 
 Actor main
 
-Map _:tensor
+Add.map _:tensor
 
 All Project generate_project_files
 
