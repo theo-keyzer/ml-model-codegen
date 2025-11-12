@@ -12,23 +12,11 @@ Testing PBit performance as dimension increases
 
 Dim | Best Obj  | Steps to Target | Time (s) | Hill Climbs | Jumps | Final LR
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 2, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 2)
   2 |    0.0794 |   21            |    0.679 |           0 |     0 |  0.0500
-✅ SARMemoryManager v2.2.0 initialized (Dim: 5, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 5)
   5 |    0.0747 |   23            |    0.627 |           0 |     0 |  0.0500
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10)
  10 |    0.0551 |   27            |    0.733 |           0 |     0 |  0.0500
-✅ SARMemoryManager v2.2.0 initialized (Dim: 20, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 20)
  20 |    0.0231 |   28            |    0.759 |           0 |     0 |  0.0500
-✅ SARMemoryManager v2.2.0 initialized (Dim: 30, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 30)
  30 |    0.0388 |   28            |    0.813 |           0 |     0 |  0.0500
-✅ SARMemoryManager v2.2.0 initialized (Dim: 50, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 50)
  50 |    0.0583 |   28            |    0.820 |           0 |     0 |  0.0500
 
 📊 Scaling Observations (Category: easy):
@@ -50,29 +38,11 @@ Testing PBit performance as dimension increases
 
 Dim | Best Obj  | Steps to Target | Time (s) | Hill Climbs | Jumps | Final LR
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 2, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 2 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 2, SPF: 25, Jumps: True)
   2 |    0.9984 |   15            |    0.260 |           0 |     0 |  0.0080
-✅ SARMemoryManager v2.2.0 initialized (Dim: 5, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 5 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 5, SPF: 25, Jumps: True)
   5 |    1.9899 |    -            |   44.930 |           6 |     0 |  0.0067
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
  10 |   14.9244 |    -            |   44.905 |           5 |     0 |  0.0062
-✅ SARMemoryManager v2.2.0 initialized (Dim: 20, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 20 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 20, SPF: 25, Jumps: True)
  20 |    8.9546 |    -            |   46.922 |           9 |     0 |  0.0068
-✅ SARMemoryManager v2.2.0 initialized (Dim: 30, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 30 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 30, SPF: 25, Jumps: True)
  30 |   37.8084 |    -            |   46.951 |           8 |     0 |  0.0063
-✅ SARMemoryManager v2.2.0 initialized (Dim: 50, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 50 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 50, SPF: 25, Jumps: True)
  50 |   14.9244 |    -            |   47.736 |           9 |     0 |  0.0074
 
 📊 Scaling Observations (Category: multi_modal):
@@ -93,8 +63,6 @@ Dim | Best Obj  | Steps to Target | Time (s) | Hill Climbs | Jumps | Final LR
 
 Trial 1/3 (initial obj: 33.05)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10)
   PBit      : Best=  0.0084, Converged=✅ step 29, Time=0.458s (climbs: 0, jumps: 0, LR: 0.0500)
   Adam      : Best=  0.0099, Converged=✅ step 678, Time=0.293s
   Momentum  : Best=  0.0041, Converged=✅ step 13, Time=0.002s
@@ -103,8 +71,6 @@ Trial 1/3 (initial obj: 33.05)
 
 Trial 2/3 (initial obj: 58.62)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10)
   PBit      : Best=  0.0100, Converged=✅ step 1991, Time=6.417s (climbs: 0, jumps: 0, LR: 0.0500)
   Adam      : Best=  0.0099, Converged=✅ step 1053, Time=0.316s
   Momentum  : Best=  0.0072, Converged=✅ step 13, Time=0.002s
@@ -113,8 +79,6 @@ Trial 2/3 (initial obj: 58.62)
 
 Trial 3/3 (initial obj: 38.40)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10)
   PBit      : Best=  0.0087, Converged=✅ step 29, Time=0.424s (climbs: 0, jumps: 0, LR: 0.0500)
   Adam      : Best=  0.0099, Converged=✅ step 744, Time=0.225s
   Momentum  : Best=  0.0047, Converged=✅ step 13, Time=0.002s
@@ -137,9 +101,6 @@ RMSProp      0.0098       100.0%         0.114        483          0          0
 
 Trial 1/3 (initial obj: 145.53)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= 16.9143, Converged=❌, Time=45.569s (climbs: 4, jumps: 0, LR: 0.0063)
   Adam      : Best= 31.8386, Converged=❌, Time=1.930s
   Momentum  : Best=126.8976, Converged=❌, Time=0.680s
@@ -148,9 +109,6 @@ Trial 1/3 (initial obj: 145.53)
 
 Trial 2/3 (initial obj: 163.33)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= 26.8639, Converged=❌, Time=45.741s (climbs: 4, jumps: 0, LR: 0.0071)
   Adam      : Best= 57.7073, Converged=❌, Time=1.934s
   Momentum  : Best=116.8233, Converged=❌, Time=0.685s
@@ -159,9 +117,6 @@ Trial 2/3 (initial obj: 163.33)
 
 Trial 3/3 (initial obj: 136.83)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= 26.8639, Converged=❌, Time=44.841s (climbs: 4, jumps: 0, LR: 0.0058)
   Adam      : Best= 43.7780, Converged=❌, Time=1.872s
   Momentum  : Best= 96.9577, Converged=❌, Time=0.663s
@@ -184,8 +139,6 @@ RMSProp      44.4413      0.0%           1.445        8000         0          0
 
 Trial 1/3 (initial obj: 19896.29)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 8, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 8 + HillClimb)
   PBit      : Best=  4.9999, Converged=✅ step 3956, Time=12.184s (climbs: 0, jumps: 0, LR: 0.0080)
   Adam      : Best=  4.9998, Converged=✅ step 4988, Time=1.550s
   Momentum  : Best=294143.6875, Converged=❌, Time=0.657s
@@ -194,8 +147,6 @@ Trial 1/3 (initial obj: 19896.29)
 
 Trial 2/3 (initial obj: 64345.09)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 8, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 8 + HillClimb)
   PBit      : Best=  4.8496, Converged=✅ step 53, Time=0.347s (climbs: 0, jumps: 0, LR: 0.0080)
   Adam      : Best=  4.9999, Converged=✅ step 6612, Time=1.895s
   Momentum  : Best=277189.5000, Converged=❌, Time=0.652s
@@ -204,8 +155,6 @@ Trial 2/3 (initial obj: 64345.09)
 
 Trial 3/3 (initial obj: 13024.14)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 8, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 8 + HillClimb)
   PBit      : Best=  4.9737, Converged=✅ step 56, Time=0.355s (climbs: 0, jumps: 0, LR: 0.0080)
   Adam      : Best=  4.9961, Converged=✅ step 2215, Time=0.634s
   Momentum  : Best=292733.5625, Converged=❌, Time=0.649s
@@ -228,8 +177,6 @@ RMSProp      4.9926       100.0%         0.340        1543         0          0
 
 Trial 1/3 (initial obj: 7.93)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
   PBit      : Best=  0.0996, Converged=✅ step 1626, Time=6.497s (climbs: 3, jumps: 0, LR: 0.0029)
   Adam      : Best=  5.5625, Converged=❌, Time=1.926s
   Momentum  : Best=  5.5625, Converged=❌, Time=0.697s
@@ -238,8 +185,6 @@ Trial 1/3 (initial obj: 7.93)
 
 Trial 2/3 (initial obj: 9.44)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
   PBit      : Best=  0.0910, Converged=✅ step 1912, Time=7.449s (climbs: 3, jumps: 0, LR: 0.0027)
   Adam      : Best=  7.6160, Converged=❌, Time=1.899s
   Momentum  : Best=  7.6160, Converged=❌, Time=0.685s
@@ -248,8 +193,6 @@ Trial 2/3 (initial obj: 9.44)
 
 Trial 3/3 (initial obj: 8.19)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
   PBit      : Best=  0.0923, Converged=✅ step 3409, Time=14.727s (climbs: 3, jumps: 0, LR: 0.0020)
   Adam      : Best=  6.8201, Converged=❌, Time=1.910s
   Momentum  : Best=  6.8201, Converged=❌, Time=0.694s
@@ -272,8 +215,6 @@ RMSProp      6.6662       0.0%           1.449        8000         0          0
 
 Trial 1/3 (initial obj: 1.01)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Jumps)
   PBit      : Best=  0.5468, Converged=❌, Time=21.408s (climbs: 2, jumps: 0, LR: 0.0060)
   Adam      : Best=  0.3939, Converged=❌, Time=1.924s
   Momentum  : Best=  0.3939, Converged=❌, Time=0.777s
@@ -282,8 +223,6 @@ Trial 1/3 (initial obj: 1.01)
 
 Trial 2/3 (initial obj: 1.02)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Jumps)
   PBit      : Best=  1.0001, Converged=❌, Time=19.190s (climbs: 0, jumps: 0, LR: 0.0060)
   Adam      : Best=  0.3939, Converged=❌, Time=1.939s
   Momentum  : Best=  0.3939, Converged=❌, Time=0.756s
@@ -292,8 +231,6 @@ Trial 2/3 (initial obj: 1.02)
 
 Trial 3/3 (initial obj: 1.01)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Jumps)
   PBit      : Best=  0.2020, Converged=❌, Time=18.997s (climbs: 0, jumps: 0, LR: 0.0060)
   Adam      : Best=  0.1961, Converged=✅ step 138, Time=0.043s
   Momentum  : Best=  0.1967, Converged=✅ step 499, Time=0.070s
@@ -316,9 +253,6 @@ RMSProp      0.3285       33.3%          0.986        5351         0          0
 
 Trial 1/3 (initial obj: 4189.05)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best=4150.4917, Converged=❌, Time=31.690s (climbs: 129, jumps: 0, LR: 0.0023)
   Adam      : Best=4150.4917, Converged=❌, Time=1.933s
   Momentum  : Best=4150.4917, Converged=❌, Time=0.675s
@@ -327,9 +261,6 @@ Trial 1/3 (initial obj: 4189.05)
 
 Trial 2/3 (initial obj: 4179.36)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best=4150.4917, Converged=❌, Time=32.401s (climbs: 129, jumps: 0, LR: 0.0024)
   Adam      : Best=4150.4917, Converged=❌, Time=1.978s
   Momentum  : Best=4150.4917, Converged=❌, Time=0.687s
@@ -338,9 +269,6 @@ Trial 2/3 (initial obj: 4179.36)
 
 Trial 3/3 (initial obj: 4184.30)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best=4150.4917, Converged=❌, Time=32.473s (climbs: 129, jumps: 0, LR: 0.0023)
   Adam      : Best=4150.4917, Converged=❌, Time=1.978s
   Momentum  : Best=4150.4917, Converged=❌, Time=0.689s
@@ -363,9 +291,6 @@ RMSProp      4150.4917    0.0%           1.494        8000         0          0
 
 Trial 1/3 (initial obj: 33.05)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= -0.0646, Converged=✅ step 375, Time=1.988s (climbs: 6, jumps: 0, LR: 0.0029)
   Adam      : Best= -0.0446, Converged=✅ step 530, Time=0.186s
   Momentum  : Best= -0.0099, Converged=✅ step 36, Time=0.008s
@@ -374,9 +299,6 @@ Trial 1/3 (initial obj: 33.05)
 
 Trial 2/3 (initial obj: 58.62)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= -0.0094, Converged=✅ step 385, Time=1.219s (climbs: 0, jumps: 0, LR: 0.0029)
   Adam      : Best= -0.0791, Converged=✅ step 773, Time=0.264s
   Momentum  : Best= -0.1152, Converged=✅ step 13, Time=0.003s
@@ -385,9 +307,6 @@ Trial 2/3 (initial obj: 58.62)
 
 Trial 3/3 (initial obj: 38.40)
 --------------------------------------------------------------------------------
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: False)
-✅ PathBasedPBit v2.3.0 created (Dim: 10 + HillClimb + Adaptive)
-✅ SARMemoryManager v2.2.0 initialized (Dim: 10, SPF: 25, Jumps: True)
   PBit      : Best= -0.0347, Converged=✅ step 389, Time=1.238s (climbs: 0, jumps: 0, LR: 0.0030)
   Adam      : Best= -0.0076, Converged=✅ step 506, Time=0.173s
   Momentum  : Best=  0.0063, Converged=✅ step 13, Time=0.003s
