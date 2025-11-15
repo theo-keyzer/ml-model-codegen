@@ -1,0 +1,388 @@
+// ================================================================
+// ARTIFACT DOCUMENTATION SYSTEM
+// AI-friendly granular knowledge management
+// ================================================================
+
+// ================================================================
+// RELATION TYPES
+// ================================================================
+
+Artifact prerequisite relation
+O Must understand this concept first before proceeding.
+
+Artifact related relation
+O Provides additional context or complementary information.
+
+Artifact extension relation
+O Builds upon or extends the linked concept.
+
+Artifact example relation
+O Provides concrete demonstration or code sample.
+
+Artifact contrast relation
+O Shows alternative approach or different solution.
+
+// ================================================================
+// CATEGORIES
+// ================================================================
+
+Artifact structure category
+O Data structure definitions, schemas, and type systems describing how data is organized.
+
+Artifact workflow category
+O Processes and sequential operations that accomplish tasks.
+
+Artifact pattern category
+O Design patterns and reusable solutions to common problems.
+
+Artifact principle category
+O Fundamental rules and guidelines governing system behavior.
+
+// ================================================================
+// TOPIC TYPES
+// ================================================================
+
+Artifact overview topic_type
+O High-level summary introducing concepts without deep technical detail.
+
+Artifact detail topic_type
+O Implementation-level information with precise technical specifications.
+
+Artifact example topic_type
+O Concrete code or data demonstrating the concept in practice.
+
+Artifact reference topic_type
+O Quick lookup information for experienced users.
+
+// ================================================================
+// SYSTEM ARCHITECTURE
+// ================================================================
+
+Artifact system_architecture structure overview
+O Multi-stage template-based code generation system separating schema definition, data content, and generation logic.
+
+Link bootstrap_process related
+Link runtime_data_model extension
+
+Section core_generator 2 Core Generator
+D Core generator in Go reads unit schemas and generates loader code in target language.
+D Command: `go run gen/*.go actor_file schema1.unit,schema2.unit >output`
+
+Section application_generator 2 Application Generator
+D Generated loader reads definition files, validates against schema, and uses actor files to drive code generation.
+
+Section bootstrap_benefits 2 Bootstrap Benefits
+D Generator regenerates its own loader when schemas change. New applications require no host language coding. Schema changes propagate automatically through regeneration.
+
+Artifact bootstrap_process workflow overview
+O Two-stage bootstrap where the generator generates itself.
+
+Link system_architecture prerequisite
+
+Section stage1 2 Stage 1: Core Generator
+D Hand-written Go code in `gen/` directory generates `structs.go` and `run.go` from unit schemas.
+
+Section stage2 2 Stage 2: Application Generator
+D Generated loader processes definition files using actor files to produce output.
+
+Artifact runtime_data_model structure overview
+O Generated code creates data structures holding parsed nodes with polymorphic Kp interface.
+
+Link system_architecture prerequisite
+
+Section kp_interface 2 Kp Interface
+D All component types implement Kp interface with DoIts, GetVar, and GetLineNo methods enabling polymorphic handling.
+
+Section node_structure 2 Node Structure
+D Each component generates KpCompName struct with Me, LineNo, Comp, Flags, Names map, parent pointer, reference pointers, and child arrays.
+
+// ================================================================
+// SCHEMA DEFINITION
+// ================================================================
+
+Artifact unit_file_structure structure overview
+O Unit files define schemas using component-element model as meta-schema describing definition file structure.
+
+Link component_declaration prerequisite
+Link element_definition prerequisite
+
+Artifact component_declaration structure overview
+O Components define node types appearing in definition files with name, parent relationship, and searchability.
+
+Link unit_file_structure prerequisite
+
+Section comp_syntax 2 Comp Statement
+D `Comp ComponentName parent ParentRef SearchType`
+D ComponentName is unique identifier. ParentRef references parent or `.` for root. SearchType is Find, FindIn, or `.`
+
+Section search_types 2 Search Types
+D Find marks top-level components searchable by name globally. FindIn marks nested components searchable within parent context.
+
+Artifact element_definition structure overview
+O Elements define fields within components specifying field names, data types, target components, and validation rules.
+
+Link component_declaration prerequisite
+
+Section element_syntax 2 Element Statement
+D `Element fieldname datatype targetcomp validation documentation`
+D Datatype specifies parsing and storage. Validation controls error handling (`.`, `+`, `1`, `*`).
+
+Section field_types 2 Field Types
+D **word** - Single whitespace-delimited token. **text** - All remaining text to end of line. **number/tree** - Numeric depth for tree navigation. **ref** - Links to top-level Find components. **link** - Links to sibling FindIn components.
+
+Artifact reference_types structure overview
+O Reference types create links between nodes enabling graph structures. Each reference has name field and namep pointer.
+
+Link element_definition prerequisite
+
+Section direct_references 2 Direct References
+D **ref** links to top-level Find components by name. **link** links to sibling FindIn components under same parent.
+
+Section derived_references 2 Derived References
+D **ref_copy** copies reference ID from preceding ref/link field in target component. **ref_child** looks up child component within previously referenced component. Both depend on previous ref/link being resolved first.
+
+Artifact reference_resolution workflow overview
+O References resolve in multiple passes after data loading until stable or errors remain.
+
+Link reference_types prerequisite
+
+Section algorithm 2 Resolution Algorithm
+D First pass resolves ref and link references. Subsequent passes resolve ref_copy and ref_child. Process continues until error count is zero or unchanged. Typical schemas resolve in 2-4 passes.
+
+// ================================================================
+// RUNTIME EXECUTION
+// ================================================================
+
+Artifact actor_execution pattern overview
+O Actors are function-like processors with match conditions that process nodes and generate output.
+
+Link runtime_data_model prerequisite
+
+Section actor_groups 2 Actor Groups
+D Multiple actors with same name form group. System tries each sequentially. First actor with matching condition executes. If no match, group call fails silently.
+
+Section match_conditions 2 Match Conditions
+D `Actor actorname ComponentName attr = value`
+D Component field filters types. Attribute and operator specify comparison. Supports =, !=, in, not-in, has, regex operators.
+
+Artifact command_types pattern overview
+O Commands within actors perform iteration, code generation, and control flow.
+
+Link actor_execution prerequisite
+
+Section iteration_commands 2 Iteration Commands
+D **All** - Calls actor for each component of type. **Its** - Navigates via references or children. **This** - Iterates collection items. **Du** - Calls actor with current node.
+
+Section code_generation 2 Code Generation
+D **C** - Outputs line with variable substitution. **Cs** - Outputs without newline. **Out** - Controls output timing (delay, normal, off, on). **In** - Redirects output to variable.
+
+Section control_flow 2 Control Flow
+D **Break** - Exits actors, loops, or command lists with actor, loop, cmds, or exit options.
+
+Artifact variable_system pattern overview
+O Variables use dollar-brace syntax for substitution with path resolution and modifiers.
+
+Link actor_execution prerequisite
+
+Section variable_syntax 2 Variable Syntax
+D `${name}` substitutes value. `${name:c}` capitalizes. `${name:u}` uppercase. `${name:l}` lowercase. `${?name}` optional without error.
+
+Section variable_scope 2 Variable Scope
+D `${fieldname}` accesses current node field. `${_.name}` accesses collection. `${.actorname.var}` accesses ancestor variable. `${parent}` navigates to parent.
+
+Section special_variables 2 Special Variables
+D `${.-}` loop counter (zero-based). `${.+}` loop counter (one-based). `${kMe}` node ID. `${kComp}` component name. `${N}` command-line argument N.
+
+Artifact collection_storage pattern overview
+O Collections provide dynamic storage during generation for accumulating data and cross-actor communication.
+
+Link command_types related
+
+Section collection_types 2 Collection Types
+D Collections store ordered lists or key-value maps. System infers type from first Add operation. Collections persist across all actors.
+
+Section add_operations 2 Add Operations
+D `Add path value` adds to collection. `Add .map path:key` creates map. `Add .list path:key` creates list. Options: Clear, Break, Check, No-add.
+
+Section collection_access 2 Collection Access
+D `This` iterates collection calling actor for each item. `${_.name}` accesses string values. `${_.name.field}` accesses node fields.
+
+// ================================================================
+// ADVANCED PATTERNS
+// ================================================================
+
+Artifact common_patterns pattern overview
+O Design patterns for common generation tasks using collections and actor groups.
+
+Link actor_execution prerequisite
+Link collection_storage related
+
+Section filter_pattern 2 Filter Pattern
+D Use collections with check and break options to track processed nodes and avoid duplicates.
+
+Section multi_pass_generation 2 Multi-Pass Generation
+D First pass collects information into collections. Subsequent passes use collections to generate output. `Out delay` defers output until next actor.
+
+Section separator_pattern 2 Separator Pattern
+D Use loop counter `${.-}` to test for first item. `${.-.,}` generates comma only when counter is nonzero.
+
+Artifact collection_iteration structure detail
+O Dot notation controls collection iteration granularity at container or item level.
+
+Link collection_storage extension
+
+Section iteration_levels 2 Iteration Levels
+D `This collection actor` processes entire container. `This collection. actor` processes each item individually. Critical for proper collection processing.
+
+Section list_iteration 2 List Iteration
+D Container-level receives entire list. Item-level receives each element. Use `${.-}` for zero-based index, `${.+}` for one-based.
+
+Section map_iteration 2 Map Iteration
+D Container-level receives entire map. Item-level receives key-value pairs. Use `${._key}` for key, `${._value}` for value.
+
+Artifact path_resolution structure detail
+O Path chaining enables deep property access through nodes and collections.
+
+Link variable_system extension
+
+Section path_chaining 2 Path Chaining
+D `${_.collection.nested.property}` chains segments. `${.parent.grandparent.var}` navigates through actors. Each segment navigates through nodes or collections.
+
+Section collection_operations 2 Collection Operations
+D `${.:join}` joins with commas. `${.:join: }` joins with spaces. `${.:count}` counts items. `${.:keys}` gets keys list. `${.:values}` gets values list.
+
+Artifact recursive_output pattern overview
+O Using Out delay for clean hierarchical output in recursive algorithms.
+
+Link command_types extension
+
+Section recursion_problem 2 The Problem
+D Without output control, recursive algorithms produce interleaved output mixing parent and child results.
+
+Section delay_solution 2 Out Delay Solution
+D `Out delay` buffers all subsequent output until actor completion, then releases in proper order maintaining hierarchy.
+
+// ================================================================
+// ARTIFACT SYSTEM
+// ================================================================
+
+Artifact artifact_system structure overview
+O Documentation and knowledge management format designed for both human readability and AI consumption.
+
+Link artifact_components prerequisite
+
+Section goals 2 System Goals
+D Enable precise AI context retrieval. Provide structural validation for AI-generated content. Support multiple views from single source. Scale to hundreds of artifacts without overhead.
+
+Section key_features 2 Key Features
+D Granular units of 10-30 lines perfect for AI context windows. Typed relationships create validated knowledge graph. Optional metadata only when adding value. Self-documenting system structure.
+
+Artifact artifact_components structure overview
+O Artifact is fundamental knowledge unit with metadata, overview, and optional sections.
+
+Link artifact_system prerequisite
+
+Section artifact_declaration 2 Artifact Declaration
+D `Artifact name category topic_type`
+D Name is unique identifier. Category and topic_type are optional references to classification artifacts.
+
+Section overview_content 2 Overview Content
+D `O This is the overview text.`
+D Multiple O lines concatenate. Should be 1-3 sentences capturing essence.
+
+Section section_structure 2 Section Structure
+D `Section name level Heading Text`
+D Optional structure for longer content. Level indicates heading depth (2, 3, 4).
+
+Artifact link_relationships structure overview
+O Links create typed relationships forming validated knowledge graph enabling navigation and ensuring structural integrity.
+
+Link artifact_components prerequisite
+
+Section link_syntax 2 Link Syntax
+D `Link target_artifact relation_type`
+D Target and relation must both exist and are validated by loader.
+
+Section link_purpose 2 Purpose of Links
+D Create learning paths through prerequisite chains. Enable contextual navigation. Build concept hierarchies. Connect theory to practice. Show alternatives.
+
+Artifact validation_rules structure detail
+O Artifact format enforces validation through unit schema and loader with strict link validation.
+
+Link artifact_system prerequisite
+Link link_relationships prerequisite
+
+Section loader_validation 2 Loader Validation
+D Artifact names must be unique. Link targets must reference existing artifacts. Relation types must be valid. Sections must be children of artifacts.
+
+Section what_is_not_validated 2 Not Validated
+D Category names can be any word. Topic type names can be any word. Section content accepts any text. This flexibility allows evolution without schema changes.
+
+Artifact optional_metadata principle overview
+O Category and topic_type are optional metadata. Create defining artifacts only when they add value beyond their names.
+
+Link artifact_components related
+
+Section the_value_test 2 The Value Test
+D Before creating category or type artifact ask: Does this definition change how someone would use or understand the system? Create if concept is complex, ambiguous, or requires standards. Skip if name is obvious or just restates the word.
+
+Section metadata_as_labels 2 Metadata as Labels
+D Think of categories and types as labels for filtering and organization, not strict schemas. Only Links require validation because they create structural relationships.
+
+Artifact design_philosophy principle overview
+O Artifact format balances AI-friendliness for consumption with structural rigor for generation.
+
+Link artifact_system prerequisite
+
+Section two_goals 2 Two Goals
+D AI-friendly consumption needs small focused units, easy retrieval, minimal dependencies. AI-correct generation needs structural constraints, validated relationships, type safety.
+
+Section the_balance 2 The Balance
+D Strict where it matters: graph structure via Links, component hierarchy, reference integrity. Flexible where it helps: classification via categories, documentation types, content format.
+
+Artifact ai_context_optimization workflow overview
+O Artifact format optimizes for AI context windows by providing granular focused knowledge units for precise retrieval.
+
+Link artifact_system prerequisite
+
+Section the_context_problem 2 The Context Problem
+D Traditional documentation has monolithic structure with large chapters, mixed abstraction levels, unclear dependencies. For AI queries this wastes token budget and degrades response quality.
+
+Section artifact_solution 2 The Artifact Solution
+D Each artifact is 10-30 lines with one clear purpose. Explicit dependencies via Links. Easy to identify relevant units. Enables surgical context injection instead of sending entire chapters.
+
+Section progressive_context 2 Progressive Context Loading
+D AI requests additional context as needed. Each round adds 15-25 lines not 100+ lines. Builds minimal relevant context automatically through Link traversal.
+
+// ================================================================
+// DEVELOPMENT WORKFLOW
+// ================================================================
+
+Artifact development_workflow workflow overview
+O Creating custom generator follows structured process from design through iterative refinement.
+
+Link component_declaration prerequisite
+Link actor_execution prerequisite
+
+Section design_phase 2 Design Phase
+D Identify entities and relationships in problem domain. Sketch data hierarchy and cross-references. Plan output format generation.
+
+Section schema_development 2 Schema Development
+D Create unit file defining components and elements. Start with simple top-level components. Add child components and references with appropriate types.
+
+Section actor_development 2 Actor Development
+D Start with simple actors using C commands. Test navigation commands. Build up complexity incrementally. Use collections to track state.
+
+Artifact example_applications pattern overview
+O System enables diverse generation tasks from documentation to database schemas to web applications.
+
+Link development_workflow prerequisite
+
+Section documentation_generator 2 Documentation Generator
+D Define Concept, Topic components for structured docs. Use number field for hierarchical nesting. Actors generate HTML with proper heading levels.
+
+Section database_schema_generator 2 Database Schema Generator
+D Define Type, Attr, Where components. Use ref references for foreign keys. Actors generate CREATE TABLE statements, ORM classes, views.
+
+Section loader_generator 2 Loader Generator
+D The g_struct.act and g_run.act actors generate the loader itself from gen.unit and act.unit, demonstrating complete self-hosting capability.

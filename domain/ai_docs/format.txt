@@ -1,0 +1,340 @@
+// ================================================================
+// FILE FORMATS DOCUMENTATION
+// Schema and data file formats for the generator system
+// ================================================================
+
+// ================================================================
+// CORE FORMATS
+// ================================================================
+
+Artifact line_based_format structure overview
+O Fixed-field line-based format for unit, act, and artifact files with elements in schema-defined sequence.
+
+Section format_characteristics 2 Format Characteristics
+D Each line represents one component instance. Fields appear in fixed sequence matching Element declarations in schema. Whitespace (spaces or tabs) separates fields. Only one text field allowed per component, must be last field. Optional fields use `.` as placeholder filler.
+
+Section no_nesting 2 No Nesting or Tree Structure
+D Format is flat with no indentation-based nesting. Child components appear after parent in file order. Parent-child relationship determined by component type not position. Order of components in file does not matter for resolution.
+
+Section parent_child_flow 2 Parent-Child Flow
+D Child automatically goes to known parent that appears before it. Parent field name is automatically the parent component's name. Top-level nodes can have optional parent field to reference another node via reference.
+
+Artifact hocon_format structure overview
+O HOCON-style format for user data files with no nesting and additive key semantics.
+
+Section format_characteristics 2 Format Characteristics
+D Key-value pairs with `key = value` syntax. No nested blocks or hierarchies. Keys are not overwritten, values accumulate. Brace syntax creates components: `ComponentName { field1 = value1, field2 = value2 }`
+
+Section no_nesting 2 No Nesting Structure
+D Format is flat with no block nesting inside other blocks. Each component block stands alone. Parent-child relationships defined by order and explicit parent field.
+
+Section parent_validation 2 Parent Field Validation
+D User must specify `parent = ParentName` in child components. System validates that parent appears before child in file. System validates parent-child relationship matches schema. Order does not matter except parent must precede child.
+
+// ================================================================
+// SCHEMA FILES (UNIT FORMAT)
+// ================================================================
+
+Artifact unit_file_format structure overview
+O Schema definition files using line-based format to define component types and element fields.
+
+Link line_based_format prerequisite
+
+Section file_extension 2 File Extension
+D Schema files use `.unit` extension (e.g., `artifact.unit`, `tsu.unit`, `gen.unit`).
+
+Section component_declaration 2 Component Declaration
+D `Comp ComponentName parent ParentRef SearchType`
+D Defines new component type. ParentRef is parent component name or `.` for root. SearchType is Find, FindIn, or `.`
+
+Section element_declaration 2 Element Declaration
+D `Element fieldname datatype targetcomp validation documentation`
+D Defines field within component. Fields appear in this sequence in data files. Last element can be text type capturing to end of line.
+
+Section example 2 Example Unit File
+D ```
+D Comp Artifact parent . Find
+D     Element name     key  .        + Unique identifier
+D     Element category word .        * Optional category
+D     Element doc      text .        * Documentation
+D 
+D Comp Link parent Artifact FindIn
+D     Element concept  ref  Artifact + Target artifact
+D     Element relation ref  Artifact + Relationship type
+D ```
+
+// ================================================================
+// ACTOR FILES (ACT FORMAT)
+// ================================================================
+
+Artifact actor_file_format structure overview
+O Code generation templates using line-based format for processing data and producing output.
+
+Link line_based_format prerequisite
+
+Section file_extension 2 File Extension
+D Actor files use `.act` extension (e.g., `g_struct.act`, `view.act`, `p-bit.act`).
+
+Section actor_declaration 2 Actor Declaration
+D `Actor actorname ComponentName attr = value`
+D Defines actor with optional match condition. Multiple actors with same name form match group.
+
+Section command_syntax 2 Command Syntax
+D Commands appear indented under actor. Common commands: `C` (output line), `All` (iterate), `Its` (navigate), `Add` (to collection), `Break` (exit), `Out` (control output).
+
+Section example 2 Example Actor File
+D ```
+D Actor main
+D     All Model generate_model
+D 
+D Actor generate_model Model
+D C # Generated code for ${model}
+D Its Layer generate_layer
+D 
+D Actor generate_layer Layer
+D C // Layer: ${layer}
+D ```
+
+// ================================================================
+// ARTIFACT FILES (ARTIFACT FORMAT)
+// ================================================================
+
+Artifact artifact_file_format structure overview
+O Documentation files using line-based format for AI-friendly knowledge management.
+
+Link line_based_format prerequisite
+
+Section file_extension 2 File Extension
+D Artifact files use `.artifact` extension (e.g., `facts.artifact`, `docs.artifact`).
+
+Section artifact_declaration 2 Artifact Declaration
+D `Artifact name category topic_type`
+D Category and topic_type are optional words. Doc field not used in definitions.
+
+Section overview_lines 2 Overview Lines
+D `O This is overview text.`
+D Multiple O lines allowed. No parent prefix needed, automatically children of preceding Artifact.
+
+Section link_declarations 2 Link Declarations
+D `Link target_artifact relation_type`
+D Both fields validated as references to existing artifacts. No parent prefix needed.
+
+Section section_structure 2 Section Structure
+D `Section name level heading_text`
+D Level is numeric (2, 3, 4) for heading depth. Optional for short artifacts.
+
+Section document_lines 2 Document Lines
+D `D Content text with markdown.`
+D Must be children of Section. Multiple D lines allowed per section.
+
+Section example 2 Example Artifact File
+D ```
+D Artifact my_concept structure overview
+D O Brief description of concept.
+D 
+D Link foundation prerequisite
+D Link related_topic related
+D 
+D Section details 2 Detailed Information
+D D First paragraph of details.
+D D Second paragraph with **markdown**.
+D ```
+
+// ================================================================
+// DATA FILES (HOCON FORMAT)
+// ================================================================
+
+Artifact data_file_format structure overview
+O User data files using HOCON-style format for model specifications and configurations.
+
+Link hocon_format prerequisite
+
+Section file_extension 2 File Extension
+D Data files use `.net` or domain-specific extensions (e.g., `p-bit.net`, `model.net`).
+
+Section component_syntax 2 Component Syntax
+D ```
+D ComponentName {
+D   field1 = value1
+D   field2 = value2
+D   parent = ParentName
+D }
+D ```
+D Brace pairs create component instances. Parent field required for child components.
+
+Section field_values 2 Field Values
+D Single-line values for most fields. String values can be quoted or unquoted. Reference fields contain target component name. Multi-line blocks use triple-quote or triple-tilde delimiters.
+
+Section multi_line_blocks 2 Multi-Line Blocks
+D Triple single-quotes `'''` delimit code blocks. Triple tildes `~~~` delimit markdown blocks. Start delimiter appears at end of key line. End delimiter on its own line. Delimiters can nest opposite type: `'''` blocks can contain `~~~` and vice versa.
+
+Section parent_ordering 2 Parent Ordering Requirement
+D Parent component must appear before child in file. System validates parent exists and matches schema. Child components specify `parent = ParentComponentName`.
+
+Section example 2 Example Data File
+D ```
+D Model {
+D   model = MyNetwork
+D   type = energy_based
+D   desc = "My model description"
+D }
+D 
+D Kernel {
+D   kernel = my_kernel
+D   hardware = gpu_device
+D   body =
+D '''
+D void kernel_func(float* data) {
+D   // Kernel implementation
+D   // Can contain ~~~ markdown ~~~
+D }
+D '''
+D }
+D 
+D Layer {
+D   layer = sampling_layer
+D   type = sampling
+D   parent = MyNetwork
+D   desc =
+D ~~~
+D This layer performs **sampling** with:
+D - Feature 1
+D - Feature 2
+D 
+D Can contain ''' code blocks '''
+D ~~~
+D }
+D ```
+
+// ================================================================
+// FORMAT COMPARISON
+// ================================================================
+
+Artifact format_comparison pattern contrast
+O Comparison of line-based and HOCON formats showing their different use cases.
+
+Section line_based_uses 2 Line-Based Format Uses
+D **Schema definition** (unit files) - Define component types and validation rules. **Code generation** (act files) - Template-driven output generation. **Documentation** (artifact files) - Structured knowledge management with validation.
+
+Section line_based_advantages 2 Line-Based Advantages
+D Compact fixed-field syntax. Visual alignment with tabs. Single text field captures long descriptions. Implicit parent-child from component type sequence.
+
+Section hocon_uses 2 HOCON Format Uses
+D **User data** (net files) - Model specifications, configurations, domain data. **Human-friendly input** - Named fields, readable structure. **Validation against schema** - Explicit parent fields verify correctness.
+
+Section hocon_advantages 2 HOCON Advantages
+D Named fields are self-documenting. Field order doesn't matter. Explicit parent validation. No column alignment required. Easier for humans to write.
+
+// ================================================================
+// FIELD ORDER AND VALIDATION
+// ================================================================
+
+Artifact field_ordering structure detail
+O Fixed element sequence in line-based format matches schema declaration order.
+
+Link line_based_format prerequisite
+
+Section schema_sequence 2 Schema Defines Sequence
+D Element declarations in unit file define field order. Data files must provide fields in this exact sequence. Skipped optional fields use `.` placeholder.
+
+Section text_field_restriction 2 Text Field Restriction
+D Only one text type element allowed per component. Text element must be last in sequence. Text field captures all remaining content to end of line.
+
+Section example 2 Example
+D ```
+D # Schema
+D Element name     word . + Name
+D Element category word . * Category  
+D Element doc      text . * Documentation
+D 
+D # Data file
+D Artifact my_artifact structure This is documentation text
+D Artifact other      .         No documentation provided
+D ```
+
+Artifact parent_child_mechanics workflow detail
+O Automatic parent-child relationship resolution in both formats.
+
+Section implicit_parents 2 Implicit Parents (Line-Based)
+D Child component type determines its parent type from schema. Child instance attaches to most recent parent instance in file. No explicit parent field needed in data. Parent field in component defines reference to another node.
+
+Section explicit_parents 2 Explicit Parents (HOCON)
+D Child components must specify `parent = ParentName` field. System looks for parent component instance with matching name. Validates parent type matches schema definition. Reports error if parent not found or wrong type.
+
+Section top_level_parent_references 2 Top-Level Parent References
+D Top-level Find components can have parent element in schema. Parent element is typically a reference (ref) to another component. In data file, provides the referenced component name. Creates link between top-level nodes without nesting.
+
+Section example 2 Example
+D ```
+D # Line-based (unit file defines parent type)
+D Comp Section parent Artifact FindIn
+D 
+D # Line-based (data file - implicit parent)
+D Artifact my_artifact structure overview
+D Section intro 2 Introduction
+D 
+D # HOCON (explicit parent validation)
+D Section {
+D   section = intro
+D   level = 2
+D   parent = my_artifact
+D }
+D ```
+
+// ================================================================
+// PARSING AND LOADING
+// ================================================================
+
+Artifact parsing_rules workflow detail
+O Rules for parsing both line-based and HOCON formats during loading.
+
+Section line_based_parsing 2 Line-Based Parsing
+D Split line on whitespace for word fields. First token is component name. Subsequent tokens map to element sequence. Last text field captures remaining content. Empty lines and dash lines ignored.
+
+Section hocon_parsing 2 HOCON Parsing
+D Parse brace blocks as component instances. Extract component type from block header. Parse key-value pairs inside braces. Field names map to element definitions. Order of fields within block does not matter.
+
+Section reference_resolution 2 Reference Resolution
+D Both formats load all components first. Then resolve all references in multiple passes. Validate parent-child relationships. Report unresolved references as errors.
+
+Artifact filler_placeholders structure detail
+O Placeholder values for optional fields in line-based format.
+
+Link line_based_format prerequisite
+
+Section dot_placeholder 2 Dot Placeholder
+D Single dot `.` represents omitted optional field. Required for positional parsing. Maintains field alignment and sequence. Common in optional category, type, or validation fields.
+
+Section when_to_use 2 When To Use Fillers
+D Use `.` when element validation is `*` (optional). Skip value for fields you don't need. Maintains correct field position for subsequent fields. Not needed in HOCON format (named fields).
+
+Section example 2 Example
+D ```
+D # With optional fields filled
+D Artifact my_artifact structure overview Full documentation
+D 
+D # With optional fields as placeholders  
+D Artifact other      .         .        No category or type
+D 
+D # HOCON - no placeholders needed
+D Artifact {
+D   name = my_artifact
+D   doc = "Full documentation"
+D }
+D ```
+
+// ================================================================
+// FORMAT DESIGN RATIONALE
+// ================================================================
+
+Artifact format_design_rationale principle overview
+O Design decisions behind two-format approach balancing different needs.
+
+Section schema_needs_precision 2 Schema Needs Precision
+D Line-based format enforces strict structure. Fixed field order prevents ambiguity. Compact syntax for frequently edited files. Visual alignment improves readability for schemas.
+
+Section users_need_flexibility 2 Users Need Flexibility
+D HOCON format is self-documenting with named fields. Field order flexibility reduces errors. Explicit parent validation catches mistakes. More familiar to users from other config systems.
+
+Section separation_of_concerns 2 Separation of Concerns
+D Schemas define structure strictly (line-based). User data provides flexibility (HOCON). Generator developers work in line-based format. End users work in HOCON format. Both validate to same schema ensuring consistency.
