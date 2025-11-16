@@ -1,0 +1,3235 @@
+// ================================================================
+// TSU.UNIT,TSU-AUTO.UNIT,TSU-EXT.UNIT SCHEMA CONSTRUCTION GUIDE
+// How to build unit files and use the generator system
+// ================================================================
+
+Artifact domain_component structure overview
+
+O Defines a top-level Domain component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Domain component in a .unit file:
+D
+D ```
+D Comp Domain parent . Find
+D Element name key . + Domain name
+D Element desc text . * Description
+D Element version word . + Schema version
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${desc}
+D ${version}
+D ${Project_domain.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Project_domain actor
+D ```
+
+Artifact hardware_component structure overview
+
+O Defines a top-level Hardware component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Hardware component in a .unit file:
+D
+D ```
+D Comp Hardware parent . Find
+D Element hardware key . + Identifier (e.g., tsu_extropic_1)
+D Element backend word . + tsu, tsu_emulated
+D Element emulation word . * true/false for software emulation
+D Element constraints text . * Hardware limits
+D Element energy_model text . * Thermodynamic cost model
+D Element latency_model text . * Latency model
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${hardware}
+D ${backend}
+D ${emulation}
+D ${constraints}
+D ${energy_model}
+D ${latency_model}
+D ${desc}
+D ${Kernel_hardware.kernel}
+D ${Tsukernel_hardware.tsu_kernel}
+D ${Optimization_target.target}
+D ${Fusion_hardware.fusion}
+D ${Model_hardware.model}
+D ${Tsucompilation_hardware.plan_id}
+D ${Config_target.config}
+D ${Targetconfig_hardware.target_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Tsu actor
+D Its Noisemodel actor
+D Its Kernel_hardware actor
+D Its Tsukernel_hardware actor
+D Its Optimization_target actor
+D Its Fusion_hardware actor
+D Its Model_hardware actor
+D Its Tsucompilation_hardware actor
+D Its Config_target actor
+D Its Targetconfig_hardware actor
+D ```
+
+Artifact tsu_component structure detail
+O Defines a Tsu component with FindIn searchability under parent Hardware, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Tsu component in a .unit file:
+D
+D ```
+D Comp Tsu parent Hardware FindIn
+D Element tsu_id key . + TSU identifier
+D Element process_node word . + Semiconductor node (e.g., 3nm)
+D Element operating_T word . + Operating temperature (Kelvin)
+D Element sample_rate word . + Max samples/sec
+D Element entropy_budget text . * Max entropy generation rate
+D Element precision word . + Effective bit precision
+D Element connectivity word . + Interface: PCIe, CXL, optical
+D Element programmable_energy word . + true/false
+D Element physical_implementation word . + CMOS-stochastic, spintronics
+D Element thermal_noise word . * Noise characteristics
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Hardware that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${tsu_id}
+D ${process_node}
+D ${operating_T}
+D ${sample_rate}
+D ${entropy_budget}
+D ${precision}
+D ${connectivity}
+D ${programmable_energy}
+D ${physical_implementation}
+D ${thermal_noise}
+D ${desc}
+D ${parent.hardware}
+D ${Tsukernel_tsu_target.tsu_kernel}
+D ${Tsucompilation_target.plan_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Multileveltsu actor
+D Its Tsukernel_tsu_target actor
+D Its Tsucompilation_target actor
+D ```
+
+Artifact kernel_component structure overview
+
+O Defines a top-level Kernel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Kernel component in a .unit file:
+D
+D ```
+D Comp Kernel parent . Find
+D Element kernel key . + Unique kernel name
+D Element hardware ref Hardware + Target hardware
+D Element desc text . * Description
+D Element signature text . + Function signature
+D Element body text . + Implementation template
+D Element stochastic word . * true/false
+D Element thermodynamic word . * true if governed by thermodynamics
+D Element energy_fn text . * Energy function E(x;θ)
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link hardware_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${kernel}
+D ${hardware}
+D ${desc}
+D ${signature}
+D ${body}
+D ${stochastic}
+D ${thermodynamic}
+D ${energy_fn}
+D ${hardware.hardware}
+D ${Tsukernel_copy_kernel.tsu_kernel}
+D ${Fusion_fused_kernel.fusion}
+D ${Op_kernel.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Tsukernel actor
+D Its Kernelparam actor
+D Its Kernelop actor
+D Its Clusterkernel actor
+D Its Variationalkernel actor
+D Its hardware actor
+D Its Tsukernel_copy_kernel actor
+D Its Fusion_fused_kernel actor
+D Its Op_kernel actor
+D ```
+
+Artifact tsukernel_component structure detail
+O Defines a Tsukernel component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+Link kernel_component up_copy
+Link hardware_component ref_copy
+Link tsu_component ref_child
+
+Section declaration 2 Component Declaration
+D To declare a Tsukernel component in a .unit file:
+D
+D ```
+D Comp Tsukernel parent Kernel FindIn
+D Element tsu_kernel key . + Tsu kernel name
+D Element copy_kernel up_copy Kernel + Unique kernel name
+D Element hardware ref_copy Hardware + Target hardware
+D Element tsu_target ref_child TSU + Target TSU device
+D Element energy_fn text . + Mathematical form: E(x) = ...
+D Element sample_shape word . + Output shape
+D Element thermal_relax text . * Relaxation time τ
+D Element control_voltage word . + Programming voltage
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Kernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${tsu_kernel}
+D ${copy_kernel}
+D ${hardware}
+D ${tsu_target}
+D ${energy_fn}
+D ${sample_shape}
+D ${thermal_relax}
+D ${control_voltage}
+D ${desc}
+D ${parent.kernel}
+D ${copy_kernel.kernel}
+D ${hardware.hardware}
+D ${tsu_target.tsu_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Pottskernel actor
+D Its copy_kernel actor
+D Its hardware actor
+D Its tsu_target actor
+D ```
+
+Artifact kernelparam_component structure detail
+O Defines a Kernelparam component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Kernelparam component in a .unit file:
+D
+D ```
+D Comp Kernelparam parent Kernel FindIn
+D Element param key . + Parameter name (M, N, K, stride, etc)
+D Element type word . + C data type (float*, int, etc)
+D Element calculation text . + How to calculate from tensor shapes
+D Element dynamic word . * true/false for runtime calculation
+D ```
+D
+D This creates a nested component under Kernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${param}
+D ${type}
+D ${calculation}
+D ${dynamic}
+D ${parent.kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact kernelop_component structure detail
+O Defines a Kernelop component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Kernelop component in a .unit file:
+D
+D ```
+D Comp Kernelop parent Kernel FindIn
+D Element op key . + Operation primitive name
+D Element desc text . * Operation description
+D Element input_rank word . * Expected input rank
+D Element output_rank word . * Expected output rank
+D Element dimension_calc text . + Code to calculate dimensions
+D Element block_size word . + Threads per block
+D Element grid_calc text . + Grid size calculation formula
+D ```
+D
+D This creates a nested component under Kernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${desc}
+D ${input_rank}
+D ${output_rank}
+D ${dimension_calc}
+D ${block_size}
+D ${grid_calc}
+D ${parent.kernel}
+D ${Op_kernel_op.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Op_kernel_op actor
+D ```
+
+Artifact optimization_component structure overview
+
+O Defines a top-level Optimization component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Optimization component in a .unit file:
+D
+D ```
+D Comp Optimization parent . Find
+D Element target ref Hardware + Target device
+D Element type word . + thermodynamic_fusion, entropy_coding
+D Element params text . * Optimization parameters
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link hardware_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${target}
+D ${type}
+D ${params}
+D ${desc}
+D ${target.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its target actor
+D ```
+
+Artifact fusion_component structure overview
+
+O Defines a top-level Fusion component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Fusion component in a .unit file:
+D
+D ```
+D Comp Fusion parent . Find
+D Element fusion key . + Fusion pattern name
+D Element pattern text . + Operations to fuse
+D Element fused_kernel ref Kernel * Fused kernel
+D Element hardware ref Hardware * Target hardware
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link kernel_component ref
+Link hardware_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${fusion}
+D ${pattern}
+D ${fused_kernel}
+D ${hardware}
+D ${desc}
+D ${fused_kernel.kernel}
+D ${hardware.hardware}
+D ${Hybridsampling_fusion_pattern.layer}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its fused_kernel actor
+D Its hardware actor
+D Its Hybridsampling_fusion_pattern actor
+D ```
+
+Artifact framework_component structure overview
+
+O Defines a top-level Framework component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Framework component in a .unit file:
+D
+D ```
+D Comp Framework parent . Find
+D Element framework key . + Framework name (thrml, jax)
+D Element language word . + jax, python
+D Element paradigm word . + probabilistic, energy_based
+D Element runtime word . + gpu, tpu, tsu_emulated
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${framework}
+D ${language}
+D ${paradigm}
+D ${runtime}
+D ${desc}
+D ${Model_framework.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Thrml actor
+D Its Model_framework actor
+D ```
+
+Artifact thrml_component structure detail
+O Defines a Thrml component with FindIn searchability under parent Framework, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Thrml component in a .unit file:
+D
+D ```
+D Comp Thrml parent Framework FindIn
+D Element thrml_id key . + Identifier
+D Element version word . + Version string
+D Element features text . * Features list
+D Element hardware_accel word . + gpu, tpu, tsu_proto
+D Element tsu_emulation text . * ideal, noisy, limited_entropy
+D Element jit_compile word . + true/false for XLA
+D Element control_flow word . + scan, while_loop
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Framework that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${thrml_id}
+D ${version}
+D ${features}
+D ${hardware_accel}
+D ${tsu_emulation}
+D ${jit_compile}
+D ${control_flow}
+D ${desc}
+D ${parent.framework}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact pgmschema_component structure overview
+
+O Defines a top-level Pgmschema component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Pgmschema component in a .unit file:
+D
+D ```
+D Comp Pgmschema parent . Find
+D Element schema key . + PGM name
+D Element variables text . + Variable list
+D Element domains text . + Variable domains
+D Element factors text . + Factor types
+D Element graph_sparsity text . + dense, sparse, tree
+D Element factor_graph word . + true/false
+D Element energy_based word . + true/false
+D Element tsu_suitable word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${schema}
+D ${variables}
+D ${domains}
+D ${factors}
+D ${graph_sparsity}
+D ${factor_graph}
+D ${energy_based}
+D ${tsu_suitable}
+D ${desc}
+D ${Model_pgm_schema.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Loopypgm actor
+D Its Model_pgm_schema actor
+D ```
+
+Artifact model_component structure overview
+
+O Defines a top-level Model component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Model component in a .unit file:
+D
+D ```
+D Comp Model parent . Find
+D Element model key . + Model name
+D Element type word . + probabilistic, pgm, energy_based, tsu_native
+D Element hardware ref Hardware * Target hardware
+D Element framework ref Framework * Framework
+D Element pgm_schema ref PGMSchema * PGM structure
+D Element tsu_use word . * preferred, required, avoided
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link hardware_component ref
+Link framework_component ref
+Link pgmschema_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${model}
+D ${type}
+D ${hardware}
+D ${framework}
+D ${pgm_schema}
+D ${tsu_use}
+D ${desc}
+D ${hardware.hardware}
+D ${framework.framework}
+D ${pgm_schema.schema}
+D ${Tsucompilation_source.plan_id}
+D ${Validation_target.rule}
+D ${Project_model.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Multistatemodel actor
+D Its Variationalmodel actor
+D Its hardware actor
+D Its framework actor
+D Its pgm_schema actor
+D Its Tsucompilation_source actor
+D Its Validation_target actor
+D Its Project_model actor
+D ```
+
+Artifact tensor_component structure overview
+
+O Defines a top-level Tensor component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Tensor component in a .unit file:
+D
+D ```
+D Comp Tensor parent . Find
+D Element tensor key . + Tensor identifier
+D Element shape word . + Shape
+D Element dtype word . + Data type
+D Element layout word . + Memory layout
+D Element role word . * latent, observed, factor_param
+D Element pgm_node word . * true if part of PGM
+D Element distribution ref DistributionRule * Distribution
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link distributionrule_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${tensor}
+D ${shape}
+D ${dtype}
+D ${layout}
+D ${role}
+D ${pgm_node}
+D ${distribution}
+D ${desc}
+D ${distribution.distribution}
+D ${Arg_tensor.arg}
+D ${Energyfunction_params.energy_fn}
+D ${Energyfactor_variables.factor}
+D ${Energyfactor_param_tensor.factor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its distribution actor
+D Its Arg_tensor actor
+D Its Energyfunction_params actor
+D Its Energyfactor_variables actor
+D Its Energyfactor_param_tensor actor
+D ```
+
+Artifact layer_component structure overview
+
+O Defines a top-level Layer component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Layer component in a .unit file:
+D
+D ```
+D Comp Layer parent . Find
+D Element layer key . + Layer identifier
+D Element type word . + sampling, energy, factor
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${layer}
+D ${type}
+D ${desc}
+D ${Schedule_layer.seq}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Op actor
+D Its Hybridsampling actor
+D Its Schedule_layer actor
+D ```
+
+Artifact op_component structure detail
+O Defines a Op component with FindIn searchability under parent Layer, meaning instances are searchable within their parent's context.
+
+Link kernel_component ref
+Link kernelop_component ref_child
+
+Section declaration 2 Component Declaration
+D To declare a Op component in a .unit file:
+D
+D ```
+D Comp Op parent Layer FindIn
+D Element op key . + Operation name
+D Element op_type type_of Op * Type of Op (e.g., "SamplingOp")
+D Element desc text . * Description
+D Element stochastic word . * true/false
+D Element kernel ref Kernel * Kernel reference
+D Element kernel_op ref_child KernelOp * KernelOp from domain knowledge
+D ```
+D
+D This creates a nested component under Layer that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${op_type}
+D ${desc}
+D ${stochastic}
+D ${kernel}
+D ${kernel_op}
+D ${parent.layer}
+D ${kernel.kernel}
+D ${kernel_op.op}
+D ${Schedule_op.seq}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Arg actor
+D Its Samplingop actor
+D Its Variationalop actor
+D Its Beliefpropagationop actor
+D Its kernel actor
+D Its kernel_op actor
+D Its Schedule_op actor
+D ```
+
+Artifact arg_component structure detail
+O Defines a Arg component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Link tensor_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Arg component in a .unit file:
+D
+D ```
+D Comp Arg parent Op FindIn
+D Element arg key . + Argument name
+D Element role word . + input, output, param
+D Element tensor ref Tensor + Tensor reference in Model
+D Element dtype word . * Data type override
+D Element pgm_role word . * variable, factor_param, conditioning
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Op that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${arg}
+D ${role}
+D ${tensor}
+D ${dtype}
+D ${pgm_role}
+D ${desc}
+D ${parent.op}
+D ${tensor.tensor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its tensor actor
+D ```
+
+Artifact samplingop_component structure detail
+O Defines a Samplingop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Link energyfunction_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Samplingop component in a .unit file:
+D
+D ```
+D Comp Samplingop parent Op FindIn
+D Element sampling_op key . + Sampling op name
+D Element distribution word . + Distribution type
+D Element temperature word . * Sampling temperature
+D Element reparam word . * true/false
+D Element algorithm word . + Algorithm type
+D Element tsu_hint word . * TSU offload hint
+D Element energy_fn text . * Energy function
+D Element energy_fn_ref ref EnergyFunction * Linked energy function
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Op that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${sampling_op}
+D ${distribution}
+D ${temperature}
+D ${reparam}
+D ${algorithm}
+D ${tsu_hint}
+D ${energy_fn}
+D ${energy_fn_ref}
+D ${desc}
+D ${parent.op}
+D ${energy_fn_ref.energy_fn}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Tsusamplingop actor
+D Its Blockgibbsop actor
+D Its Pottsop actor
+D Its Multistateop actor
+D Its Clustersamplingop actor
+D Its energy_fn_ref actor
+D ```
+
+Artifact tsusamplingop_component structure detail
+O Defines a Tsusamplingop component with FindIn searchability under parent Samplingop, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Tsusamplingop component in a .unit file:
+D
+D ```
+D Comp Tsusamplingop parent Samplingop FindIn
+D Element tsu_op key . + TSU op name
+D Element sample_shape word . + Output shape
+D Element control_lines text . + Control mapping
+D Element calibration word . * Calibration mode
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Samplingop that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${tsu_op}
+D ${sample_shape}
+D ${control_lines}
+D ${calibration}
+D ${desc}
+D ${parent.sampling_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact blockgibbsop_component structure detail
+O Defines a Blockgibbsop component with FindIn searchability under parent Samplingop, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Blockgibbsop component in a .unit file:
+D
+D ```
+D Comp Blockgibbsop parent Samplingop FindIn
+D Element block_op key . + Operation name
+D Element factor_subset text . + Factors involved
+D Element resampling word . + sequential, parallel, async
+D Element thrml_kernel word . + JAX function name
+D Element jitted word . + true/false
+D Element energy_cost text . * Energy cost per update
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Samplingop that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${block_op}
+D ${factor_subset}
+D ${resampling}
+D ${thrml_kernel}
+D ${jitted}
+D ${energy_cost}
+D ${desc}
+D ${parent.sampling_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact energyfunction_component structure overview
+
+O Defines a top-level Energyfunction component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Energyfunction component in a .unit file:
+D
+D ```
+D Comp Energyfunction parent . Find
+D Element energy_fn key . + Function name
+D Element expression text . + Mathematical expression
+D Element variables word . + Variable names
+D Element params ref Tensor * Parameters
+D Element source word . + learned, symbolic, diffusion_prior
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link tensor_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${energy_fn}
+D ${expression}
+D ${variables}
+D ${params}
+D ${source}
+D ${desc}
+D ${params.tensor}
+D ${Samplingop_energy_fn_ref.sampling_op}
+D ${Pottsop_energy_fn.potts_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Degenerateenergy actor
+D Its params actor
+D Its Samplingop_energy_fn_ref actor
+D Its Pottsop_energy_fn actor
+D ```
+
+Artifact energyfactor_component structure overview
+
+O Defines a top-level Energyfactor component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Energyfactor component in a .unit file:
+D
+D ```
+D Comp Energyfactor parent . Find
+D Element factor key . + Factor name
+D Element type word . + pairwise, clique, unary, neural
+D Element variables ref Tensor + Involved variables
+D Element potential text . + Potential function
+D Element learned word . + true/false
+D Element param_tensor ref Tensor * Parameters
+D Element sparse word . + true/false
+D Element tsu_native word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link tensor_component ref
+Link tensor_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${factor}
+D ${type}
+D ${variables}
+D ${potential}
+D ${learned}
+D ${param_tensor}
+D ${sparse}
+D ${tsu_native}
+D ${desc}
+D ${variables.tensor}
+D ${param_tensor.tensor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Multistateenergyfactor actor
+D Its Variationalfactor actor
+D Its variables actor
+D Its param_tensor actor
+D ```
+
+Artifact tsucompilation_component structure overview
+
+O Defines a top-level Tsucompilation component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Tsucompilation component in a .unit file:
+D
+D ```
+D Comp Tsucompilation parent . Find
+D Element plan_id key . + Plan identifier
+D Element source ref Model + Source model
+D Element hardware ref Hardware + Hardware
+D Element target ref_child TSU + Target TSU
+D Element mapping text . + Variable/factor mapping
+D Element clocking word . + Clocking mode
+D Element control_bus word . + Control line count
+D Element calibration text . * Calibration procedure
+D Element fidelity word . + Expected fidelity
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link model_component ref
+Link hardware_component ref
+Link tsu_component ref_child
+
+Section variables 2 Variable fields
+D ```
+D ${plan_id}
+D ${source}
+D ${hardware}
+D ${target}
+D ${mapping}
+D ${clocking}
+D ${control_bus}
+D ${calibration}
+D ${fidelity}
+D ${desc}
+D ${source.model}
+D ${hardware.hardware}
+D ${target.tsu_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Advancedtsucompilation actor
+D Its source actor
+D Its hardware actor
+D Its target actor
+D ```
+
+Artifact tsusubstratemodel_component structure overview
+
+O Defines a top-level Tsusubstratemodel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Tsusubstratemodel component in a .unit file:
+D
+D ```
+D Comp Tsusubstratemodel parent . Find
+D Element substrate key . + Substrate ID
+D Element max_vars word . + Max variables
+D Element max_factors word . + Max factors
+D Element connectivity word . + Connectivity pattern
+D Element interaction word . + Interaction type
+D Element kT_per_step text . * kT cost per step
+D Element min_energy_gap text . * Min resolvable ΔE
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${substrate}
+D ${max_vars}
+D ${max_factors}
+D ${connectivity}
+D ${interaction}
+D ${kT_per_step}
+D ${min_energy_gap}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact config_component structure overview
+
+O Defines a top-level Config component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Config component in a .unit file:
+D
+D ```
+D Comp Config parent . Find
+D Element config key . + Config name
+D Element target ref Hardware + Target device
+D Element batch word . + Batch size
+D Element sample_budget word . * Max samples
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link hardware_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${config}
+D ${target}
+D ${batch}
+D ${sample_budget}
+D ${desc}
+D ${target.hardware}
+D ${Targetconfig_config.target_id}
+D ${Searchspace_target.search_space}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Schedule actor
+D Its Autotuneconfig actor
+D Its Hybridconfig actor
+D Its Elbotracking actor
+D Its target actor
+D Its Targetconfig_config actor
+D Its Searchspace_target actor
+D ```
+
+Artifact schedule_component structure detail
+O Defines a Schedule component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
+
+Link layer_component ref
+Link op_component ref_child
+
+Section declaration 2 Component Declaration
+D To declare a Schedule component in a .unit file:
+D
+D ```
+D Comp Schedule parent Config FindIn
+D Element seq word . + Sequence number
+D Element layer ref Layer + Layer to execute
+D Element op ref_child Op * Operation
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Config that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${seq}
+D ${layer}
+D ${op}
+D ${desc}
+D ${parent.config}
+D ${layer.layer}
+D ${op.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its layer actor
+D Its op actor
+D ```
+
+Artifact thermodynamicsimulation_component structure overview
+
+O Defines a top-level Thermodynamicsimulation component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Thermodynamicsimulation component in a .unit file:
+D
+D ```
+D Comp Thermodynamicsimulation parent . Find
+D Element sim_id key . + Simulation ID
+D Element T word . + Temperature (K)
+D Element kT word . + Thermal energy (J)
+D Element entropy_traced word . + true/false
+D Element landauer_limit text . * Landauer limit tracking
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${sim_id}
+D ${T}
+D ${kT}
+D ${entropy_traced}
+D ${landauer_limit}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Degeneracysimulation actor
+D ```
+
+Artifact validation_component structure overview
+
+O Defines a top-level Validation component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Validation component in a .unit file:
+D
+D ```
+D Comp Validation parent . Find
+D Element rule key . + Rule name
+D Element target ref Model * Target model
+D Element condition text . + Validation condition
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link model_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${rule}
+D ${target}
+D ${condition}
+D ${desc}
+D ${target.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Physicalconstraint actor
+D Its Ergodicityvalidation actor
+D Its target actor
+D ```
+
+Artifact physicalconstraint_component structure detail
+O Defines a Physicalconstraint component with FindIn searchability under parent Validation, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Physicalconstraint component in a .unit file:
+D
+D ```
+D Comp Physicalconstraint parent Validation FindIn
+D Element constraint key . + Constraint ID
+D Element target word . + Target component
+D Element condition text . + Constraint condition
+D Element severity word . + warning, error, halt
+D Element thermodynamic word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Validation that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${constraint}
+D ${target}
+D ${condition}
+D ${severity}
+D ${thermodynamic}
+D ${desc}
+D ${parent.rule}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Multistateconstraint actor
+D ```
+
+Artifact distributionrule_component structure overview
+
+O Defines a top-level Distributionrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Distributionrule component in a .unit file:
+D
+D ```
+D Comp Distributionrule parent . Find
+D Element distribution key . + Distribution name
+D Element params word . + Parameter names
+D Element reparam word . + true/false
+D Element tsu_native word . + true/false
+D Element energy_based word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${distribution}
+D ${params}
+D ${reparam}
+D ${tsu_native}
+D ${energy_based}
+D ${desc}
+D ${Tensor_distribution.tensor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Multistatedistributionrule actor
+D Its Tensor_distribution actor
+D ```
+
+Artifact samplingalgorithmrule_component structure overview
+
+O Defines a top-level Samplingalgorithmrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Samplingalgorithmrule component in a .unit file:
+D
+D ```
+D Comp Samplingalgorithmrule parent . Find
+D Element algorithm key . + Algorithm name
+D Element discrete word . + true/false
+D Element tsu_accel word . + true/false
+D Element jax_pattern word . + JAX pattern
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${algorithm}
+D ${discrete}
+D ${tsu_accel}
+D ${jax_pattern}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Advancedsamplingalgorithmrule actor
+D ```
+
+Artifact backendrule_component structure overview
+
+O Defines a top-level Backendrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Backendrule component in a .unit file:
+D
+D ```
+D Comp Backendrule parent . Find
+D Element backend key . + Backend name
+D Element execution word . + Execution mode
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${backend}
+D ${execution}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact hardwarerule_component structure overview
+
+O Defines a top-level Hardwarerule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Hardwarerule component in a .unit file:
+D
+D ```
+D Comp Hardwarerule parent . Find
+D Element hardware key . + Hardware type
+D Element vendor word . + Vendor name
+D Element arch word . + Architecture
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${hardware}
+D ${vendor}
+D ${arch}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact project_component structure overview
+
+O Defines a top-level Project component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Project component in a .unit file:
+D
+D ```
+D Comp Project parent . Find
+D Element project key . + Project name
+D Element domain ref Domain * Primary domain knowledge
+D Element model ref Model + Target model to deploy
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link domain_component ref
+Link model_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${project}
+D ${domain}
+D ${model}
+D ${desc}
+D ${domain.name}
+D ${model.model}
+D ${Buildrule_project.build_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Targetconfig actor
+D Its Buildrule actor
+D Its Multistateproject actor
+D Its domain actor
+D Its model actor
+D Its Buildrule_project actor
+D ```
+
+Artifact targetconfig_component structure detail
+O Defines a Targetconfig component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Link hardware_component ref
+Link config_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Targetconfig component in a .unit file:
+D
+D ```
+D Comp Targetconfig parent Project FindIn
+D Element target_id key . + Target identifier (e.g., tsu_prod, gpu_sim)
+D Element hardware ref Hardware + Hardware to target
+D Element mode word . + production, simulation, emulation, validation
+D Element config ref Config * Model config to use
+D Element codegen word . + true/false - generate code for this target
+D Element priority word . + primary, fallback, validation
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Project that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${target_id}
+D ${hardware}
+D ${mode}
+D ${config}
+D ${codegen}
+D ${priority}
+D ${desc}
+D ${parent.project}
+D ${hardware.hardware}
+D ${config.config}
+D ${Buildrule_validate_against.build_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its hardware actor
+D Its config actor
+D Its Buildrule_validate_against actor
+D ```
+
+Artifact buildrule_component structure detail
+O Defines a Buildrule component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Link project_component up_copy
+Link targetconfig_component ref_child
+
+Section declaration 2 Component Declaration
+D To declare a Buildrule component in a .unit file:
+D
+D ```
+D Comp Buildrule parent Project FindIn
+D Element build_id key . + Build rule name
+D Element targets text . + Comma-separated target_ids
+D Element output_dir text . + Output directory
+D Element template word . + Template set (cuda, tsu, jax)
+D Element project up_copy Project * Use project for chain
+D Element validate_against ref_child TargetConfig * Validation baseline
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Project that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${build_id}
+D ${targets}
+D ${output_dir}
+D ${template}
+D ${project}
+D ${validate_against}
+D ${desc}
+D ${parent.project}
+D ${project.project}
+D ${validate_against.target_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its project actor
+D Its validate_against actor
+D ```
+
+Artifact searchspace_component structure overview
+
+O Defines a top-level Searchspace component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Searchspace component in a .unit file:
+D
+D ```
+D Comp Searchspace parent . Find
+D Element search_space key . + Search space identifier
+D Element target ref Config * Target config to optimize
+D Element objective word . + minimize_energy, maximize_cut, minimize_time
+D Element constraints text . * Hard constraints (e.g., "power < 5W")
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link config_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${search_space}
+D ${target}
+D ${objective}
+D ${constraints}
+D ${desc}
+D ${target.config}
+D ${Evolutionstrategy_search_space.strategy}
+D ${Sensitivityanalysis_search_space.analysis_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Searchparameter actor
+D Its target actor
+D Its Evolutionstrategy_search_space actor
+D Its Sensitivityanalysis_search_space actor
+D ```
+
+Artifact searchparameter_component structure detail
+O Defines a Searchparameter component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Searchparameter component in a .unit file:
+D
+D ```
+D Comp Searchparameter parent Searchspace FindIn
+D Element param key . + Parameter name
+D Element param_type word . + continuous, discrete, categorical, schedule
+D Element range_min word . * Min value (for continuous/discrete)
+D Element range_max word . * Max value
+D Element values text . * List for categorical: "sequential,parallel,async"
+D Element initial_value word . * Starting value
+D Element mutation_rate word . + Probability of mutation (0.0-1.0)
+D Element importance word . * high, medium, low (affects search priority)
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Searchspace that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${param}
+D ${param_type}
+D ${range_min}
+D ${range_max}
+D ${values}
+D ${initial_value}
+D ${mutation_rate}
+D ${importance}
+D ${desc}
+D ${parent.search_space}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Scheduleparameter actor
+D ```
+
+Artifact scheduleparameter_component structure detail
+O Defines a Scheduleparameter component with FindIn searchability under parent Searchparameter, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Scheduleparameter component in a .unit file:
+D
+D ```
+D Comp Scheduleparameter parent Searchparameter FindIn
+D Element schedule_type word . + geometric, linear, exponential, adaptive
+D Element T_initial word . + Starting temperature
+D Element T_final word . + Ending temperature
+D Element num_steps word . + Number of annealing steps
+D Element cooling_rate word . * For geometric: T[i+1] = rate * T[i]
+D Element adaptation word . * adaptive_variance, adaptive_acceptance
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Searchparameter that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${schedule_type}
+D ${T_initial}
+D ${T_final}
+D ${num_steps}
+D ${cooling_rate}
+D ${adaptation}
+D ${desc}
+D ${parent.param}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact evolutionstrategy_component structure overview
+
+O Defines a top-level Evolutionstrategy component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Evolutionstrategy component in a .unit file:
+D
+D ```
+D Comp Evolutionstrategy parent . Find
+D Element strategy key . + Strategy identifier
+D Element algorithm word . + genetic_algorithm, CMA-ES, bayesian_opt, differential_evolution
+D Element search_space ref SearchSpace + Search space to explore
+D Element population word . + Population size
+D Element generations word . + Number of generations
+D Element elite_count word . * Number of elite individuals preserved
+D Element crossover_rate word . * Crossover probability
+D Element mutation_rate word . * Global mutation rate
+D Element selection word . + tournament, roulette, rank, elitist
+D Element parallel word . + true/false for parallel evaluation
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link searchspace_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${strategy}
+D ${algorithm}
+D ${search_space}
+D ${population}
+D ${generations}
+D ${elite_count}
+D ${crossover_rate}
+D ${mutation_rate}
+D ${selection}
+D ${parallel}
+D ${desc}
+D ${search_space.search_space}
+D ${Experimenttrial_strategy.trial_id}
+D ${Optimizationrun_strategy.run_id}
+D ${Autotuneconfig_strategy.autotune}
+D ${Variationalmodel_optimizer_ref.variational_free_energy}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Fitnessfunction actor
+D Its Multiobjective actor
+D Its search_space actor
+D Its Experimenttrial_strategy actor
+D Its Optimizationrun_strategy actor
+D Its Autotuneconfig_strategy actor
+D Its Variationalmodel_optimizer_ref actor
+D ```
+
+Artifact fitnessfunction_component structure detail
+O Defines a Fitnessfunction component with FindIn searchability under parent Evolutionstrategy, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Fitnessfunction component in a .unit file:
+D
+D ```
+D Comp Fitnessfunction parent Evolutionstrategy FindIn
+D Element fitness_fn key . + Fitness function name
+D Element expression text . + Mathematical expression or composite
+D Element components text . + "solution_quality:0.7, time_cost:0.2, energy:0.1"
+D Element normalization word . * z_score, min_max, none
+D Element higher_better word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Evolutionstrategy that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${fitness_fn}
+D ${expression}
+D ${components}
+D ${normalization}
+D ${higher_better}
+D ${desc}
+D ${parent.strategy}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact adaptiveparameter_component structure overview
+
+O Defines a top-level Adaptiveparameter component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Adaptiveparameter component in a .unit file:
+D
+D ```
+D Comp Adaptiveparameter parent . Find
+D Element param key . + Parameter identifier
+D Element adaptation word . + feedback_based, schedule_based, rl_based
+D Element update_rule text . + Update formula or policy
+D Element update_freq word . + Steps between updates
+D Element bounds text . * Min/max bounds during adaptation
+D Element initial_value word . + Starting value
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${param}
+D ${adaptation}
+D ${update_rule}
+D ${update_freq}
+D ${bounds}
+D ${initial_value}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact performancemetric_component structure overview
+
+O Defines a top-level Performancemetric component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Performancemetric component in a .unit file:
+D
+D ```
+D Comp Performancemetric parent . Find
+D Element metric key . + Metric identifier
+D Element type word . + solution_quality, runtime, energy, convergence
+D Element measurement text . + How to measure (formula or procedure)
+D Element target_value word . * Target to achieve (stopping criterion)
+D Element tolerance word . * Acceptable deviation
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${metric}
+D ${type}
+D ${measurement}
+D ${target_value}
+D ${tolerance}
+D ${desc}
+D ${Trialmetrics_metric.metric}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Trialmetrics_metric actor
+D ```
+
+Artifact experimenttrial_component structure overview
+
+O Defines a top-level Experimenttrial component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Experimenttrial component in a .unit file:
+D
+D ```
+D Comp Experimenttrial parent . Find
+D Element trial_id key . + Unique trial identifier
+D Element strategy ref EvolutionStrategy + Strategy used
+D Element generation word . + Generation number
+D Element individual_id word . + Individual in population
+D Element config_params text . + JSON of all parameter values
+D Element fitness_score word . * Achieved fitness
+D Element timestamp word . * Trial timestamp
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link evolutionstrategy_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${trial_id}
+D ${strategy}
+D ${generation}
+D ${individual_id}
+D ${config_params}
+D ${fitness_score}
+D ${timestamp}
+D ${desc}
+D ${strategy.strategy}
+D ${Optimizationrun_best_trial.run_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Trialmetrics actor
+D Its strategy actor
+D Its Optimizationrun_best_trial actor
+D ```
+
+Artifact trialmetrics_component structure detail
+O Defines a Trialmetrics component with FindIn searchability under parent Experimenttrial, meaning instances are searchable within their parent's context.
+
+Link performancemetric_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Trialmetrics component in a .unit file:
+D
+D ```
+D Comp Trialmetrics parent Experimenttrial FindIn
+D Element metric ref PerformanceMetric + Metric reference
+D Element value word . + Measured value
+D Element rank word . * Rank in population (1=best)
+D Element improved word . * true/false vs previous best
+D ```
+D
+D This creates a nested component under Experimenttrial that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${metric}
+D ${value}
+D ${rank}
+D ${improved}
+D ${parent.trial_id}
+D ${metric.metric}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its metric actor
+D ```
+
+Artifact optimizationrun_component structure overview
+
+O Defines a top-level Optimizationrun component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Optimizationrun component in a .unit file:
+D
+D ```
+D Comp Optimizationrun parent . Find
+D Element run_id key . + Run identifier
+D Element strategy ref EvolutionStrategy + Strategy used
+D Element start_time word . + Start timestamp
+D Element end_time word . * End timestamp
+D Element total_trials word . * Total evaluations
+D Element best_trial ref ExperimentTrial * Best trial found
+D Element convergence word . * converged, max_gen, timeout
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link evolutionstrategy_component ref
+Link experimenttrial_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${run_id}
+D ${strategy}
+D ${start_time}
+D ${end_time}
+D ${total_trials}
+D ${best_trial}
+D ${convergence}
+D ${desc}
+D ${strategy.strategy}
+D ${best_trial.trial_id}
+D ${Hyperparameterrule_learned_from.rule_id}
+D ${Autotuneconfig_opt_from.autotune}
+D ${Optimizationpattern_discovered_by.pattern_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Checkpoint actor
+D Its Paretofront actor
+D Its Resourcebudget actor
+D Its strategy actor
+D Its best_trial actor
+D Its Hyperparameterrule_learned_from actor
+D Its Autotuneconfig_opt_from actor
+D Its Optimizationpattern_discovered_by actor
+D ```
+
+Artifact checkpoint_component structure detail
+O Defines a Checkpoint component with FindIn searchability under parent Optimizationrun, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Checkpoint component in a .unit file:
+D
+D ```
+D Comp Checkpoint parent Optimizationrun FindIn
+D Element checkpoint_id key . + Checkpoint identifier
+D Element generation word . + Generation number
+D Element population text . + Serialized population state
+D Element best_fitness word . + Best fitness so far
+D Element checkpoint_path text . + File path for checkpoint
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Optimizationrun that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${checkpoint_id}
+D ${generation}
+D ${population}
+D ${best_fitness}
+D ${checkpoint_path}
+D ${desc}
+D ${parent.run_id}
+D ${Autotuneconfig_resume_from.autotune}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Autotuneconfig_resume_from actor
+D ```
+
+Artifact hyperparameterrule_component structure overview
+
+O Defines a top-level Hyperparameterrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Hyperparameterrule component in a .unit file:
+D
+D ```
+D Comp Hyperparameterrule parent . Find
+D Element rule_id key . + Rule identifier
+D Element condition text . + When rule applies
+D Element recommendation text . + What to do
+D Element confidence word . * high, medium, low
+D Element learned_from ref OptimizationRun * Run that discovered this
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link optimizationrun_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${rule_id}
+D ${condition}
+D ${recommendation}
+D ${confidence}
+D ${learned_from}
+D ${desc}
+D ${learned_from.run_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its learned_from actor
+D ```
+
+Artifact metalearning_component structure overview
+
+O Defines a top-level Metalearning component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Metalearning component in a .unit file:
+D
+D ```
+D Comp Metalearning parent . Find
+D Element meta_id key . + Meta-learner identifier
+D Element learner_type word . + transfer_learning, warm_start, surrogate_model
+D Element source_runs text . + Comma-separated run_ids to learn from
+D Element model text . * Learned model (e.g., GP surrogate)
+D Element improvement word . * Speedup vs random search
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${meta_id}
+D ${learner_type}
+D ${source_runs}
+D ${model}
+D ${improvement}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact autotuneconfig_component structure detail
+O Defines a Autotuneconfig component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
+
+Link evolutionstrategy_component ref
+Link optimizationrun_component ref
+Link checkpoint_component ref_child
+
+Section declaration 2 Component Declaration
+D To declare a Autotuneconfig component in a .unit file:
+D
+D ```
+D Comp Autotuneconfig parent Config FindIn
+D Element autotune key . + AutoTune identifier
+D Element enabled word . + true/false
+D Element strategy ref EvolutionStrategy + Optimization strategy
+D Element budget word . + Max trials or time
+D Element early_stop word . * Stop if no improvement for N trials
+D Element opt_from ref OptimizationRun * Run that discovered this
+D Element resume_from ref_child Checkpoint * Resume from checkpoint
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Config that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${autotune}
+D ${enabled}
+D ${strategy}
+D ${budget}
+D ${early_stop}
+D ${opt_from}
+D ${resume_from}
+D ${desc}
+D ${parent.config}
+D ${strategy.strategy}
+D ${opt_from.run_id}
+D ${resume_from.checkpoint_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Autotuneextension actor
+D Its strategy actor
+D Its opt_from actor
+D Its resume_from actor
+D ```
+
+Artifact sensitivityanalysis_component structure overview
+
+O Defines a top-level Sensitivityanalysis component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Sensitivityanalysis component in a .unit file:
+D
+D ```
+D Comp Sensitivityanalysis parent . Find
+D Element analysis_id key . + Analysis identifier
+D Element search_space ref SearchSpace + Analyzed space
+D Element method word . + sobol, morris, variance_based
+D Element results text . * Sensitivity indices (JSON)
+D Element most_sensitive text . * Top parameters by importance
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link searchspace_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${analysis_id}
+D ${search_space}
+D ${method}
+D ${results}
+D ${most_sensitive}
+D ${desc}
+D ${search_space.search_space}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its search_space actor
+D ```
+
+Artifact ensemblestrategy_component structure overview
+
+O Defines a top-level Ensemblestrategy component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Ensemblestrategy component in a .unit file:
+D
+D ```
+D Comp Ensemblestrategy parent . Find
+D Element ensemble_id key . + Ensemble identifier
+D Element configs text . + Comma-separated config IDs
+D Element voting word . + majority, weighted, best_of_k
+D Element weights text . * Weights for weighted voting
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${ensemble_id}
+D ${configs}
+D ${voting}
+D ${weights}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact optimizationpattern_component structure overview
+
+O Defines a top-level Optimizationpattern component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Optimizationpattern component in a .unit file:
+D
+D ```
+D Comp Optimizationpattern parent . Find
+D Element pattern_id key . + Pattern identifier
+D Element problem_class word . + maxcut, ising, protein_folding
+D Element pattern_type word . + schedule, topology, fusion
+D Element precondition text . + When pattern applies
+D Element recommendation text . + What to do
+D Element success_rate word . * Historical success rate (0.0-1.0)
+D Element discovered_by ref OptimizationRun * Run that found it
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link optimizationrun_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${pattern_id}
+D ${problem_class}
+D ${pattern_type}
+D ${precondition}
+D ${recommendation}
+D ${success_rate}
+D ${discovered_by}
+D ${desc}
+D ${discovered_by.run_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its discovered_by actor
+D ```
+
+Artifact transferlearning_component structure overview
+
+O Defines a top-level Transferlearning component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Transferlearning component in a .unit file:
+D
+D ```
+D Comp Transferlearning parent . Find
+D Element transfer_id key . + Transfer identifier
+D Element source_problem word . + Source problem type
+D Element target_problem word . + Target problem type
+D Element mapping text . + How to map parameters
+D Element effectiveness word . * measured_speedup
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${transfer_id}
+D ${source_problem}
+D ${target_problem}
+D ${mapping}
+D ${effectiveness}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact multiobjective_component structure detail
+O Defines a Multiobjective component with FindIn searchability under parent Evolutionstrategy, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Multiobjective component in a .unit file:
+D
+D ```
+D Comp Multiobjective parent Evolutionstrategy FindIn
+D Element objectives text . + Comma-separated objective names
+D Element pareto_method word . + NSGA-II, MOEA-D, SPEA2
+D Element diversity word . * Diversity preservation method
+D Element archive_size word . * Pareto archive size
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Evolutionstrategy that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${objectives}
+D ${pareto_method}
+D ${diversity}
+D ${archive_size}
+D ${desc}
+D ${parent.strategy}
+D ${Autotuneextension_multi_objective.autotune}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its Autotuneextension_multi_objective actor
+D ```
+
+Artifact paretofront_component structure detail
+O Defines a Paretofront component with FindIn searchability under parent Optimizationrun, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Paretofront component in a .unit file:
+D
+D ```
+D Comp Paretofront parent Optimizationrun FindIn
+D Element front_id key . + Front identifier
+D Element solutions text . + List of non-dominated trial_ids
+D Element generation word . + Generation when found
+D Element coverage word . * Hypervolume or coverage metric
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Optimizationrun that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${front_id}
+D ${solutions}
+D ${generation}
+D ${coverage}
+D ${desc}
+D ${parent.run_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact diagnosticrule_component structure overview
+
+O Defines a top-level Diagnosticrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Diagnosticrule component in a .unit file:
+D
+D ```
+D Comp Diagnosticrule parent . Find
+D Element rule_id key . + Rule identifier
+D Element symptom text . + Observable symptom
+D Element diagnosis text . + Likely cause
+D Element remedy text . + Suggested fix
+D Element confidence word . * high, medium, low
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${rule_id}
+D ${symptom}
+D ${diagnosis}
+D ${remedy}
+D ${confidence}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact failuremode_component structure overview
+
+O Defines a top-level Failuremode component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Failuremode component in a .unit file:
+D
+D ```
+D Comp Failuremode parent . Find
+D Element failure_id key . + Failure identifier
+D Element pattern text . + Failure pattern (e.g., "energy diverges")
+D Element root_cause text . + Root cause
+D Element mitigation text . + How to mitigate
+D Element recovery text . + Recovery procedure
+D Element frequency word . * How often seen
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${failure_id}
+D ${pattern}
+D ${root_cause}
+D ${mitigation}
+D ${recovery}
+D ${frequency}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact resourcebudget_component structure detail
+O Defines a Resourcebudget component with FindIn searchability under parent Optimizationrun, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Resourcebudget component in a .unit file:
+D
+D ```
+D Comp Resourcebudget parent Optimizationrun FindIn
+D Element budget_id key . + Budget identifier
+D Element max_time word . * Maximum wall-clock time
+D Element max_trials word . * Maximum evaluations
+D Element max_energy word . * Maximum energy consumption (J)
+D Element max_cost word . * Maximum dollar cost
+D Element priority word . + high, medium, low
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Optimizationrun that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${budget_id}
+D ${max_time}
+D ${max_trials}
+D ${max_energy}
+D ${max_cost}
+D ${priority}
+D ${desc}
+D ${parent.run_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact adaptivescheduling_component structure overview
+
+O Defines a top-level Adaptivescheduling component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Adaptivescheduling component in a .unit file:
+D
+D ```
+D Comp Adaptivescheduling parent . Find
+D Element schedule_id key . + Schedule identifier
+D Element allocation word . + round_robin, priority, load_balance
+D Element hardware_pool text . + Available hardware targets
+D Element cost_model text . + Cost per trial per hardware
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${schedule_id}
+D ${allocation}
+D ${hardware_pool}
+D ${cost_model}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact multistatemodel_component structure overview
+
+O Defines a top-level Multistatemodel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Multistatemodel component in a .unit file:
+D
+D ```
+D Comp Multistatemodel parent . Find
+D Element model key . + Model name
+D Element num_states word . + q (discrete states per variable)
+D Element state_encoding word . * binary, one_hot, integer
+D Element variational word . * true/false for hybrid VI+MCMC
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${model}
+D ${num_states}
+D ${state_encoding}
+D ${variational}
+D ${desc}
+D ${parent.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact loopypgm_component structure detail
+O Defines a Loopypgm component with FindIn searchability under parent Pgmschema, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Loopypgm component in a .unit file:
+D
+D ```
+D Comp Loopypgm parent Pgmschema FindIn
+D Element loops_detected word . * true/false (tree vs. loopy)
+D Element belief_prop word . + loopy_bp, mean_field
+D Element max_iterations word . * BP convergence limit
+D Element damping_factor word . * 0.5-1.0 for stability
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Pgmschema that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${loops_detected}
+D ${belief_prop}
+D ${max_iterations}
+D ${damping_factor}
+D ${desc}
+D ${parent.schema}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact variationalmodel_component structure detail
+O Defines a Variationalmodel component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
+
+Link evolutionstrategy_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Variationalmodel component in a .unit file:
+D
+D ```
+D Comp Variationalmodel parent Model FindIn
+D Element variational_free_energy text . + F = <E> - T S (ELBO)
+D Element approx_family word . + mean_field, structured
+D Element optimizer_ref ref EvolutionStrategy * From tsu-auto (for tuning)
+D Element desc text . * Free energy minimization
+D ```
+D
+D This creates a nested component under Model that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${variational_free_energy}
+D ${approx_family}
+D ${optimizer_ref}
+D ${desc}
+D ${parent.model}
+D ${optimizer_ref.strategy}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its optimizer_ref actor
+D ```
+
+Artifact hybridsampling_component structure overview
+
+O Defines a top-level Hybridsampling component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Hybridsampling component in a .unit file:
+D
+D ```
+D Comp Hybridsampling parent . Find
+D Element layer key . + Layer ID
+D Element mcmc_weight word . * Fraction for MCMC (0.0-1.0)
+D Element vi_weight word . * Fraction for variational
+D Element fusion_pattern ref Fusion * Fuse for efficiency
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+Link fusion_component ref
+
+Section variables 2 Variable fields
+D ```
+D ${layer}
+D ${mcmc_weight}
+D ${vi_weight}
+D ${fusion_pattern}
+D ${desc}
+D ${parent.layer}
+D ${fusion_pattern.fusion}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its fusion_pattern actor
+D ```
+
+Artifact pottsop_component structure detail
+O Defines a Pottsop component with FindIn searchability under parent Samplingop, meaning instances are searchable within their parent's context.
+
+Link energyfunction_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Pottsop component in a .unit file:
+D
+D ```
+D Comp Pottsop parent Samplingop FindIn
+D Element potts_op key . + Op name (e.g., potts_gibbs)
+D Element num_states word . + q (number of states per site)
+D Element energy_fn ref EnergyFunction + Potts energy
+D Element algorithm word . + gibbs, swendsen_wang (for clusters)
+D Element tsu_hint word . * tsu_parallel for multi-state flips
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Samplingop that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${potts_op}
+D ${num_states}
+D ${energy_fn}
+D ${algorithm}
+D ${tsu_hint}
+D ${desc}
+D ${parent.sampling_op}
+D ${energy_fn.energy_fn}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its energy_fn actor
+D ```
+
+Artifact pottskernel_component structure detail
+O Defines a Pottskernel component with FindIn searchability under parent Tsukernel, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Pottskernel component in a .unit file:
+D
+D ```
+D Comp Pottskernel parent Tsukernel FindIn
+D Element potts_kernel key . + Kernel name
+D Element energy_fn text . + "E = -∑_{i<j} J_ij δ(s_i, s_j) - ∑_i h_i(s_i)"
+D Element sample_shape word . + "sites=N, states=q"
+D Element thermal_relax text . * τ per state flip (e.g., 200ns for q=4)
+D Element control_voltage word . + V per state (e.g., 0.3V increments)
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Tsukernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${potts_kernel}
+D ${energy_fn}
+D ${sample_shape}
+D ${thermal_relax}
+D ${control_voltage}
+D ${desc}
+D ${parent.tsu_kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact multistateop_component structure detail
+O Defines a Multistateop component with FindIn searchability under parent Samplingop, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Multistateop component in a .unit file:
+D
+D ```
+D Comp Multistateop parent Samplingop FindIn
+D Element op key . + Op name
+D Element num_states word . + q
+D Element conditional_prob text . + P(s_i=k | neighbors) ∝ exp(-ΔE_k / T)
+D Element parallel_flips word . * true for TSU vectorization
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Samplingop that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${num_states}
+D ${conditional_prob}
+D ${parallel_flips}
+D ${desc}
+D ${parent.sampling_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact clustersamplingop_component structure detail
+O Defines a Clustersamplingop component with FindIn searchability under parent Samplingop, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Clustersamplingop component in a .unit file:
+D
+D ```
+D Comp Clustersamplingop parent Samplingop FindIn
+D Element cluster_op key . + Op name
+D Element bond_prob word . * p_bond = 1 - exp(-2βJ) for ferro
+D Element flip_clusters word . + parallel, sequential
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Samplingop that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${cluster_op}
+D ${bond_prob}
+D ${flip_clusters}
+D ${desc}
+D ${parent.sampling_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact variationalop_component structure detail
+O Defines a Variationalop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Variationalop component in a .unit file:
+D
+D ```
+D Comp Variationalop parent Op FindIn
+D Element var_op key . + Op name
+D Element params_update text . + ∇F = 0 for free energy
+D Element elbo_estimate word . * true to track lower bound
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Op that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${var_op}
+D ${params_update}
+D ${elbo_estimate}
+D ${desc}
+D ${parent.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact beliefpropagationop_component structure detail
+O Defines a Beliefpropagationop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Beliefpropagationop component in a .unit file:
+D
+D ```
+D Comp Beliefpropagationop parent Op FindIn
+D Element bp_op key . + Op name
+D Element message_type word . + sum_prod, max_prod
+D Element convergence_tol word . * 1e-6 for fixed-point
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Op that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${bp_op}
+D ${message_type}
+D ${convergence_tol}
+D ${desc}
+D ${parent.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact multistateenergyfactor_component structure detail
+O Defines a Multistateenergyfactor component with FindIn searchability under parent Energyfactor, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Multistateenergyfactor component in a .unit file:
+D
+D ```
+D Comp Multistateenergyfactor parent Energyfactor FindIn
+D Element factor key . + Factor ID
+D Element states word . + q-ary domains
+D Element potential_form text . + δ(s_i,s_j), softmax(h)
+D Element degeneracy word . * true if symmetric states
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Energyfactor that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${factor}
+D ${states}
+D ${potential_form}
+D ${degeneracy}
+D ${desc}
+D ${parent.factor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact variationalfactor_component structure detail
+O Defines a Variationalfactor component with FindIn searchability under parent Energyfactor, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Variationalfactor component in a .unit file:
+D
+D ```
+D Comp Variationalfactor parent Energyfactor FindIn
+D Element var_factor key . + Factor ID
+D Element kl_div text . * D_KL(q || p) ≈ ∫ q ln(q/p)
+D Element evidence_lower word . * true for ELBO components
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Energyfactor that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${var_factor}
+D ${kl_div}
+D ${evidence_lower}
+D ${desc}
+D ${parent.factor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact degenerateenergy_component structure detail
+O Defines a Degenerateenergy component with FindIn searchability under parent Energyfunction, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Degenerateenergy component in a .unit file:
+D
+D ```
+D Comp Degenerateenergy parent Energyfunction FindIn
+D Element energy_fn key . + Function name
+D Element degeneracy_level word . * Number of symmetric minima
+D Element resolution_req text . * ΔE ≥ gap * kT for TSU
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Energyfunction that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${energy_fn}
+D ${degeneracy_level}
+D ${resolution_req}
+D ${desc}
+D ${parent.energy_fn}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact multileveltsu_component structure overview
+
+O Defines a top-level Multileveltsu component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Multileveltsu component in a .unit file:
+D
+D ```
+D Comp Multileveltsu parent . Find
+D Element tsu_id key . + ID
+D Element voltage_levels word . + Number of discrete V bins
+D Element state_precision word . * Bits per state (e.g., log2(q))
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${tsu_id}
+D ${voltage_levels}
+D ${state_precision}
+D ${desc}
+D ${parent.tsu_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact advancedtsucompilation_component structure detail
+O Defines a Advancedtsucompilation component with FindIn searchability under parent Tsucompilation, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Advancedtsucompilation component in a .unit file:
+D
+D ```
+D Comp Advancedtsucompilation parent Tsucompilation FindIn
+D Element plan_id key . + Plan ID
+D Element state_mapping text . + One-hot to voltages
+D Element calibration_type word . + per_state, adaptive_drift
+D Element degeneracy_map text . * Symmetric states to shared pins
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Tsucompilation that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${plan_id}
+D ${state_mapping}
+D ${calibration_type}
+D ${degeneracy_map}
+D ${desc}
+D ${parent.plan_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact noisemodel_component structure detail
+O Defines a Noisemodel component with FindIn searchability under parent Hardware, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Noisemodel component in a .unit file:
+D
+D ```
+D Comp Noisemodel parent Hardware FindIn
+D Element noise_id key . + Model ID
+D Element noise_type word . + thermal_gaussian, shot_poisson
+D Element state_dependence word . * true if q-dependent variance
+D Element sigma_per_state text . * σ_k for each state k
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Hardware that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${noise_id}
+D ${noise_type}
+D ${state_dependence}
+D ${sigma_per_state}
+D ${desc}
+D ${parent.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact hybridconfig_component structure detail
+O Defines a Hybridconfig component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Hybridconfig component in a .unit file:
+D
+D ```
+D Comp Hybridconfig parent Config FindIn
+D Element config key . + Config name
+D Element mcmc_iters word . * Number of MCMC steps
+D Element vi_iters word . * VI optimization steps
+D Element switch_temp word . * T where MCMC → VI
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Config that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${config}
+D ${mcmc_iters}
+D ${vi_iters}
+D ${switch_temp}
+D ${desc}
+D ${parent.config}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact elbotracking_component structure detail
+O Defines a Elbotracking component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Elbotracking component in a .unit file:
+D
+D ```
+D Comp Elbotracking parent Config FindIn
+D Element elbo_config key . + Config ID
+D Element elbo_estimate word . + running, per_step
+D Element convergence_elbo word . * ΔELBO < 1e-4
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Config that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${elbo_config}
+D ${elbo_estimate}
+D ${convergence_elbo}
+D ${desc}
+D ${parent.config}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact ergodicityvalidation_component structure detail
+O Defines a Ergodicityvalidation component with FindIn searchability under parent Validation, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Ergodicityvalidation component in a .unit file:
+D
+D ```
+D Comp Ergodicityvalidation parent Validation FindIn
+D Element rule key . + Rule name
+D Element autocorr_time word . * τ < max_steps / 10
+D Element detailed_balance word . * Verify P→Q = Q→P ratios
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Validation that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${rule}
+D ${autocorr_time}
+D ${detailed_balance}
+D ${desc}
+D ${parent.rule}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact multistateconstraint_component structure detail
+O Defines a Multistateconstraint component with FindIn searchability under parent Physicalconstraint, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Multistateconstraint component in a .unit file:
+D
+D ```
+D Comp Multistateconstraint parent Physicalconstraint FindIn
+D Element constraint key . + ID
+D Element target word . + e.g., multi_level_tsu
+D Element state_gap text . * ΔV >= 0.1V per state
+D Element thermodynamic word . + true
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Physicalconstraint that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${constraint}
+D ${target}
+D ${state_gap}
+D ${thermodynamic}
+D ${desc}
+D ${parent.constraint}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact degeneracysimulation_component structure detail
+O Defines a Degeneracysimulation component with FindIn searchability under parent Thermodynamicsimulation, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Degeneracysimulation component in a .unit file:
+D
+D ```
+D Comp Degeneracysimulation parent Thermodynamicsimulation FindIn
+D Element sim_id key . + ID
+D Element symmetry_group word . + Z_q for Potts
+D Element barrier_height text . * Tunneling probability
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Thermodynamicsimulation that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${sim_id}
+D ${symmetry_group}
+D ${barrier_height}
+D ${desc}
+D ${parent.sim_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact clusterkernel_component structure detail
+O Defines a Clusterkernel component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Clusterkernel component in a .unit file:
+D
+D ```
+D Comp Clusterkernel parent Kernel FindIn
+D Element kernel key . + Name
+D Element bond_threshold word . * βJ for bond formation
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Kernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${kernel}
+D ${bond_threshold}
+D ${desc}
+D ${parent.kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact variationalkernel_component structure detail
+O Defines a Variationalkernel component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Variationalkernel component in a .unit file:
+D
+D ```
+D Comp Variationalkernel parent Kernel FindIn
+D Element kernel key . + Name
+D Element grad_fn text . + jax.grad for free energy
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Kernel that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${kernel}
+D ${grad_fn}
+D ${desc}
+D ${parent.kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact multistatedistributionrule_component structure overview
+
+O Defines a top-level Multistatedistributionrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Multistatedistributionrule component in a .unit file:
+D
+D ```
+D Comp Multistatedistributionrule parent . Find
+D Element distribution key . + Name (e.g., potts)
+D Element q_param word . + Required q
+D Element energy_based word . + true/false
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${distribution}
+D ${q_param}
+D ${energy_based}
+D ${desc}
+D ${parent.distribution}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact advancedsamplingalgorithmrule_component structure overview
+
+O Defines a top-level Advancedsamplingalgorithmrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Advancedsamplingalgorithmrule component in a .unit file:
+D
+D ```
+D Comp Advancedsamplingalgorithmrule parent . Find
+D Element algorithm key . + Name
+D Element cluster_support word . + true/false
+D Element hmc_leapfrog word . * Steps for Hamiltonian MC
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${algorithm}
+D ${cluster_support}
+D ${hmc_leapfrog}
+D ${desc}
+D ${parent.algorithm}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact vialgorithmrule_component structure overview
+
+O Defines a top-level Vialgorithmrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section declaration 2 Component Declaration
+D To declare a Vialgorithmrule component in a .unit file:
+D
+D ```
+D Comp Vialgorithmrule parent . Find
+D Element algorithm key . + Name (e.g., adam_elbo)
+D Element optimizer word . + adam, sgd
+D Element learning_rate word . * Initial lr
+D Element desc text . * Description
+D ```
+D
+D This creates a root-level component that will be searchable by name across the entire schema.
+
+
+Section variables 2 Variable fields
+D ```
+D ${algorithm}
+D ${optimizer}
+D ${learning_rate}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact multistateproject_component structure detail
+O Defines a Multistateproject component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+
+Section declaration 2 Component Declaration
+D To declare a Multistateproject component in a .unit file:
+D
+D ```
+D Comp Multistateproject parent Project FindIn
+D Element project key . + Name
+D Element tune_q word . * true to search q in auto-tune
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Project that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${project}
+D ${tune_q}
+D ${desc}
+D ${parent.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D ```
+
+Artifact autotuneextension_component structure detail
+O Defines a Autotuneextension component with FindIn searchability under parent Autotuneconfig, meaning instances are searchable within their parent's context.
+
+Link multiobjective_component ref
+
+Section declaration 2 Component Declaration
+D To declare a Autotuneextension component in a .unit file:
+D
+D ```
+D Comp Autotuneextension parent Autotuneconfig FindIn
+D Element autotune key . + ID
+D Element multi_objective ref MultiObjective * Pareto for q vs. time
+D Element desc text . * Description
+D ```
+D
+D This creates a nested component under Autotuneconfig that will be indexed within its parent's namespace.
+
+Section variables 2 Variable fields
+D ```
+D ${autotune}
+D ${multi_objective}
+D ${desc}
+D ${parent.autotune}
+D ${multi_objective.objectives}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor
+D Its multi_objective actor
+D ```
+
+
+// ================================================================
+// REFERENCE AND NAVIGATION PATTERNS
+// ================================================================
+
+Artifact reference_resolution_guide workflow overview
+O Multi-pass reference resolution algorithm that handles complex reference chains.
+
+Section resolution_order 2 Resolution Order
+D References resolve in passes until stable:
+D
+D **Pass 1: Direct References**
+D - ref: Direct lookup in global index
+D - link: Lookup in parent's child index
+D
+D **Pass 2+: Derived References**
+D - ref_copy: Copies resolved reference from previous field
+D - ref_child: Looks up child in previously referenced component
+D - up_copy: Walks parent chain to find ancestor
+D
+D The loader repeats passes until error count stops changing (typically 2-4 passes).
+
+Section chaining_pattern 2 Common Chaining Pattern
+D ```
+D Element base_ref    ref       Target    +
+D Element child_ref   ref_child ChildType +
+D ```
+D First field resolves Target by name, second field looks up ChildType within that Target.
+
+Section up_chain_pattern 2 Up-Chain Pattern
+D ```
+D Element context     up_copy   Ancestor  +
+D Element target      ref_child ChildType +
+D ```
+D First field walks parents to find Ancestor, second field looks up ChildType within it.
+

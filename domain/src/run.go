@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 	"fmt"
-	"strconv"
+//	"strconv"
 )
 
 type ActT struct {
@@ -36,7 +36,7 @@ type ActT struct {
 func refs(act *ActT) int {
 	errs := 0
 	v := ""
-	p := -1
+	//p := -1
 	res := 0
 	err := false
 	for _, st := range act.ApComp {
