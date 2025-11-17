@@ -28,12 +28,13 @@ type KpExtra struct {
 }
 func (me KpExtra) GetVar(glob *GlobT, s []string, ln string) (bool, string) {
 	r,ok := me.Names[s[0]]
-//	if !ok { r = fmt.Sprintf("?%s?:%s, Command line arguments", s[0], ln) }
-	if !ok { r = fmt.Sprintf("xxx") }
+	if !ok { r = fmt.Sprintf("?%s?:%s, Command line arguments", s[0], ln) }
 	return ok,r
 }
-
-func (me KpExtra) GetLineNo(glob *GlobT, s []string, ln string) (string) {
+func (me KpExtra) DoIts(glob *GlobT, va []string, lno string) int {
+	return 0
+}
+func (me KpExtra) GetLineNo() string {
 	return "Command line arguments"
 }
 

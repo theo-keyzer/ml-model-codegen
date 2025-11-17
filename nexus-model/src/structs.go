@@ -64,35 +64,42 @@ func (me KpProject) GetVar(glob *GlobT, va []string, lno string) (bool, string) 
 			}
 		}
 	}
-	if (va[0] == "OptimizationRun_project_ref" && len(va) > 1) { // nexus.unit:420, g_structh.act:698
+	if (va[0] == "OptimizationRun_project_ref" && len(va) > 1) { // nexus.unit:421, g_structh.act:698
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kproject_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "OptimizationStrategy_project_ref" && len(va) > 1) { // nexus.unit:659, g_structh.act:698
+	if (va[0] == "OptimizationStrategy_project_ref" && len(va) > 1) { // nexus.unit:660, g_structh.act:698
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Kproject_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "Simulator_project_ref" && len(va) > 1) { // nexus.unit:717, g_structh.act:698
+	if (va[0] == "Simulator_project_ref" && len(va) > 1) { // nexus.unit:718, g_structh.act:698
 		for _, st := range glob.Dats.ApSimulator {
 			if (st.Kproject_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "Checkpoint_project_ref" && len(va) > 1) { // nexus.unit:793, g_structh.act:698
+	if (va[0] == "SimulationLevel_project" && len(va) > 1) { // nexus.unit:732, g_structh.act:698
+		for _, st := range glob.Dats.ApSimulationLevel {
+			if (st.Kprojectp == me.Me) {
+				return (st.GetVar(glob, va[1:], lno) )
+			}
+		}
+	}
+	if (va[0] == "Checkpoint_project_ref" && len(va) > 1) { // nexus.unit:796, g_structh.act:698
 		for _, st := range glob.Dats.ApCheckpoint {
 			if (st.Kproject_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "Checkpoint_project_source" && len(va) > 1) { // nexus.unit:798, g_structh.act:698
+	if (va[0] == "Checkpoint_project_source" && len(va) > 1) { // nexus.unit:801, g_structh.act:698
 		for _, st := range glob.Dats.ApCheckpoint {
 			if (st.Kproject_sourcep == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
@@ -130,7 +137,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "Provenance" { // nexus.unit:397, g_structh.act:676
+	if va[0] == "Provenance" { // nexus.unit:398, g_structh.act:676
 		for _, st := range me.ItsProvenance {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -146,7 +153,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "OptimizationRun" { // nexus.unit:408, g_structh.act:676
+	if va[0] == "OptimizationRun" { // nexus.unit:409, g_structh.act:676
 		for _, st := range me.ItsOptimizationRun {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -162,7 +169,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "Validation" { // nexus.unit:424, g_structh.act:676
+	if va[0] == "Validation" { // nexus.unit:425, g_structh.act:676
 		for _, st := range me.ItsValidation {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -178,7 +185,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "Genotype" { // nexus.unit:435, g_structh.act:676
+	if va[0] == "Genotype" { // nexus.unit:436, g_structh.act:676
 		for _, st := range me.ItsGenotype {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -194,7 +201,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "Phenotype" { // nexus.unit:446, g_structh.act:676
+	if va[0] == "Phenotype" { // nexus.unit:447, g_structh.act:676
 		for _, st := range me.ItsPhenotype {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -228,7 +235,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationRun_project_ref") { // nexus.unit:420, g_structh.act:583
+	if (va[0] == "OptimizationRun_project_ref") { // nexus.unit:421, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kproject_refp == me.Me) {
 				if len(va) > 1 {
@@ -246,7 +253,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationStrategy_project_ref") { // nexus.unit:659, g_structh.act:583
+	if (va[0] == "OptimizationStrategy_project_ref") { // nexus.unit:660, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Kproject_refp == me.Me) {
 				if len(va) > 1 {
@@ -264,7 +271,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Simulator_project_ref") { // nexus.unit:717, g_structh.act:583
+	if (va[0] == "Simulator_project_ref") { // nexus.unit:718, g_structh.act:583
 		for _, st := range glob.Dats.ApSimulator {
 			if (st.Kproject_refp == me.Me) {
 				if len(va) > 1 {
@@ -282,7 +289,25 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Checkpoint_project_ref") { // nexus.unit:793, g_structh.act:583
+	if (va[0] == "SimulationLevel_project") { // nexus.unit:732, g_structh.act:583
+		for _, st := range glob.Dats.ApSimulationLevel {
+			if (st.Kprojectp == me.Me) {
+				if len(va) > 1 {
+					ret := st.DoIts(glob, va[1:], lno)
+					if (ret != 0) {
+						return(ret)
+					}
+					continue
+				}
+				ret := GoAct(glob, st)
+				if (ret != 0) {
+					return(ret)
+				}
+			}
+		}
+		return(0)
+	}
+	if (va[0] == "Checkpoint_project_ref") { // nexus.unit:796, g_structh.act:583
 		for _, st := range glob.Dats.ApCheckpoint {
 			if (st.Kproject_refp == me.Me) {
 				if len(va) > 1 {
@@ -300,7 +325,7 @@ func (me KpProject) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Checkpoint_project_source") { // nexus.unit:798, g_structh.act:583
+	if (va[0] == "Checkpoint_project_source") { // nexus.unit:801, g_structh.act:583
 		for _, st := range glob.Dats.ApCheckpoint {
 			if (st.Kproject_sourcep == me.Me) {
 				if len(va) > 1 {
@@ -419,28 +444,28 @@ func (me KpComputeGraph) GetVar(glob *GlobT, va []string, lno string) (bool, str
 			}
 		}
 	}
-	if (va[0] == "SearchTarget_graph" && len(va) > 1) { // nexus.unit:302, g_structh.act:698
+	if (va[0] == "SearchTarget_graph" && len(va) > 1) { // nexus.unit:303, g_structh.act:698
 		for _, st := range glob.Dats.ApSearchTarget {
 			if (st.Kgraphp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "EnergyAllocation_graph" && len(va) > 1) { // nexus.unit:337, g_structh.act:698
+	if (va[0] == "EnergyAllocation_graph" && len(va) > 1) { // nexus.unit:338, g_structh.act:698
 		for _, st := range glob.Dats.ApEnergyAllocation {
 			if (st.Kgraphp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "TileTarget_graph" && len(va) > 1) { // nexus.unit:359, g_structh.act:698
+	if (va[0] == "TileTarget_graph" && len(va) > 1) { // nexus.unit:360, g_structh.act:698
 		for _, st := range glob.Dats.ApTileTarget {
 			if (st.Kgraphp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "Phenotype_realized_graph" && len(va) > 1) { // nexus.unit:455, g_structh.act:698
+	if (va[0] == "Phenotype_realized_graph" && len(va) > 1) { // nexus.unit:456, g_structh.act:698
 		for _, st := range glob.Dats.ApPhenotype {
 			if (st.Krealized_graphp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
@@ -510,7 +535,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "SearchSpace" { // nexus.unit:289, g_structh.act:676
+	if va[0] == "SearchSpace" { // nexus.unit:290, g_structh.act:676
 		for _, st := range me.ItsSearchSpace {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -526,7 +551,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "EnergyBudget" { // nexus.unit:322, g_structh.act:676
+	if va[0] == "EnergyBudget" { // nexus.unit:323, g_structh.act:676
 		for _, st := range me.ItsEnergyBudget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -542,7 +567,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "TileMapping" { // nexus.unit:344, g_structh.act:676
+	if va[0] == "TileMapping" { // nexus.unit:345, g_structh.act:676
 		for _, st := range me.ItsTileMapping {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -558,7 +583,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "PrivacyBudget" { // nexus.unit:365, g_structh.act:676
+	if va[0] == "PrivacyBudget" { // nexus.unit:366, g_structh.act:676
 		for _, st := range me.ItsPrivacyBudget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -574,7 +599,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "TraceCollection" { // nexus.unit:374, g_structh.act:676
+	if va[0] == "TraceCollection" { // nexus.unit:375, g_structh.act:676
 		for _, st := range me.ItsTraceCollection {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -590,7 +615,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "EvolvableGraph" { // nexus.unit:384, g_structh.act:676
+	if va[0] == "EvolvableGraph" { // nexus.unit:385, g_structh.act:676
 		for _, st := range me.ItsEvolvableGraph {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -680,7 +705,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "SearchTarget_graph") { // nexus.unit:302, g_structh.act:583
+	if (va[0] == "SearchTarget_graph") { // nexus.unit:303, g_structh.act:583
 		for _, st := range glob.Dats.ApSearchTarget {
 			if (st.Kgraphp == me.Me) {
 				if len(va) > 1 {
@@ -698,7 +723,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "EnergyAllocation_graph") { // nexus.unit:337, g_structh.act:583
+	if (va[0] == "EnergyAllocation_graph") { // nexus.unit:338, g_structh.act:583
 		for _, st := range glob.Dats.ApEnergyAllocation {
 			if (st.Kgraphp == me.Me) {
 				if len(va) > 1 {
@@ -716,7 +741,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "TileTarget_graph") { // nexus.unit:359, g_structh.act:583
+	if (va[0] == "TileTarget_graph") { // nexus.unit:360, g_structh.act:583
 		for _, st := range glob.Dats.ApTileTarget {
 			if (st.Kgraphp == me.Me) {
 				if len(va) > 1 {
@@ -734,7 +759,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Phenotype_realized_graph") { // nexus.unit:455, g_structh.act:583
+	if (va[0] == "Phenotype_realized_graph") { // nexus.unit:456, g_structh.act:583
 		for _, st := range glob.Dats.ApPhenotype {
 			if (st.Krealized_graphp == me.Me) {
 				if len(va) > 1 {
@@ -752,7 +777,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationStrategy_target_graph") { // nexus.unit:660, g_structh.act:583
+	if (va[0] == "OptimizationStrategy_target_graph") { // nexus.unit:661, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Ktarget_graphp == me.Me) {
 				if len(va) > 1 {
@@ -770,7 +795,7 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Simulator_target_graph") { // nexus.unit:718, g_structh.act:583
+	if (va[0] == "Simulator_target_graph") { // nexus.unit:719, g_structh.act:583
 		for _, st := range glob.Dats.ApSimulator {
 			if (st.Ktarget_graphp == me.Me) {
 				if len(va) > 1 {
@@ -788,7 +813,25 @@ func (me KpComputeGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Checkpoint_graph_snapshot") { // nexus.unit:799, g_structh.act:583
+	if (va[0] == "SimulationLevel_sim_graph") { // nexus.unit:733, g_structh.act:583
+		for _, st := range glob.Dats.ApSimulationLevel {
+			if (st.Ksim_graphp == me.Me) {
+				if len(va) > 1 {
+					ret := st.DoIts(glob, va[1:], lno)
+					if (ret != 0) {
+						return(ret)
+					}
+					continue
+				}
+				ret := GoAct(glob, st)
+				if (ret != 0) {
+					return(ret)
+				}
+			}
+		}
+		return(0)
+	}
+	if (va[0] == "Checkpoint_graph_snapshot") { // nexus.unit:802, g_structh.act:583
 		for _, st := range glob.Dats.ApCheckpoint {
 			if (st.Kgraph_snapshotp == me.Me) {
 				if len(va) > 1 {
@@ -1240,13 +1283,6 @@ func (me KpOperation) GetVar(glob *GlobT, va []string, lno string) (bool, string
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if (va[0] == "SimulationLevel_target_component" && len(va) > 1) { // nexus.unit:731, g_structh.act:698
-		for _, st := range glob.Dats.ApSimulationLevel {
-			if (st.Ktarget_componentp == me.Me) {
-				return (st.GetVar(glob, va[1:], lno) )
-			}
-		}
-	}
 	if va[0] == "previous" { // nexus.unit:60, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApOperation[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
@@ -1342,7 +1378,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "QuantumOp" { // nexus.unit:146, g_structh.act:676
+	if va[0] == "QuantumOp" { // nexus.unit:147, g_structh.act:676
 		for _, st := range me.ItsQuantumOp {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1358,7 +1394,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "PhotonicOp" { // nexus.unit:184, g_structh.act:676
+	if va[0] == "PhotonicOp" { // nexus.unit:185, g_structh.act:676
 		for _, st := range me.ItsPhotonicOp {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1374,7 +1410,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "MolecularOp" { // nexus.unit:197, g_structh.act:676
+	if va[0] == "MolecularOp" { // nexus.unit:198, g_structh.act:676
 		for _, st := range me.ItsMolecularOp {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1390,7 +1426,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "HybridOp" { // nexus.unit:227, g_structh.act:676
+	if va[0] == "HybridOp" { // nexus.unit:228, g_structh.act:676
 		for _, st := range me.ItsHybridOp {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1406,7 +1442,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "RedundancyStrategy" { // nexus.unit:246, g_structh.act:676
+	if va[0] == "RedundancyStrategy" { // nexus.unit:247, g_structh.act:676
 		for _, st := range me.ItsRedundancyStrategy {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1422,7 +1458,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "ProfilingHook" { // nexus.unit:257, g_structh.act:676
+	if va[0] == "ProfilingHook" { // nexus.unit:258, g_structh.act:676
 		for _, st := range me.ItsProfilingHook {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1438,7 +1474,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "AdaptiveParameter" { // nexus.unit:268, g_structh.act:676
+	if va[0] == "AdaptiveParameter" { // nexus.unit:269, g_structh.act:676
 		for _, st := range me.ItsAdaptiveParameter {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1454,7 +1490,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "SecureCompute" { // nexus.unit:280, g_structh.act:676
+	if va[0] == "SecureCompute" { // nexus.unit:281, g_structh.act:676
 		for _, st := range me.ItsSecureCompute {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -1536,7 +1572,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "SearchTarget_operation") { // nexus.unit:303, g_structh.act:583
+	if (va[0] == "SearchTarget_operation") { // nexus.unit:304, g_structh.act:583
 		for _, st := range glob.Dats.ApSearchTarget {
 			if (st.Koperationp == me.Me) {
 				if len(va) > 1 {
@@ -1554,7 +1590,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "EnergyAllocation_operation") { // nexus.unit:338, g_structh.act:583
+	if (va[0] == "EnergyAllocation_operation") { // nexus.unit:339, g_structh.act:583
 		for _, st := range glob.Dats.ApEnergyAllocation {
 			if (st.Koperationp == me.Me) {
 				if len(va) > 1 {
@@ -1572,7 +1608,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "TileTarget_operation") { // nexus.unit:360, g_structh.act:583
+	if (va[0] == "TileTarget_operation") { // nexus.unit:361, g_structh.act:583
 		for _, st := range glob.Dats.ApTileTarget {
 			if (st.Koperationp == me.Me) {
 				if len(va) > 1 {
@@ -1590,7 +1626,7 @@ func (me KpOperation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "SimulationLevel_target_component") { // nexus.unit:731, g_structh.act:583
+	if (va[0] == "SimulationLevel_target_component") { // nexus.unit:734, g_structh.act:583
 		for _, st := range glob.Dats.ApSimulationLevel {
 			if (st.Ktarget_componentp == me.Me) {
 				if len(va) > 1 {
@@ -2150,6 +2186,7 @@ type KpAnalogOp struct {
 	Flags [] string
 	Names map[string]string
 	Kparentp int
+	Khardwarep int
 	Karray_targetp int
 }
 
@@ -2172,6 +2209,7 @@ func loadAnalogOp(act *ActT, ln string, pos int, lno string, flag []string, name
 	st.Names["kComp"] = st.Comp
 	st.Names["kMe"] = strconv.Itoa(st.Me)
 	st.Names["_lno"] = lno
+	st.Khardwarep = -1
 	st.Karray_targetp = -1
 	st.Kparentp = len( act.ApOperation ) - 1;
 	st.Names["kParentp"] = strconv.Itoa(st.Kparentp)
@@ -2191,7 +2229,12 @@ func loadAnalogOp(act *ActT, ln string, pos int, lno string, flag []string, name
 }
 
 func (me KpAnalogOp) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "array_target" { // nexus.unit:144, g_structh.act:609
+	if va[0] == "hardware" { // nexus.unit:144, g_structh.act:609
+		if (me.Khardwarep >= 0 && len(va) > 1) {
+			return( glob.Dats.ApHardware[ me.Khardwarep ].GetVar(glob, va[1:], lno) )
+		}
+	}
+	if va[0] == "array_target" { // nexus.unit:145, g_structh.act:609
 		if (me.Karray_targetp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApAnalogHardware[ me.Karray_targetp ].GetVar(glob, va[1:], lno) )
 		}
@@ -2219,6 +2262,16 @@ func (me KpAnalogOp) DoIts(glob *GlobT, va []string, lno string) int {
 	if va[0] == "parent" { // nexus.unit:60, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApOperation[ me.Kparentp ]
+			if len(va) > 1 {
+				return( st.DoIts(glob, va[1:], lno) )
+			}
+			return( GoAct(glob, st) )
+		}
+		return(0)
+	}
+	if va[0] == "hardware" {
+		if me.Khardwarep >= 0 {
+			st := glob.Dats.ApHardware[ me.Khardwarep ]
 			if len(va) > 1 {
 				return( st.DoIts(glob, va[1:], lno) )
 			}
@@ -2299,22 +2352,22 @@ func (me KpQuantumOp) GetVar(glob *GlobT, va []string, lno string) (bool, string
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:146, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:147, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumOp[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumOp > nexus.unit:146, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumOp > nexus.unit:147, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumOp > nexus.unit:146, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumOp > nexus.unit:147, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpQuantumOp) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "QubitTarget" { // nexus.unit:157, g_structh.act:676
+	if va[0] == "QubitTarget" { // nexus.unit:158, g_structh.act:676
 		for _, st := range me.ItsQubitTarget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -2330,7 +2383,7 @@ func (me KpQuantumOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "ControlQubit" { // nexus.unit:165, g_structh.act:676
+	if va[0] == "ControlQubit" { // nexus.unit:166, g_structh.act:676
 		for _, st := range me.ItsControlQubit {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -2346,7 +2399,7 @@ func (me KpQuantumOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "QuantumCircuit" { // nexus.unit:173, g_structh.act:676
+	if va[0] == "QuantumCircuit" { // nexus.unit:174, g_structh.act:676
 		for _, st := range me.ItsQuantumCircuit {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -2372,7 +2425,7 @@ func (me KpQuantumOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for QuantumOp %s,%s > nexus.unit:146, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for QuantumOp %s,%s > nexus.unit:147, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2420,9 +2473,9 @@ func loadQubitTarget(act *ActT, ln string, pos int, lno string, flag []string, n
 		print(lno + " QubitTarget under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs, st)
-	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQubitTarget = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQubitTarget, st)	// nexus.unit:146, g_structh.act:403
+	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQubitTarget = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQubitTarget, st)	// nexus.unit:147, g_structh.act:403
 	name,_ := st.Names["qubit_index"]
-	s := strconv.Itoa(st.Kparentp) + "_QubitTarget_" + name	// nexus.unit:161, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_QubitTarget_" + name	// nexus.unit:162, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApQubitTarget = append(act.ApQubitTarget, st)
@@ -2430,27 +2483,27 @@ func loadQubitTarget(act *ActT, ln string, pos int, lno string, flag []string, n
 }
 
 func (me KpQubitTarget) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:146, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:147, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:157, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:158, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApQubitTarget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,QubitTarget > nexus.unit:157, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,QubitTarget > nexus.unit:158, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QubitTarget > nexus.unit:157, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QubitTarget > nexus.unit:158, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpQubitTarget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:146, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:147, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApQuantumOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -2460,7 +2513,7 @@ func (me KpQubitTarget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for QubitTarget %s,%s > nexus.unit:157, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for QubitTarget %s,%s > nexus.unit:158, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2508,9 +2561,9 @@ func loadControlQubit(act *ActT, ln string, pos int, lno string, flag []string, 
 		print(lno + " ControlQubit under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs, st)
-	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsControlQubit = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsControlQubit, st)	// nexus.unit:146, g_structh.act:403
+	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsControlQubit = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsControlQubit, st)	// nexus.unit:147, g_structh.act:403
 	name,_ := st.Names["qubit_index"]
-	s := strconv.Itoa(st.Kparentp) + "_ControlQubit_" + name	// nexus.unit:169, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_ControlQubit_" + name	// nexus.unit:170, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApControlQubit = append(act.ApControlQubit, st)
@@ -2518,27 +2571,27 @@ func loadControlQubit(act *ActT, ln string, pos int, lno string, flag []string, 
 }
 
 func (me KpControlQubit) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:146, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:147, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:165, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:166, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApControlQubit[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,ControlQubit > nexus.unit:165, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,ControlQubit > nexus.unit:166, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ControlQubit > nexus.unit:165, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ControlQubit > nexus.unit:166, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpControlQubit) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:146, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:147, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApQuantumOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -2548,7 +2601,7 @@ func (me KpControlQubit) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for ControlQubit %s,%s > nexus.unit:165, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for ControlQubit %s,%s > nexus.unit:166, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2596,9 +2649,9 @@ func loadQuantumCircuit(act *ActT, ln string, pos int, lno string, flag []string
 		print(lno + " QuantumCircuit under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].Childs, st)
-	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQuantumCircuit = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQuantumCircuit, st)	// nexus.unit:146, g_structh.act:403
+	act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQuantumCircuit = append(act.ApQuantumOp[ len( act.ApQuantumOp )-1 ].ItsQuantumCircuit, st)	// nexus.unit:147, g_structh.act:403
 	name,_ := st.Names["circuit_name"]
-	s := strconv.Itoa(st.Kparentp) + "_QuantumCircuit_" + name	// nexus.unit:177, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_QuantumCircuit_" + name	// nexus.unit:178, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApQuantumCircuit = append(act.ApQuantumCircuit, st)
@@ -2606,27 +2659,27 @@ func loadQuantumCircuit(act *ActT, ln string, pos int, lno string, flag []string
 }
 
 func (me KpQuantumCircuit) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:146, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:147, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:173, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:174, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumCircuit[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumCircuit > nexus.unit:173, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumCircuit > nexus.unit:174, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumCircuit > nexus.unit:173, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumCircuit > nexus.unit:174, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpQuantumCircuit) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:146, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:147, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApQuantumOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -2636,7 +2689,7 @@ func (me KpQuantumCircuit) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for QuantumCircuit %s,%s > nexus.unit:173, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for QuantumCircuit %s,%s > nexus.unit:174, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2695,17 +2748,17 @@ func (me KpPhotonicOp) GetVar(glob *GlobT, va []string, lno string) (bool, strin
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:184, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:185, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPhotonicOp[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,PhotonicOp > nexus.unit:184, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,PhotonicOp > nexus.unit:185, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhotonicOp > nexus.unit:184, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhotonicOp > nexus.unit:185, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -2720,7 +2773,7 @@ func (me KpPhotonicOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for PhotonicOp %s,%s > nexus.unit:184, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for PhotonicOp %s,%s > nexus.unit:185, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2782,22 +2835,22 @@ func (me KpMolecularOp) GetVar(glob *GlobT, va []string, lno string) (bool, stri
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:197, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:198, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApMolecularOp[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,MolecularOp > nexus.unit:197, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,MolecularOp > nexus.unit:198, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,MolecularOp > nexus.unit:197, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,MolecularOp > nexus.unit:198, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpMolecularOp) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "Reactant" { // nexus.unit:209, g_structh.act:676
+	if va[0] == "Reactant" { // nexus.unit:210, g_structh.act:676
 		for _, st := range me.ItsReactant {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -2813,7 +2866,7 @@ func (me KpMolecularOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "Product" { // nexus.unit:218, g_structh.act:676
+	if va[0] == "Product" { // nexus.unit:219, g_structh.act:676
 		for _, st := range me.ItsProduct {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -2839,7 +2892,7 @@ func (me KpMolecularOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for MolecularOp %s,%s > nexus.unit:197, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for MolecularOp %s,%s > nexus.unit:198, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2887,9 +2940,9 @@ func loadReactant(act *ActT, ln string, pos int, lno string, flag []string, name
 		print(lno + " Reactant under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].Childs = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].Childs, st)
-	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsReactant = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsReactant, st)	// nexus.unit:197, g_structh.act:403
+	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsReactant = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsReactant, st)	// nexus.unit:198, g_structh.act:403
 	name,_ := st.Names["species"]
-	s := strconv.Itoa(st.Kparentp) + "_Reactant_" + name	// nexus.unit:213, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_Reactant_" + name	// nexus.unit:214, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApReactant = append(act.ApReactant, st)
@@ -2897,27 +2950,27 @@ func loadReactant(act *ActT, ln string, pos int, lno string, flag []string, name
 }
 
 func (me KpReactant) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:197, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:198, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMolecularOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:209, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:210, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApReactant[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Reactant > nexus.unit:209, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Reactant > nexus.unit:210, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Reactant > nexus.unit:209, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Reactant > nexus.unit:210, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpReactant) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:197, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:198, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApMolecularOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -2927,7 +2980,7 @@ func (me KpReactant) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Reactant %s,%s > nexus.unit:209, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Reactant %s,%s > nexus.unit:210, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -2975,9 +3028,9 @@ func loadProduct(act *ActT, ln string, pos int, lno string, flag []string, names
 		print(lno + " Product under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].Childs = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].Childs, st)
-	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsProduct = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsProduct, st)	// nexus.unit:197, g_structh.act:403
+	act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsProduct = append(act.ApMolecularOp[ len( act.ApMolecularOp )-1 ].ItsProduct, st)	// nexus.unit:198, g_structh.act:403
 	name,_ := st.Names["species"]
-	s := strconv.Itoa(st.Kparentp) + "_Product_" + name	// nexus.unit:222, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_Product_" + name	// nexus.unit:223, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApProduct = append(act.ApProduct, st)
@@ -2985,27 +3038,27 @@ func loadProduct(act *ActT, ln string, pos int, lno string, flag []string, names
 }
 
 func (me KpProduct) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:197, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:198, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMolecularOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:218, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:219, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApProduct[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Product > nexus.unit:218, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Product > nexus.unit:219, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Product > nexus.unit:218, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Product > nexus.unit:219, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpProduct) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:197, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:198, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApMolecularOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -3015,7 +3068,7 @@ func (me KpProduct) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Product %s,%s > nexus.unit:218, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Product %s,%s > nexus.unit:219, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3076,22 +3129,22 @@ func (me KpHybridOp) GetVar(glob *GlobT, va []string, lno string) (bool, string)
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:227, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:228, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApHybridOp[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,HybridOp > nexus.unit:227, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,HybridOp > nexus.unit:228, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,HybridOp > nexus.unit:227, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,HybridOp > nexus.unit:228, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpHybridOp) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "FallbackMode" { // nexus.unit:237, g_structh.act:676
+	if va[0] == "FallbackMode" { // nexus.unit:238, g_structh.act:676
 		for _, st := range me.ItsFallbackMode {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -3117,7 +3170,7 @@ func (me KpHybridOp) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for HybridOp %s,%s > nexus.unit:227, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for HybridOp %s,%s > nexus.unit:228, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3165,33 +3218,33 @@ func loadFallbackMode(act *ActT, ln string, pos int, lno string, flag []string, 
 		print(lno + " FallbackMode under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHybridOp[ len( act.ApHybridOp )-1 ].Childs = append(act.ApHybridOp[ len( act.ApHybridOp )-1 ].Childs, st)
-	act.ApHybridOp[ len( act.ApHybridOp )-1 ].ItsFallbackMode = append(act.ApHybridOp[ len( act.ApHybridOp )-1 ].ItsFallbackMode, st)	// nexus.unit:227, g_structh.act:403
+	act.ApHybridOp[ len( act.ApHybridOp )-1 ].ItsFallbackMode = append(act.ApHybridOp[ len( act.ApHybridOp )-1 ].ItsFallbackMode, st)	// nexus.unit:228, g_structh.act:403
 	act.ApFallbackMode = append(act.ApFallbackMode, st)
 	return 0
 }
 
 func (me KpFallbackMode) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:227, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:228, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHybridOp[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:237, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:238, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFallbackMode[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FallbackMode > nexus.unit:237, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FallbackMode > nexus.unit:238, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FallbackMode > nexus.unit:237, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FallbackMode > nexus.unit:238, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFallbackMode) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:227, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:228, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHybridOp[ me.Kparentp ]
 			if len(va) > 1 {
@@ -3201,7 +3254,7 @@ func (me KpFallbackMode) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FallbackMode %s,%s > nexus.unit:237, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FallbackMode %s,%s > nexus.unit:238, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3257,7 +3310,7 @@ func loadRedundancyStrategy(act *ActT, ln string, pos int, lno string, flag []st
 }
 
 func (me KpRedundancyStrategy) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "checkpoints" { // nexus.unit:255, g_structh.act:609
+	if va[0] == "checkpoints" { // nexus.unit:256, g_structh.act:609
 		if (me.Kcheckpointsp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApCheckpoint[ me.Kcheckpointsp ].GetVar(glob, va[1:], lno) )
 		}
@@ -3267,17 +3320,17 @@ func (me KpRedundancyStrategy) GetVar(glob *GlobT, va []string, lno string) (boo
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:246, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:247, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApRedundancyStrategy[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,RedundancyStrategy > nexus.unit:246, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,RedundancyStrategy > nexus.unit:247, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,RedundancyStrategy > nexus.unit:246, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,RedundancyStrategy > nexus.unit:247, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -3302,7 +3355,7 @@ func (me KpRedundancyStrategy) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for RedundancyStrategy %s,%s > nexus.unit:246, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for RedundancyStrategy %s,%s > nexus.unit:247, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3354,7 +3407,7 @@ func loadProfilingHook(act *ActT, ln string, pos int, lno string, flag []string,
 	act.ApOperation[ len( act.ApOperation )-1 ].Childs = append(act.ApOperation[ len( act.ApOperation )-1 ].Childs, st)
 	act.ApOperation[ len( act.ApOperation )-1 ].ItsProfilingHook = append(act.ApOperation[ len( act.ApOperation )-1 ].ItsProfilingHook, st)	// nexus.unit:60, g_structh.act:403
 	name,_ := st.Names["hook_id"]
-	s := strconv.Itoa(st.Kparentp) + "_ProfilingHook_" + name	// nexus.unit:261, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_ProfilingHook_" + name	// nexus.unit:262, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApProfilingHook = append(act.ApProfilingHook, st)
@@ -3362,7 +3415,7 @@ func loadProfilingHook(act *ActT, ln string, pos int, lno string, flag []string,
 }
 
 func (me KpProfilingHook) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "metrics_ref" { // nexus.unit:266, g_structh.act:609
+	if va[0] == "metrics_ref" { // nexus.unit:267, g_structh.act:609
 		if (me.Kmetrics_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMetric[ me.Kmetrics_refp ].GetVar(glob, va[1:], lno) )
 		}
@@ -3372,17 +3425,17 @@ func (me KpProfilingHook) GetVar(glob *GlobT, va []string, lno string) (bool, st
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:257, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:258, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApProfilingHook[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,ProfilingHook > nexus.unit:257, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,ProfilingHook > nexus.unit:258, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ProfilingHook > nexus.unit:257, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ProfilingHook > nexus.unit:258, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -3407,7 +3460,7 @@ func (me KpProfilingHook) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for ProfilingHook %s,%s > nexus.unit:257, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for ProfilingHook %s,%s > nexus.unit:258, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3457,7 +3510,7 @@ func loadAdaptiveParameter(act *ActT, ln string, pos int, lno string, flag []str
 	act.ApOperation[ len( act.ApOperation )-1 ].Childs = append(act.ApOperation[ len( act.ApOperation )-1 ].Childs, st)
 	act.ApOperation[ len( act.ApOperation )-1 ].ItsAdaptiveParameter = append(act.ApOperation[ len( act.ApOperation )-1 ].ItsAdaptiveParameter, st)	// nexus.unit:60, g_structh.act:403
 	name,_ := st.Names["param"]
-	s := strconv.Itoa(st.Kparentp) + "_AdaptiveParameter_" + name	// nexus.unit:272, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_AdaptiveParameter_" + name	// nexus.unit:273, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApAdaptiveParameter = append(act.ApAdaptiveParameter, st)
@@ -3470,17 +3523,17 @@ func (me KpAdaptiveParameter) GetVar(glob *GlobT, va []string, lno string) (bool
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:268, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:269, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApAdaptiveParameter[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,AdaptiveParameter > nexus.unit:268, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,AdaptiveParameter > nexus.unit:269, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AdaptiveParameter > nexus.unit:268, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AdaptiveParameter > nexus.unit:269, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -3495,7 +3548,7 @@ func (me KpAdaptiveParameter) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for AdaptiveParameter %s,%s > nexus.unit:268, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for AdaptiveParameter %s,%s > nexus.unit:269, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3554,17 +3607,17 @@ func (me KpSecureCompute) GetVar(glob *GlobT, va []string, lno string) (bool, st
 			return( glob.Dats.ApOperation[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:280, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:281, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSecureCompute[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SecureCompute > nexus.unit:280, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SecureCompute > nexus.unit:281, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SecureCompute > nexus.unit:280, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SecureCompute > nexus.unit:281, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -3579,7 +3632,7 @@ func (me KpSecureCompute) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SecureCompute %s,%s > nexus.unit:280, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SecureCompute %s,%s > nexus.unit:281, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3632,7 +3685,7 @@ func loadSearchSpace(act *ActT, ln string, pos int, lno string, flag []string, n
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs, st)
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsSearchSpace = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsSearchSpace, st)	// nexus.unit:21, g_structh.act:403
 	name,_ := st.Names["search_space"]
-	s := strconv.Itoa(st.Kparentp) + "_SearchSpace_" + name	// nexus.unit:293, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_SearchSpace_" + name	// nexus.unit:294, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApSearchSpace = append(act.ApSearchSpace, st)
@@ -3645,22 +3698,22 @@ func (me KpSearchSpace) GetVar(glob *GlobT, va []string, lno string) (bool, stri
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:289, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:290, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchSpace[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SearchSpace > nexus.unit:289, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SearchSpace > nexus.unit:290, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchSpace > nexus.unit:289, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchSpace > nexus.unit:290, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSearchSpace) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "SearchTarget" { // nexus.unit:298, g_structh.act:676
+	if va[0] == "SearchTarget" { // nexus.unit:299, g_structh.act:676
 		for _, st := range me.ItsSearchTarget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -3676,7 +3729,7 @@ func (me KpSearchSpace) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "SearchParameter" { // nexus.unit:308, g_structh.act:676
+	if va[0] == "SearchParameter" { // nexus.unit:309, g_structh.act:676
 		for _, st := range me.ItsSearchParameter {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -3702,7 +3755,7 @@ func (me KpSearchSpace) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationStrategy_search_space") { // nexus.unit:661, g_structh.act:583
+	if (va[0] == "OptimizationStrategy_search_space") { // nexus.unit:662, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Ksearch_spacep == me.Me) {
 				if len(va) > 1 {
@@ -3720,7 +3773,7 @@ func (me KpSearchSpace) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SearchSpace %s,%s > nexus.unit:289, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SearchSpace %s,%s > nexus.unit:290, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3772,43 +3825,43 @@ func loadSearchTarget(act *ActT, ln string, pos int, lno string, flag []string, 
 		print(lno + " SearchTarget under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].Childs = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].Childs, st)
-	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchTarget = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchTarget, st)	// nexus.unit:289, g_structh.act:403
+	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchTarget = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchTarget, st)	// nexus.unit:290, g_structh.act:403
 	act.ApSearchTarget = append(act.ApSearchTarget, st)
 	return 0
 }
 
 func (me KpSearchTarget) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "graph" { // nexus.unit:302, g_structh.act:609
+	if va[0] == "graph" { // nexus.unit:303, g_structh.act:609
 		if (me.Kgraphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Kgraphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "operation" { // nexus.unit:303, g_structh.act:609
+	if va[0] == "operation" { // nexus.unit:304, g_structh.act:609
 		if (me.Koperationp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOperation[ me.Koperationp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:289, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:290, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchSpace[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:298, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:299, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchTarget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SearchTarget > nexus.unit:298, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SearchTarget > nexus.unit:299, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchTarget > nexus.unit:298, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchTarget > nexus.unit:299, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSearchTarget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:289, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:290, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApSearchSpace[ me.Kparentp ]
 			if len(va) > 1 {
@@ -3838,7 +3891,7 @@ func (me KpSearchTarget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SearchTarget %s,%s > nexus.unit:298, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SearchTarget %s,%s > nexus.unit:299, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3886,9 +3939,9 @@ func loadSearchParameter(act *ActT, ln string, pos int, lno string, flag []strin
 		print(lno + " SearchParameter under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].Childs = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].Childs, st)
-	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchParameter = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchParameter, st)	// nexus.unit:289, g_structh.act:403
+	act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchParameter = append(act.ApSearchSpace[ len( act.ApSearchSpace )-1 ].ItsSearchParameter, st)	// nexus.unit:290, g_structh.act:403
 	name,_ := st.Names["param"]
-	s := strconv.Itoa(st.Kparentp) + "_SearchParameter_" + name	// nexus.unit:312, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_SearchParameter_" + name	// nexus.unit:313, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApSearchParameter = append(act.ApSearchParameter, st)
@@ -3896,27 +3949,27 @@ func loadSearchParameter(act *ActT, ln string, pos int, lno string, flag []strin
 }
 
 func (me KpSearchParameter) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:289, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:290, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchSpace[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:308, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:309, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchParameter[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SearchParameter > nexus.unit:308, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SearchParameter > nexus.unit:309, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchParameter > nexus.unit:308, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SearchParameter > nexus.unit:309, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSearchParameter) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:289, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:290, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApSearchSpace[ me.Kparentp ]
 			if len(va) > 1 {
@@ -3926,7 +3979,7 @@ func (me KpSearchParameter) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SearchParameter %s,%s > nexus.unit:308, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SearchParameter %s,%s > nexus.unit:309, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -3978,7 +4031,7 @@ func loadEnergyBudget(act *ActT, ln string, pos int, lno string, flag []string, 
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs, st)
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsEnergyBudget = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsEnergyBudget, st)	// nexus.unit:21, g_structh.act:403
 	name,_ := st.Names["budget_id"]
-	s := strconv.Itoa(st.Kparentp) + "_EnergyBudget_" + name	// nexus.unit:326, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_EnergyBudget_" + name	// nexus.unit:327, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApEnergyBudget = append(act.ApEnergyBudget, st)
@@ -3991,22 +4044,22 @@ func (me KpEnergyBudget) GetVar(glob *GlobT, va []string, lno string) (bool, str
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:322, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:323, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApEnergyBudget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,EnergyBudget > nexus.unit:322, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,EnergyBudget > nexus.unit:323, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EnergyBudget > nexus.unit:322, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EnergyBudget > nexus.unit:323, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpEnergyBudget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "EnergyAllocation" { // nexus.unit:333, g_structh.act:676
+	if va[0] == "EnergyAllocation" { // nexus.unit:334, g_structh.act:676
 		for _, st := range me.ItsEnergyAllocation {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -4032,7 +4085,7 @@ func (me KpEnergyBudget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for EnergyBudget %s,%s > nexus.unit:322, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for EnergyBudget %s,%s > nexus.unit:323, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4084,43 +4137,43 @@ func loadEnergyAllocation(act *ActT, ln string, pos int, lno string, flag []stri
 		print(lno + " EnergyAllocation under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].Childs = append(act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].Childs, st)
-	act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].ItsEnergyAllocation = append(act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].ItsEnergyAllocation, st)	// nexus.unit:322, g_structh.act:403
+	act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].ItsEnergyAllocation = append(act.ApEnergyBudget[ len( act.ApEnergyBudget )-1 ].ItsEnergyAllocation, st)	// nexus.unit:323, g_structh.act:403
 	act.ApEnergyAllocation = append(act.ApEnergyAllocation, st)
 	return 0
 }
 
 func (me KpEnergyAllocation) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "graph" { // nexus.unit:337, g_structh.act:609
+	if va[0] == "graph" { // nexus.unit:338, g_structh.act:609
 		if (me.Kgraphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Kgraphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "operation" { // nexus.unit:338, g_structh.act:609
+	if va[0] == "operation" { // nexus.unit:339, g_structh.act:609
 		if (me.Koperationp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOperation[ me.Koperationp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:322, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:323, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApEnergyBudget[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:333, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:334, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApEnergyAllocation[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,EnergyAllocation > nexus.unit:333, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,EnergyAllocation > nexus.unit:334, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EnergyAllocation > nexus.unit:333, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EnergyAllocation > nexus.unit:334, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpEnergyAllocation) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:322, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:323, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApEnergyBudget[ me.Kparentp ]
 			if len(va) > 1 {
@@ -4150,7 +4203,7 @@ func (me KpEnergyAllocation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for EnergyAllocation %s,%s > nexus.unit:333, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for EnergyAllocation %s,%s > nexus.unit:334, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4202,7 +4255,7 @@ func loadTileMapping(act *ActT, ln string, pos int, lno string, flag []string, n
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs, st)
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsTileMapping = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsTileMapping, st)	// nexus.unit:21, g_structh.act:403
 	name,_ := st.Names["tile_id"]
-	s := strconv.Itoa(st.Kparentp) + "_TileMapping_" + name	// nexus.unit:348, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_TileMapping_" + name	// nexus.unit:349, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApTileMapping = append(act.ApTileMapping, st)
@@ -4215,22 +4268,22 @@ func (me KpTileMapping) GetVar(glob *GlobT, va []string, lno string) (bool, stri
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:344, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:345, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApTileMapping[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,TileMapping > nexus.unit:344, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,TileMapping > nexus.unit:345, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TileMapping > nexus.unit:344, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TileMapping > nexus.unit:345, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpTileMapping) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "TileTarget" { // nexus.unit:355, g_structh.act:676
+	if va[0] == "TileTarget" { // nexus.unit:356, g_structh.act:676
 		for _, st := range me.ItsTileTarget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -4256,7 +4309,7 @@ func (me KpTileMapping) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for TileMapping %s,%s > nexus.unit:344, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for TileMapping %s,%s > nexus.unit:345, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4308,43 +4361,43 @@ func loadTileTarget(act *ActT, ln string, pos int, lno string, flag []string, na
 		print(lno + " TileTarget under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApTileMapping[ len( act.ApTileMapping )-1 ].Childs = append(act.ApTileMapping[ len( act.ApTileMapping )-1 ].Childs, st)
-	act.ApTileMapping[ len( act.ApTileMapping )-1 ].ItsTileTarget = append(act.ApTileMapping[ len( act.ApTileMapping )-1 ].ItsTileTarget, st)	// nexus.unit:344, g_structh.act:403
+	act.ApTileMapping[ len( act.ApTileMapping )-1 ].ItsTileTarget = append(act.ApTileMapping[ len( act.ApTileMapping )-1 ].ItsTileTarget, st)	// nexus.unit:345, g_structh.act:403
 	act.ApTileTarget = append(act.ApTileTarget, st)
 	return 0
 }
 
 func (me KpTileTarget) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "graph" { // nexus.unit:359, g_structh.act:609
+	if va[0] == "graph" { // nexus.unit:360, g_structh.act:609
 		if (me.Kgraphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Kgraphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "operation" { // nexus.unit:360, g_structh.act:609
+	if va[0] == "operation" { // nexus.unit:361, g_structh.act:609
 		if (me.Koperationp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOperation[ me.Koperationp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:344, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:345, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApTileMapping[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:355, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:356, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApTileTarget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,TileTarget > nexus.unit:355, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,TileTarget > nexus.unit:356, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TileTarget > nexus.unit:355, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TileTarget > nexus.unit:356, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpTileTarget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:344, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:345, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApTileMapping[ me.Kparentp ]
 			if len(va) > 1 {
@@ -4374,7 +4427,7 @@ func (me KpTileTarget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for TileTarget %s,%s > nexus.unit:355, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for TileTarget %s,%s > nexus.unit:356, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4433,17 +4486,17 @@ func (me KpPrivacyBudget) GetVar(glob *GlobT, va []string, lno string) (bool, st
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:365, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:366, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPrivacyBudget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,PrivacyBudget > nexus.unit:365, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,PrivacyBudget > nexus.unit:366, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PrivacyBudget > nexus.unit:365, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PrivacyBudget > nexus.unit:366, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4458,7 +4511,7 @@ func (me KpPrivacyBudget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for PrivacyBudget %s,%s > nexus.unit:365, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for PrivacyBudget %s,%s > nexus.unit:366, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4508,7 +4561,7 @@ func loadTraceCollection(act *ActT, ln string, pos int, lno string, flag []strin
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs, st)
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsTraceCollection = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsTraceCollection, st)	// nexus.unit:21, g_structh.act:403
 	name,_ := st.Names["trace_id"]
-	s := strconv.Itoa(st.Kparentp) + "_TraceCollection_" + name	// nexus.unit:378, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_TraceCollection_" + name	// nexus.unit:379, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApTraceCollection = append(act.ApTraceCollection, st)
@@ -4521,17 +4574,17 @@ func (me KpTraceCollection) GetVar(glob *GlobT, va []string, lno string) (bool, 
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:374, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:375, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApTraceCollection[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,TraceCollection > nexus.unit:374, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,TraceCollection > nexus.unit:375, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TraceCollection > nexus.unit:374, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,TraceCollection > nexus.unit:375, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4546,7 +4599,7 @@ func (me KpTraceCollection) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for TraceCollection %s,%s > nexus.unit:374, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for TraceCollection %s,%s > nexus.unit:375, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4598,7 +4651,7 @@ func loadEvolvableGraph(act *ActT, ln string, pos int, lno string, flag []string
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].Childs, st)
 	act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsEvolvableGraph = append(act.ApComputeGraph[ len( act.ApComputeGraph )-1 ].ItsEvolvableGraph, st)	// nexus.unit:21, g_structh.act:403
 	name,_ := st.Names["evolvable_id"]
-	s := strconv.Itoa(st.Kparentp) + "_EvolvableGraph_" + name	// nexus.unit:388, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_EvolvableGraph_" + name	// nexus.unit:389, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApEvolvableGraph = append(act.ApEvolvableGraph, st)
@@ -4606,7 +4659,7 @@ func loadEvolvableGraph(act *ActT, ln string, pos int, lno string, flag []string
 }
 
 func (me KpEvolvableGraph) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "fitness_metric" { // nexus.unit:395, g_structh.act:609
+	if va[0] == "fitness_metric" { // nexus.unit:396, g_structh.act:609
 		if (me.Kfitness_metricp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMetric[ me.Kfitness_metricp ].GetVar(glob, va[1:], lno) )
 		}
@@ -4616,17 +4669,17 @@ func (me KpEvolvableGraph) GetVar(glob *GlobT, va []string, lno string) (bool, s
 			return( glob.Dats.ApComputeGraph[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:384, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:385, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApEvolvableGraph[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,EvolvableGraph > nexus.unit:384, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,EvolvableGraph > nexus.unit:385, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EvolvableGraph > nexus.unit:384, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,EvolvableGraph > nexus.unit:385, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4651,7 +4704,7 @@ func (me KpEvolvableGraph) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for EvolvableGraph %s,%s > nexus.unit:384, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for EvolvableGraph %s,%s > nexus.unit:385, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4710,17 +4763,17 @@ func (me KpProvenance) GetVar(glob *GlobT, va []string, lno string) (bool, strin
 			return( glob.Dats.ApProject[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:397, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:398, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApProvenance[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Provenance > nexus.unit:397, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Provenance > nexus.unit:398, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Provenance > nexus.unit:397, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Provenance > nexus.unit:398, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4735,7 +4788,7 @@ func (me KpProvenance) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Provenance %s,%s > nexus.unit:397, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Provenance %s,%s > nexus.unit:398, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4791,7 +4844,7 @@ func loadOptimizationRun(act *ActT, ln string, pos int, lno string, flag []strin
 	act.ApProject[ len( act.ApProject )-1 ].Childs = append(act.ApProject[ len( act.ApProject )-1 ].Childs, st)
 	act.ApProject[ len( act.ApProject )-1 ].ItsOptimizationRun = append(act.ApProject[ len( act.ApProject )-1 ].ItsOptimizationRun, st)	// nexus.unit:12, g_structh.act:403
 	name,_ := st.Names["run_id"]
-	s := strconv.Itoa(st.Kparentp) + "_OptimizationRun_" + name	// nexus.unit:412, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_OptimizationRun_" + name	// nexus.unit:413, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApOptimizationRun = append(act.ApOptimizationRun, st)
@@ -4799,17 +4852,17 @@ func loadOptimizationRun(act *ActT, ln string, pos int, lno string, flag []strin
 }
 
 func (me KpOptimizationRun) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "project_ref" { // nexus.unit:420, g_structh.act:609
+	if va[0] == "project_ref" { // nexus.unit:421, g_structh.act:609
 		if (me.Kproject_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApProject[ me.Kproject_refp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "strategy_ref" { // nexus.unit:421, g_structh.act:609
+	if va[0] == "strategy_ref" { // nexus.unit:422, g_structh.act:609
 		if (me.Kstrategy_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOptimizationStrategy[ me.Kstrategy_refp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "best_checkpoint" { // nexus.unit:422, g_structh.act:609
+	if va[0] == "best_checkpoint" { // nexus.unit:423, g_structh.act:609
 		if (me.Kbest_checkpointp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApCheckpoint[ me.Kbest_checkpointp ].GetVar(glob, va[1:], lno) )
 		}
@@ -4819,17 +4872,17 @@ func (me KpOptimizationRun) GetVar(glob *GlobT, va []string, lno string) (bool, 
 			return( glob.Dats.ApProject[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:408, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:409, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApOptimizationRun[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,OptimizationRun > nexus.unit:408, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,OptimizationRun > nexus.unit:409, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,OptimizationRun > nexus.unit:408, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,OptimizationRun > nexus.unit:409, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4874,7 +4927,7 @@ func (me KpOptimizationRun) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for OptimizationRun %s,%s > nexus.unit:408, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for OptimizationRun %s,%s > nexus.unit:409, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -4924,7 +4977,7 @@ func loadValidation(act *ActT, ln string, pos int, lno string, flag []string, na
 	act.ApProject[ len( act.ApProject )-1 ].Childs = append(act.ApProject[ len( act.ApProject )-1 ].Childs, st)
 	act.ApProject[ len( act.ApProject )-1 ].ItsValidation = append(act.ApProject[ len( act.ApProject )-1 ].ItsValidation, st)	// nexus.unit:12, g_structh.act:403
 	name,_ := st.Names["rule"]
-	s := strconv.Itoa(st.Kparentp) + "_Validation_" + name	// nexus.unit:428, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_Validation_" + name	// nexus.unit:429, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApValidation = append(act.ApValidation, st)
@@ -4937,17 +4990,17 @@ func (me KpValidation) GetVar(glob *GlobT, va []string, lno string) (bool, strin
 			return( glob.Dats.ApProject[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:424, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:425, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApValidation[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Validation > nexus.unit:424, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Validation > nexus.unit:425, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Validation > nexus.unit:424, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Validation > nexus.unit:425, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -4962,7 +5015,7 @@ func (me KpValidation) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Validation %s,%s > nexus.unit:424, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Validation %s,%s > nexus.unit:425, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5012,7 +5065,7 @@ func loadGenotype(act *ActT, ln string, pos int, lno string, flag []string, name
 	act.ApProject[ len( act.ApProject )-1 ].Childs = append(act.ApProject[ len( act.ApProject )-1 ].Childs, st)
 	act.ApProject[ len( act.ApProject )-1 ].ItsGenotype = append(act.ApProject[ len( act.ApProject )-1 ].ItsGenotype, st)	// nexus.unit:12, g_structh.act:403
 	name,_ := st.Names["genome_id"]
-	s := strconv.Itoa(st.Kparentp) + "_Genotype_" + name	// nexus.unit:439, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_Genotype_" + name	// nexus.unit:440, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApGenotype = append(act.ApGenotype, st)
@@ -5025,24 +5078,24 @@ func (me KpGenotype) GetVar(glob *GlobT, va []string, lno string) (bool, string)
 			return( glob.Dats.ApProject[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if (va[0] == "Phenotype_genome_source" && len(va) > 1) { // nexus.unit:456, g_structh.act:698
+	if (va[0] == "Phenotype_genome_source" && len(va) > 1) { // nexus.unit:457, g_structh.act:698
 		for _, st := range glob.Dats.ApPhenotype {
 			if (st.Kgenome_sourcep == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:435, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:436, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApGenotype[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Genotype > nexus.unit:435, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Genotype > nexus.unit:436, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Genotype > nexus.unit:435, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Genotype > nexus.unit:436, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -5057,7 +5110,7 @@ func (me KpGenotype) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Phenotype_genome_source") { // nexus.unit:456, g_structh.act:583
+	if (va[0] == "Phenotype_genome_source") { // nexus.unit:457, g_structh.act:583
 		for _, st := range glob.Dats.ApPhenotype {
 			if (st.Kgenome_sourcep == me.Me) {
 				if len(va) > 1 {
@@ -5075,7 +5128,7 @@ func (me KpGenotype) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Genotype %s,%s > nexus.unit:435, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Genotype %s,%s > nexus.unit:436, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5129,7 +5182,7 @@ func loadPhenotype(act *ActT, ln string, pos int, lno string, flag []string, nam
 	act.ApProject[ len( act.ApProject )-1 ].Childs = append(act.ApProject[ len( act.ApProject )-1 ].Childs, st)
 	act.ApProject[ len( act.ApProject )-1 ].ItsPhenotype = append(act.ApProject[ len( act.ApProject )-1 ].ItsPhenotype, st)	// nexus.unit:12, g_structh.act:403
 	name,_ := st.Names["phenotype_id"]
-	s := strconv.Itoa(st.Kparentp) + "_Phenotype_" + name	// nexus.unit:450, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_Phenotype_" + name	// nexus.unit:451, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApPhenotype = append(act.ApPhenotype, st)
@@ -5137,12 +5190,12 @@ func loadPhenotype(act *ActT, ln string, pos int, lno string, flag []string, nam
 }
 
 func (me KpPhenotype) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "realized_graph" { // nexus.unit:455, g_structh.act:609
+	if va[0] == "realized_graph" { // nexus.unit:456, g_structh.act:609
 		if (me.Krealized_graphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Krealized_graphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "genome_source" { // nexus.unit:456, g_structh.act:609
+	if va[0] == "genome_source" { // nexus.unit:457, g_structh.act:609
 		if (me.Kgenome_sourcep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApGenotype[ me.Kgenome_sourcep ].GetVar(glob, va[1:], lno) )
 		}
@@ -5152,17 +5205,17 @@ func (me KpPhenotype) GetVar(glob *GlobT, va []string, lno string) (bool, string
 			return( glob.Dats.ApProject[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:446, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:447, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPhenotype[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Phenotype > nexus.unit:446, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Phenotype > nexus.unit:447, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Phenotype > nexus.unit:446, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Phenotype > nexus.unit:447, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -5197,7 +5250,7 @@ func (me KpPhenotype) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Phenotype %s,%s > nexus.unit:446, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Phenotype %s,%s > nexus.unit:447, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5264,36 +5317,43 @@ func (me KpHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string)
 			}
 		}
 	}
-	if (va[0] == "Kernel_hardware_target" && len(va) > 1) { // nexus.unit:597, g_structh.act:698
+	if (va[0] == "AnalogOp_hardware" && len(va) > 1) { // nexus.unit:144, g_structh.act:698
+		for _, st := range glob.Dats.ApAnalogOp {
+			if (st.Khardwarep == me.Me) {
+				return (st.GetVar(glob, va[1:], lno) )
+			}
+		}
+	}
+	if (va[0] == "Kernel_hardware_target" && len(va) > 1) { // nexus.unit:598, g_structh.act:698
 		for _, st := range glob.Dats.ApKernel {
 			if (st.Khardware_targetp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "FusionHardwareTarget_hardware" && len(va) > 1) { // nexus.unit:615, g_structh.act:698
+	if (va[0] == "FusionHardwareTarget_hardware" && len(va) > 1) { // nexus.unit:616, g_structh.act:698
 		for _, st := range glob.Dats.ApFusionHardwareTarget {
 			if (st.Khardwarep == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:462, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:463, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Hardware > nexus.unit:462, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Hardware > nexus.unit:463, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Hardware > nexus.unit:462, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Hardware > nexus.unit:463, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "PhysicsModel" { // nexus.unit:473, g_structh.act:676
+	if va[0] == "PhysicsModel" { // nexus.unit:474, g_structh.act:676
 		for _, st := range me.ItsPhysicsModel {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5309,7 +5369,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "ClassicalHardware" { // nexus.unit:486, g_structh.act:676
+	if va[0] == "ClassicalHardware" { // nexus.unit:487, g_structh.act:676
 		for _, st := range me.ItsClassicalHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5325,7 +5385,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "NeuromorphicHardware" { // nexus.unit:497, g_structh.act:676
+	if va[0] == "NeuromorphicHardware" { // nexus.unit:498, g_structh.act:676
 		for _, st := range me.ItsNeuromorphicHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5341,7 +5401,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "AnalogHardware" { // nexus.unit:509, g_structh.act:676
+	if va[0] == "AnalogHardware" { // nexus.unit:510, g_structh.act:676
 		for _, st := range me.ItsAnalogHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5357,7 +5417,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "QuantumHardware" { // nexus.unit:522, g_structh.act:676
+	if va[0] == "QuantumHardware" { // nexus.unit:523, g_structh.act:676
 		for _, st := range me.ItsQuantumHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5373,7 +5433,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "PhotonicHardware" { // nexus.unit:536, g_structh.act:676
+	if va[0] == "PhotonicHardware" { // nexus.unit:537, g_structh.act:676
 		for _, st := range me.ItsPhotonicHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5389,7 +5449,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "MolecularHardware" { // nexus.unit:549, g_structh.act:676
+	if va[0] == "MolecularHardware" { // nexus.unit:550, g_structh.act:676
 		for _, st := range me.ItsMolecularHardware {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5405,7 +5465,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "PowerDomain" { // nexus.unit:561, g_structh.act:676
+	if va[0] == "PowerDomain" { // nexus.unit:562, g_structh.act:676
 		for _, st := range me.ItsPowerDomain {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5421,7 +5481,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "SpatialArray" { // nexus.unit:571, g_structh.act:676
+	if va[0] == "SpatialArray" { // nexus.unit:572, g_structh.act:676
 		for _, st := range me.ItsSpatialArray {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -5473,7 +5533,25 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Kernel_hardware_target") { // nexus.unit:597, g_structh.act:583
+	if (va[0] == "AnalogOp_hardware") { // nexus.unit:144, g_structh.act:583
+		for _, st := range glob.Dats.ApAnalogOp {
+			if (st.Khardwarep == me.Me) {
+				if len(va) > 1 {
+					ret := st.DoIts(glob, va[1:], lno)
+					if (ret != 0) {
+						return(ret)
+					}
+					continue
+				}
+				ret := GoAct(glob, st)
+				if (ret != 0) {
+					return(ret)
+				}
+			}
+		}
+		return(0)
+	}
+	if (va[0] == "Kernel_hardware_target") { // nexus.unit:598, g_structh.act:583
 		for _, st := range glob.Dats.ApKernel {
 			if (st.Khardware_targetp == me.Me) {
 				if len(va) > 1 {
@@ -5491,7 +5569,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "FusionHardwareTarget_hardware") { // nexus.unit:615, g_structh.act:583
+	if (va[0] == "FusionHardwareTarget_hardware") { // nexus.unit:616, g_structh.act:583
 		for _, st := range glob.Dats.ApFusionHardwareTarget {
 			if (st.Khardwarep == me.Me) {
 				if len(va) > 1 {
@@ -5509,7 +5587,7 @@ func (me KpHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Hardware %s,%s > nexus.unit:462, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Hardware %s,%s > nexus.unit:463, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5557,9 +5635,9 @@ func loadPhysicsModel(act *ActT, ln string, pos int, lno string, flag []string, 
 		print(lno + " PhysicsModel under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsPhysicsModel = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPhysicsModel, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsPhysicsModel = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPhysicsModel, st)	// nexus.unit:463, g_structh.act:403
 	name,_ := st.Names["model_id"]
-	s := strconv.Itoa(st.Kparentp) + "_PhysicsModel_" + name	// nexus.unit:477, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_PhysicsModel_" + name	// nexus.unit:478, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApPhysicsModel = append(act.ApPhysicsModel, st)
@@ -5567,27 +5645,27 @@ func loadPhysicsModel(act *ActT, ln string, pos int, lno string, flag []string, 
 }
 
 func (me KpPhysicsModel) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:473, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:474, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPhysicsModel[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,PhysicsModel > nexus.unit:473, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,PhysicsModel > nexus.unit:474, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhysicsModel > nexus.unit:473, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhysicsModel > nexus.unit:474, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpPhysicsModel) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -5597,7 +5675,7 @@ func (me KpPhysicsModel) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for PhysicsModel %s,%s > nexus.unit:473, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for PhysicsModel %s,%s > nexus.unit:474, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5645,33 +5723,33 @@ func loadClassicalHardware(act *ActT, ln string, pos int, lno string, flag []str
 		print(lno + " ClassicalHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsClassicalHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsClassicalHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsClassicalHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsClassicalHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApClassicalHardware = append(act.ApClassicalHardware, st)
 	return 0
 }
 
 func (me KpClassicalHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:486, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:487, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApClassicalHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,ClassicalHardware > nexus.unit:486, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,ClassicalHardware > nexus.unit:487, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ClassicalHardware > nexus.unit:486, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ClassicalHardware > nexus.unit:487, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpClassicalHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -5681,7 +5759,7 @@ func (me KpClassicalHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for ClassicalHardware %s,%s > nexus.unit:486, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for ClassicalHardware %s,%s > nexus.unit:487, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5729,33 +5807,33 @@ func loadNeuromorphicHardware(act *ActT, ln string, pos int, lno string, flag []
 		print(lno + " NeuromorphicHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsNeuromorphicHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsNeuromorphicHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsNeuromorphicHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsNeuromorphicHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApNeuromorphicHardware = append(act.ApNeuromorphicHardware, st)
 	return 0
 }
 
 func (me KpNeuromorphicHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:497, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:498, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApNeuromorphicHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,NeuromorphicHardware > nexus.unit:497, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,NeuromorphicHardware > nexus.unit:498, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,NeuromorphicHardware > nexus.unit:497, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,NeuromorphicHardware > nexus.unit:498, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpNeuromorphicHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -5765,7 +5843,7 @@ func (me KpNeuromorphicHardware) DoIts(glob *GlobT, va []string, lno string) int
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for NeuromorphicHardware %s,%s > nexus.unit:497, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for NeuromorphicHardware %s,%s > nexus.unit:498, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5813,40 +5891,33 @@ func loadAnalogHardware(act *ActT, ln string, pos int, lno string, flag []string
 		print(lno + " AnalogHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsAnalogHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsAnalogHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsAnalogHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsAnalogHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApAnalogHardware = append(act.ApAnalogHardware, st)
 	return 0
 }
 
 func (me KpAnalogHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if (va[0] == "AnalogOp_array_target" && len(va) > 1) { // nexus.unit:144, g_structh.act:698
-		for _, st := range glob.Dats.ApAnalogOp {
-			if (st.Karray_targetp == me.Me) {
-				return (st.GetVar(glob, va[1:], lno) )
-			}
-		}
-	}
-	if va[0] == "previous" { // nexus.unit:509, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:510, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApAnalogHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,AnalogHardware > nexus.unit:509, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,AnalogHardware > nexus.unit:510, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AnalogHardware > nexus.unit:509, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AnalogHardware > nexus.unit:510, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpAnalogHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -5856,7 +5927,7 @@ func (me KpAnalogHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "AnalogOp_array_target") { // nexus.unit:144, g_structh.act:583
+	if (va[0] == "AnalogOp_array_target") { // nexus.unit:145, g_structh.act:583
 		for _, st := range glob.Dats.ApAnalogOp {
 			if (st.Karray_targetp == me.Me) {
 				if len(va) > 1 {
@@ -5874,7 +5945,7 @@ func (me KpAnalogHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for AnalogHardware %s,%s > nexus.unit:509, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for AnalogHardware %s,%s > nexus.unit:510, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -5922,33 +5993,33 @@ func loadQuantumHardware(act *ActT, ln string, pos int, lno string, flag []strin
 		print(lno + " QuantumHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsQuantumHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsQuantumHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsQuantumHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsQuantumHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApQuantumHardware = append(act.ApQuantumHardware, st)
 	return 0
 }
 
 func (me KpQuantumHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:522, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:523, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumHardware > nexus.unit:522, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumHardware > nexus.unit:523, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumHardware > nexus.unit:522, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumHardware > nexus.unit:523, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpQuantumHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -5958,7 +6029,7 @@ func (me KpQuantumHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for QuantumHardware %s,%s > nexus.unit:522, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for QuantumHardware %s,%s > nexus.unit:523, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6006,33 +6077,33 @@ func loadPhotonicHardware(act *ActT, ln string, pos int, lno string, flag []stri
 		print(lno + " PhotonicHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsPhotonicHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPhotonicHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsPhotonicHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPhotonicHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApPhotonicHardware = append(act.ApPhotonicHardware, st)
 	return 0
 }
 
 func (me KpPhotonicHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:536, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:537, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPhotonicHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,PhotonicHardware > nexus.unit:536, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,PhotonicHardware > nexus.unit:537, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhotonicHardware > nexus.unit:536, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PhotonicHardware > nexus.unit:537, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpPhotonicHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6042,7 +6113,7 @@ func (me KpPhotonicHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for PhotonicHardware %s,%s > nexus.unit:536, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for PhotonicHardware %s,%s > nexus.unit:537, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6090,33 +6161,33 @@ func loadMolecularHardware(act *ActT, ln string, pos int, lno string, flag []str
 		print(lno + " MolecularHardware under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsMolecularHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsMolecularHardware, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsMolecularHardware = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsMolecularHardware, st)	// nexus.unit:463, g_structh.act:403
 	act.ApMolecularHardware = append(act.ApMolecularHardware, st)
 	return 0
 }
 
 func (me KpMolecularHardware) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:549, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:550, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApMolecularHardware[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,MolecularHardware > nexus.unit:549, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,MolecularHardware > nexus.unit:550, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,MolecularHardware > nexus.unit:549, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,MolecularHardware > nexus.unit:550, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpMolecularHardware) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6126,7 +6197,7 @@ func (me KpMolecularHardware) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for MolecularHardware %s,%s > nexus.unit:549, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for MolecularHardware %s,%s > nexus.unit:550, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6174,9 +6245,9 @@ func loadPowerDomain(act *ActT, ln string, pos int, lno string, flag []string, n
 		print(lno + " PowerDomain under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsPowerDomain = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPowerDomain, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsPowerDomain = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsPowerDomain, st)	// nexus.unit:463, g_structh.act:403
 	name,_ := st.Names["domain_id"]
-	s := strconv.Itoa(st.Kparentp) + "_PowerDomain_" + name	// nexus.unit:565, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_PowerDomain_" + name	// nexus.unit:566, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApPowerDomain = append(act.ApPowerDomain, st)
@@ -6184,27 +6255,27 @@ func loadPowerDomain(act *ActT, ln string, pos int, lno string, flag []string, n
 }
 
 func (me KpPowerDomain) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:561, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:562, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApPowerDomain[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,PowerDomain > nexus.unit:561, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,PowerDomain > nexus.unit:562, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PowerDomain > nexus.unit:561, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,PowerDomain > nexus.unit:562, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpPowerDomain) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6214,7 +6285,7 @@ func (me KpPowerDomain) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for PowerDomain %s,%s > nexus.unit:561, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for PowerDomain %s,%s > nexus.unit:562, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6262,9 +6333,9 @@ func loadSpatialArray(act *ActT, ln string, pos int, lno string, flag []string, 
 		print(lno + " SpatialArray under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApHardware[ len( act.ApHardware )-1 ].Childs = append(act.ApHardware[ len( act.ApHardware )-1 ].Childs, st)
-	act.ApHardware[ len( act.ApHardware )-1 ].ItsSpatialArray = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsSpatialArray, st)	// nexus.unit:462, g_structh.act:403
+	act.ApHardware[ len( act.ApHardware )-1 ].ItsSpatialArray = append(act.ApHardware[ len( act.ApHardware )-1 ].ItsSpatialArray, st)	// nexus.unit:463, g_structh.act:403
 	name,_ := st.Names["array_id"]
-	s := strconv.Itoa(st.Kparentp) + "_SpatialArray_" + name	// nexus.unit:575, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_SpatialArray_" + name	// nexus.unit:576, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApSpatialArray = append(act.ApSpatialArray, st)
@@ -6272,27 +6343,27 @@ func loadSpatialArray(act *ActT, ln string, pos int, lno string, flag []string, 
 }
 
 func (me KpSpatialArray) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:462, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:463, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:571, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:572, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSpatialArray[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SpatialArray > nexus.unit:571, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SpatialArray > nexus.unit:572, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SpatialArray > nexus.unit:571, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SpatialArray > nexus.unit:572, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSpatialArray) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:462, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:463, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApHardware[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6302,7 +6373,7 @@ func (me KpSpatialArray) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SpatialArray %s,%s > nexus.unit:571, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SpatialArray %s,%s > nexus.unit:572, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6349,12 +6420,12 @@ func loadKernel(act *ActT, ln string, pos int, lno string, flag []string, names 
 }
 
 func (me KpKernel) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "hardware_target" { // nexus.unit:597, g_structh.act:609
+	if va[0] == "hardware_target" { // nexus.unit:598, g_structh.act:609
 		if (me.Khardware_targetp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Khardware_targetp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "fusion_source" { // nexus.unit:598, g_structh.act:609
+	if va[0] == "fusion_source" { // nexus.unit:599, g_structh.act:609
 		if (me.Kfusion_sourcep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionPattern[ me.Kfusion_sourcep ].GetVar(glob, va[1:], lno) )
 		}
@@ -6366,24 +6437,24 @@ func (me KpKernel) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
 			}
 		}
 	}
-	if (va[0] == "FusionPattern_fused_kernel_ref" && len(va) > 1) { // nexus.unit:609, g_structh.act:698
+	if (va[0] == "FusionPattern_fused_kernel_ref" && len(va) > 1) { // nexus.unit:610, g_structh.act:698
 		for _, st := range glob.Dats.ApFusionPattern {
 			if (st.Kfused_kernel_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:585, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:586, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApKernel[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Kernel > nexus.unit:585, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Kernel > nexus.unit:586, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Kernel > nexus.unit:585, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Kernel > nexus.unit:586, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -6426,7 +6497,7 @@ func (me KpKernel) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "FusionPattern_fused_kernel_ref") { // nexus.unit:609, g_structh.act:583
+	if (va[0] == "FusionPattern_fused_kernel_ref") { // nexus.unit:610, g_structh.act:583
 		for _, st := range glob.Dats.ApFusionPattern {
 			if (st.Kfused_kernel_refp == me.Me) {
 				if len(va) > 1 {
@@ -6444,7 +6515,7 @@ func (me KpKernel) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Kernel %s,%s > nexus.unit:585, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Kernel %s,%s > nexus.unit:586, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6492,7 +6563,7 @@ func loadFusionPattern(act *ActT, ln string, pos int, lno string, flag []string,
 }
 
 func (me KpFusionPattern) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "fused_kernel_ref" { // nexus.unit:609, g_structh.act:609
+	if va[0] == "fused_kernel_ref" { // nexus.unit:610, g_structh.act:609
 		if (me.Kfused_kernel_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApKernel[ me.Kfused_kernel_refp ].GetVar(glob, va[1:], lno) )
 		}
@@ -6504,29 +6575,29 @@ func (me KpFusionPattern) GetVar(glob *GlobT, va []string, lno string) (bool, st
 			}
 		}
 	}
-	if (va[0] == "Kernel_fusion_source" && len(va) > 1) { // nexus.unit:598, g_structh.act:698
+	if (va[0] == "Kernel_fusion_source" && len(va) > 1) { // nexus.unit:599, g_structh.act:698
 		for _, st := range glob.Dats.ApKernel {
 			if (st.Kfusion_sourcep == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:600, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:601, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionPattern[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FusionPattern > nexus.unit:600, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FusionPattern > nexus.unit:601, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionPattern > nexus.unit:600, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionPattern > nexus.unit:601, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFusionPattern) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "FusionHardwareTarget" { // nexus.unit:611, g_structh.act:676
+	if va[0] == "FusionHardwareTarget" { // nexus.unit:612, g_structh.act:676
 		for _, st := range me.ItsFusionHardwareTarget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -6542,7 +6613,7 @@ func (me KpFusionPattern) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "FusionOpTarget" { // nexus.unit:619, g_structh.act:676
+	if va[0] == "FusionOpTarget" { // nexus.unit:620, g_structh.act:676
 		for _, st := range me.ItsFusionOpTarget {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -6586,7 +6657,7 @@ func (me KpFusionPattern) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "Kernel_fusion_source") { // nexus.unit:598, g_structh.act:583
+	if (va[0] == "Kernel_fusion_source") { // nexus.unit:599, g_structh.act:583
 		for _, st := range glob.Dats.ApKernel {
 			if (st.Kfusion_sourcep == me.Me) {
 				if len(va) > 1 {
@@ -6604,7 +6675,7 @@ func (me KpFusionPattern) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FusionPattern %s,%s > nexus.unit:600, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FusionPattern %s,%s > nexus.unit:601, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6654,38 +6725,38 @@ func loadFusionHardwareTarget(act *ActT, ln string, pos int, lno string, flag []
 		print(lno + " FusionHardwareTarget under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].Childs = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].Childs, st)
-	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionHardwareTarget = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionHardwareTarget, st)	// nexus.unit:600, g_structh.act:403
+	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionHardwareTarget = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionHardwareTarget, st)	// nexus.unit:601, g_structh.act:403
 	act.ApFusionHardwareTarget = append(act.ApFusionHardwareTarget, st)
 	return 0
 }
 
 func (me KpFusionHardwareTarget) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "hardware" { // nexus.unit:615, g_structh.act:609
+	if va[0] == "hardware" { // nexus.unit:616, g_structh.act:609
 		if (me.Khardwarep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApHardware[ me.Khardwarep ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:600, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:601, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionPattern[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:611, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:612, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionHardwareTarget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FusionHardwareTarget > nexus.unit:611, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FusionHardwareTarget > nexus.unit:612, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionHardwareTarget > nexus.unit:611, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionHardwareTarget > nexus.unit:612, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFusionHardwareTarget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:600, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:601, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApFusionPattern[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6705,7 +6776,7 @@ func (me KpFusionHardwareTarget) DoIts(glob *GlobT, va []string, lno string) int
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FusionHardwareTarget %s,%s > nexus.unit:611, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FusionHardwareTarget %s,%s > nexus.unit:612, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6753,9 +6824,9 @@ func loadFusionOpTarget(act *ActT, ln string, pos int, lno string, flag []string
 		print(lno + " FusionOpTarget under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].Childs = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].Childs, st)
-	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionOpTarget = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionOpTarget, st)	// nexus.unit:600, g_structh.act:403
+	act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionOpTarget = append(act.ApFusionPattern[ len( act.ApFusionPattern )-1 ].ItsFusionOpTarget, st)	// nexus.unit:601, g_structh.act:403
 	name,_ := st.Names["op_type"]
-	s := strconv.Itoa(st.Kparentp) + "_FusionOpTarget_" + name	// nexus.unit:623, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_FusionOpTarget_" + name	// nexus.unit:624, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApFusionOpTarget = append(act.ApFusionOpTarget, st)
@@ -6763,27 +6834,27 @@ func loadFusionOpTarget(act *ActT, ln string, pos int, lno string, flag []string
 }
 
 func (me KpFusionOpTarget) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:600, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:601, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionPattern[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:619, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:620, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionOpTarget[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FusionOpTarget > nexus.unit:619, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FusionOpTarget > nexus.unit:620, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionOpTarget > nexus.unit:619, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionOpTarget > nexus.unit:620, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFusionOpTarget) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:600, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:601, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApFusionPattern[ me.Kparentp ]
 			if len(va) > 1 {
@@ -6793,7 +6864,7 @@ func (me KpFusionOpTarget) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FusionOpTarget %s,%s > nexus.unit:619, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FusionOpTarget %s,%s > nexus.unit:620, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6836,22 +6907,22 @@ func loadDataFormatConverter(act *ActT, ln string, pos int, lno string, flag []s
 }
 
 func (me KpDataFormatConverter) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:632, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:633, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApDataFormatConverter[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,DataFormatConverter > nexus.unit:632, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,DataFormatConverter > nexus.unit:633, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DataFormatConverter > nexus.unit:632, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DataFormatConverter > nexus.unit:633, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpDataFormatConverter) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for DataFormatConverter %s,%s > nexus.unit:632, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for DataFormatConverter %s,%s > nexus.unit:633, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -6904,56 +6975,56 @@ func loadOptimizationStrategy(act *ActT, ln string, pos int, lno string, flag []
 }
 
 func (me KpOptimizationStrategy) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "project_ref" { // nexus.unit:659, g_structh.act:609
+	if va[0] == "project_ref" { // nexus.unit:660, g_structh.act:609
 		if (me.Kproject_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApProject[ me.Kproject_refp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "target_graph" { // nexus.unit:660, g_structh.act:609
+	if va[0] == "target_graph" { // nexus.unit:661, g_structh.act:609
 		if (me.Ktarget_graphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Ktarget_graphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "search_space" { // nexus.unit:661, g_structh.act:609
+	if va[0] == "search_space" { // nexus.unit:662, g_structh.act:609
 		if (me.Ksearch_spacep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSearchSpace[ me.Ksearch_spacep ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "strategy" { // nexus.unit:662, g_structh.act:609
+	if va[0] == "strategy" { // nexus.unit:663, g_structh.act:609
 		if (me.Kstrategyp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOptimizationStrategy[ me.Kstrategyp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "OptimizationRun_strategy_ref" && len(va) > 1) { // nexus.unit:421, g_structh.act:698
+	if (va[0] == "OptimizationRun_strategy_ref" && len(va) > 1) { // nexus.unit:422, g_structh.act:698
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kstrategy_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "OptimizationStrategy_strategy" && len(va) > 1) { // nexus.unit:662, g_structh.act:698
+	if (va[0] == "OptimizationStrategy_strategy" && len(va) > 1) { // nexus.unit:663, g_structh.act:698
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Kstrategyp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:648, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:649, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApOptimizationStrategy[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,OptimizationStrategy > nexus.unit:648, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,OptimizationStrategy > nexus.unit:649, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,OptimizationStrategy > nexus.unit:648, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,OptimizationStrategy > nexus.unit:649, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpOptimizationStrategy) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "FitnessFunction" { // nexus.unit:665, g_structh.act:676
+	if va[0] == "FitnessFunction" { // nexus.unit:666, g_structh.act:676
 		for _, st := range me.ItsFitnessFunction {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -7009,7 +7080,7 @@ func (me KpOptimizationStrategy) DoIts(glob *GlobT, va []string, lno string) int
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationRun_strategy_ref") { // nexus.unit:421, g_structh.act:583
+	if (va[0] == "OptimizationRun_strategy_ref") { // nexus.unit:422, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kstrategy_refp == me.Me) {
 				if len(va) > 1 {
@@ -7027,7 +7098,7 @@ func (me KpOptimizationStrategy) DoIts(glob *GlobT, va []string, lno string) int
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationStrategy_strategy") { // nexus.unit:662, g_structh.act:583
+	if (va[0] == "OptimizationStrategy_strategy") { // nexus.unit:663, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationStrategy {
 			if (st.Kstrategyp == me.Me) {
 				if len(va) > 1 {
@@ -7045,7 +7116,7 @@ func (me KpOptimizationStrategy) DoIts(glob *GlobT, va []string, lno string) int
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for OptimizationStrategy %s,%s > nexus.unit:648, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for OptimizationStrategy %s,%s > nexus.unit:649, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7095,9 +7166,9 @@ func loadFitnessFunction(act *ActT, ln string, pos int, lno string, flag []strin
 		print(lno + " FitnessFunction under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].Childs = append(act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].Childs, st)
-	act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].ItsFitnessFunction = append(act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].ItsFitnessFunction, st)	// nexus.unit:648, g_structh.act:403
+	act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].ItsFitnessFunction = append(act.ApOptimizationStrategy[ len( act.ApOptimizationStrategy )-1 ].ItsFitnessFunction, st)	// nexus.unit:649, g_structh.act:403
 	name,_ := st.Names["fitness_fn"]
-	s := strconv.Itoa(st.Kparentp) + "_FitnessFunction_" + name	// nexus.unit:669, g_structh.act:450
+	s := strconv.Itoa(st.Kparentp) + "_FitnessFunction_" + name	// nexus.unit:670, g_structh.act:450
 	act.index[s] = st.Me;
 	st.MyName = name
 	act.ApFitnessFunction = append(act.ApFitnessFunction, st)
@@ -7105,27 +7176,27 @@ func loadFitnessFunction(act *ActT, ln string, pos int, lno string, flag []strin
 }
 
 func (me KpFitnessFunction) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:648, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:649, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOptimizationStrategy[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:665, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:666, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFitnessFunction[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FitnessFunction > nexus.unit:665, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FitnessFunction > nexus.unit:666, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FitnessFunction > nexus.unit:665, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FitnessFunction > nexus.unit:666, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFitnessFunction) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "FitnessComponent" { // nexus.unit:674, g_structh.act:676
+	if va[0] == "FitnessComponent" { // nexus.unit:675, g_structh.act:676
 		for _, st := range me.ItsFitnessComponent {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -7141,7 +7212,7 @@ func (me KpFitnessFunction) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "parent" { // nexus.unit:648, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:649, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApOptimizationStrategy[ me.Kparentp ]
 			if len(va) > 1 {
@@ -7151,7 +7222,7 @@ func (me KpFitnessFunction) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FitnessFunction %s,%s > nexus.unit:665, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FitnessFunction %s,%s > nexus.unit:666, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7201,38 +7272,38 @@ func loadFitnessComponent(act *ActT, ln string, pos int, lno string, flag []stri
 		print(lno + " FitnessComponent under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].Childs = append(act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].Childs, st)
-	act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].ItsFitnessComponent = append(act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].ItsFitnessComponent, st)	// nexus.unit:665, g_structh.act:403
+	act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].ItsFitnessComponent = append(act.ApFitnessFunction[ len( act.ApFitnessFunction )-1 ].ItsFitnessComponent, st)	// nexus.unit:666, g_structh.act:403
 	act.ApFitnessComponent = append(act.ApFitnessComponent, st)
 	return 0
 }
 
 func (me KpFitnessComponent) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "metric" { // nexus.unit:678, g_structh.act:609
+	if va[0] == "metric" { // nexus.unit:679, g_structh.act:609
 		if (me.Kmetricp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMetric[ me.Kmetricp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:665, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:666, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApFitnessFunction[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:674, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:675, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFitnessComponent[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FitnessComponent > nexus.unit:674, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FitnessComponent > nexus.unit:675, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FitnessComponent > nexus.unit:674, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FitnessComponent > nexus.unit:675, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFitnessComponent) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:665, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:666, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApFitnessFunction[ me.Kparentp ]
 			if len(va) > 1 {
@@ -7252,7 +7323,7 @@ func (me KpFitnessComponent) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FitnessComponent %s,%s > nexus.unit:674, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FitnessComponent %s,%s > nexus.unit:675, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7295,22 +7366,29 @@ func loadFaultModel(act *ActT, ln string, pos int, lno string, flag []string, na
 }
 
 func (me KpFaultModel) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:688, g_structh.act:176
+	if (va[0] == "Simulator_fault_models" && len(va) > 1) { // nexus.unit:720, g_structh.act:698
+		for _, st := range glob.Dats.ApSimulator {
+			if (st.Kfault_modelsp == me.Me) {
+				return (st.GetVar(glob, va[1:], lno) )
+			}
+		}
+	}
+	if va[0] == "previous" { // nexus.unit:689, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFaultModel[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FaultModel > nexus.unit:688, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FaultModel > nexus.unit:689, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FaultModel > nexus.unit:688, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FaultModel > nexus.unit:689, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFaultModel) DoIts(glob *GlobT, va []string, lno string) int {
-	if (va[0] == "Simulator_fault_models") { // nexus.unit:719, g_structh.act:583
+	if (va[0] == "Simulator_fault_models") { // nexus.unit:720, g_structh.act:583
 		for _, st := range glob.Dats.ApSimulator {
 			if (st.Kfault_modelsp == me.Me) {
 				if len(va) > 1 {
@@ -7328,7 +7406,7 @@ func (me KpFaultModel) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for FaultModel %s,%s > nexus.unit:688, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FaultModel %s,%s > nexus.unit:689, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7381,37 +7459,37 @@ func loadSimulator(act *ActT, ln string, pos int, lno string, flag []string, nam
 }
 
 func (me KpSimulator) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "project_ref" { // nexus.unit:717, g_structh.act:609
+	if va[0] == "project_ref" { // nexus.unit:718, g_structh.act:609
 		if (me.Kproject_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApProject[ me.Kproject_refp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "target_graph" { // nexus.unit:718, g_structh.act:609
+	if va[0] == "target_graph" { // nexus.unit:719, g_structh.act:609
 		if (me.Ktarget_graphp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Ktarget_graphp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "fault_models" { // nexus.unit:719, g_structh.act:609
+	if va[0] == "fault_models" { // nexus.unit:720, g_structh.act:609
 		if (me.Kfault_modelsp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApFaultModel[ me.Kfault_modelsp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:705, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:706, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSimulator[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Simulator > nexus.unit:705, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Simulator > nexus.unit:706, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Simulator > nexus.unit:705, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Simulator > nexus.unit:706, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSimulator) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "SimulationLevel" { // nexus.unit:721, g_structh.act:676
+	if va[0] == "SimulationLevel" { // nexus.unit:722, g_structh.act:676
 		for _, st := range me.ItsSimulationLevel {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -7427,7 +7505,7 @@ func (me KpSimulator) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "AdaptiveFidelity" { // nexus.unit:733, g_structh.act:676
+	if va[0] == "AdaptiveFidelity" { // nexus.unit:736, g_structh.act:676
 		for _, st := range me.ItsAdaptiveFidelity {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -7443,7 +7521,7 @@ func (me KpSimulator) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if va[0] == "DeterminismConstraint" { // nexus.unit:741, g_structh.act:676
+	if va[0] == "DeterminismConstraint" { // nexus.unit:744, g_structh.act:676
 		for _, st := range me.ItsDeterminismConstraint {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -7489,7 +7567,7 @@ func (me KpSimulator) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Simulator %s,%s > nexus.unit:705, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Simulator %s,%s > nexus.unit:706, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7504,6 +7582,8 @@ type KpSimulationLevel struct {
 	Flags [] string
 	Names map[string]string
 	Kparentp int
+	Kprojectp int
+	Ksim_graphp int
 	Ktarget_componentp int
 }
 
@@ -7526,6 +7606,8 @@ func loadSimulationLevel(act *ActT, ln string, pos int, lno string, flag []strin
 	st.Names["kComp"] = st.Comp
 	st.Names["kMe"] = strconv.Itoa(st.Me)
 	st.Names["_lno"] = lno
+	st.Kprojectp = -1
+	st.Ksim_graphp = -1
 	st.Ktarget_componentp = -1
 	st.Kparentp = len( act.ApSimulator ) - 1;
 	st.Names["kParentp"] = strconv.Itoa(st.Kparentp)
@@ -7539,40 +7621,70 @@ func loadSimulationLevel(act *ActT, ln string, pos int, lno string, flag []strin
 		print(lno + " SimulationLevel under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApSimulator[ len( act.ApSimulator )-1 ].Childs = append(act.ApSimulator[ len( act.ApSimulator )-1 ].Childs, st)
-	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsSimulationLevel = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsSimulationLevel, st)	// nexus.unit:705, g_structh.act:403
+	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsSimulationLevel = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsSimulationLevel, st)	// nexus.unit:706, g_structh.act:403
 	act.ApSimulationLevel = append(act.ApSimulationLevel, st)
 	return 0
 }
 
 func (me KpSimulationLevel) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "target_component" { // nexus.unit:731, g_structh.act:609
+	if va[0] == "project" { // nexus.unit:732, g_structh.act:609
+		if (me.Kprojectp >= 0 && len(va) > 1) {
+			return( glob.Dats.ApProject[ me.Kprojectp ].GetVar(glob, va[1:], lno) )
+		}
+	}
+	if va[0] == "sim_graph" { // nexus.unit:733, g_structh.act:609
+		if (me.Ksim_graphp >= 0 && len(va) > 1) {
+			return( glob.Dats.ApComputeGraph[ me.Ksim_graphp ].GetVar(glob, va[1:], lno) )
+		}
+	}
+	if va[0] == "target_component" { // nexus.unit:734, g_structh.act:609
 		if (me.Ktarget_componentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApOperation[ me.Ktarget_componentp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "parent") { // nexus.unit:705, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:706, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSimulator[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:721, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:722, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApSimulationLevel[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,SimulationLevel > nexus.unit:721, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,SimulationLevel > nexus.unit:722, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SimulationLevel > nexus.unit:721, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,SimulationLevel > nexus.unit:722, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpSimulationLevel) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:705, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:706, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApSimulator[ me.Kparentp ]
+			if len(va) > 1 {
+				return( st.DoIts(glob, va[1:], lno) )
+			}
+			return( GoAct(glob, st) )
+		}
+		return(0)
+	}
+	if va[0] == "project" {
+		if me.Kprojectp >= 0 {
+			st := glob.Dats.ApProject[ me.Kprojectp ]
+			if len(va) > 1 {
+				return( st.DoIts(glob, va[1:], lno) )
+			}
+			return( GoAct(glob, st) )
+		}
+		return(0)
+	}
+	if va[0] == "sim_graph" {
+		if me.Ksim_graphp >= 0 {
+			st := glob.Dats.ApComputeGraph[ me.Ksim_graphp ]
 			if len(va) > 1 {
 				return( st.DoIts(glob, va[1:], lno) )
 			}
@@ -7590,7 +7702,7 @@ func (me KpSimulationLevel) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for SimulationLevel %s,%s > nexus.unit:721, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for SimulationLevel %s,%s > nexus.unit:722, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7638,33 +7750,33 @@ func loadAdaptiveFidelity(act *ActT, ln string, pos int, lno string, flag []stri
 		print(lno + " AdaptiveFidelity under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApSimulator[ len( act.ApSimulator )-1 ].Childs = append(act.ApSimulator[ len( act.ApSimulator )-1 ].Childs, st)
-	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsAdaptiveFidelity = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsAdaptiveFidelity, st)	// nexus.unit:705, g_structh.act:403
+	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsAdaptiveFidelity = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsAdaptiveFidelity, st)	// nexus.unit:706, g_structh.act:403
 	act.ApAdaptiveFidelity = append(act.ApAdaptiveFidelity, st)
 	return 0
 }
 
 func (me KpAdaptiveFidelity) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:705, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:706, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSimulator[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:733, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:736, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApAdaptiveFidelity[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,AdaptiveFidelity > nexus.unit:733, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,AdaptiveFidelity > nexus.unit:736, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AdaptiveFidelity > nexus.unit:733, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,AdaptiveFidelity > nexus.unit:736, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpAdaptiveFidelity) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:705, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:706, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApSimulator[ me.Kparentp ]
 			if len(va) > 1 {
@@ -7674,7 +7786,7 @@ func (me KpAdaptiveFidelity) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for AdaptiveFidelity %s,%s > nexus.unit:733, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for AdaptiveFidelity %s,%s > nexus.unit:736, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7722,33 +7834,33 @@ func loadDeterminismConstraint(act *ActT, ln string, pos int, lno string, flag [
 		print(lno + " DeterminismConstraint under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApSimulator[ len( act.ApSimulator )-1 ].Childs = append(act.ApSimulator[ len( act.ApSimulator )-1 ].Childs, st)
-	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsDeterminismConstraint = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsDeterminismConstraint, st)	// nexus.unit:705, g_structh.act:403
+	act.ApSimulator[ len( act.ApSimulator )-1 ].ItsDeterminismConstraint = append(act.ApSimulator[ len( act.ApSimulator )-1 ].ItsDeterminismConstraint, st)	// nexus.unit:706, g_structh.act:403
 	act.ApDeterminismConstraint = append(act.ApDeterminismConstraint, st)
 	return 0
 }
 
 func (me KpDeterminismConstraint) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:705, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:706, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApSimulator[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:741, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:744, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApDeterminismConstraint[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,DeterminismConstraint > nexus.unit:741, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,DeterminismConstraint > nexus.unit:744, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DeterminismConstraint > nexus.unit:741, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DeterminismConstraint > nexus.unit:744, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpDeterminismConstraint) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:705, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:706, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApSimulator[ me.Kparentp ]
 			if len(va) > 1 {
@@ -7758,7 +7870,7 @@ func (me KpDeterminismConstraint) DoIts(glob *GlobT, va []string, lno string) in
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for DeterminismConstraint %s,%s > nexus.unit:741, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for DeterminismConstraint %s,%s > nexus.unit:744, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7801,22 +7913,22 @@ func loadConstraint(act *ActT, ln string, pos int, lno string, flag []string, na
 }
 
 func (me KpConstraint) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:754, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:757, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApConstraint[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Constraint > nexus.unit:754, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Constraint > nexus.unit:757, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Constraint > nexus.unit:754, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Constraint > nexus.unit:757, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpConstraint) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for Constraint %s,%s > nexus.unit:754, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Constraint %s,%s > nexus.unit:757, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7859,43 +7971,43 @@ func loadMetric(act *ActT, ln string, pos int, lno string, flag []string, names 
 }
 
 func (me KpMetric) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "ProfilingHook_metrics_ref" && len(va) > 1) { // nexus.unit:266, g_structh.act:698
+	if (va[0] == "ProfilingHook_metrics_ref" && len(va) > 1) { // nexus.unit:267, g_structh.act:698
 		for _, st := range glob.Dats.ApProfilingHook {
 			if (st.Kmetrics_refp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "EvolvableGraph_fitness_metric" && len(va) > 1) { // nexus.unit:395, g_structh.act:698
+	if (va[0] == "EvolvableGraph_fitness_metric" && len(va) > 1) { // nexus.unit:396, g_structh.act:698
 		for _, st := range glob.Dats.ApEvolvableGraph {
 			if (st.Kfitness_metricp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "FitnessComponent_metric" && len(va) > 1) { // nexus.unit:678, g_structh.act:698
+	if (va[0] == "FitnessComponent_metric" && len(va) > 1) { // nexus.unit:679, g_structh.act:698
 		for _, st := range glob.Dats.ApFitnessComponent {
 			if (st.Kmetricp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:771, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:774, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApMetric[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Metric > nexus.unit:771, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Metric > nexus.unit:774, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Metric > nexus.unit:771, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Metric > nexus.unit:774, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpMetric) DoIts(glob *GlobT, va []string, lno string) int {
-	if (va[0] == "ProfilingHook_metrics_ref") { // nexus.unit:266, g_structh.act:583
+	if (va[0] == "ProfilingHook_metrics_ref") { // nexus.unit:267, g_structh.act:583
 		for _, st := range glob.Dats.ApProfilingHook {
 			if (st.Kmetrics_refp == me.Me) {
 				if len(va) > 1 {
@@ -7913,7 +8025,7 @@ func (me KpMetric) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "EvolvableGraph_fitness_metric") { // nexus.unit:395, g_structh.act:583
+	if (va[0] == "EvolvableGraph_fitness_metric") { // nexus.unit:396, g_structh.act:583
 		for _, st := range glob.Dats.ApEvolvableGraph {
 			if (st.Kfitness_metricp == me.Me) {
 				if len(va) > 1 {
@@ -7931,7 +8043,7 @@ func (me KpMetric) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "FitnessComponent_metric") { // nexus.unit:678, g_structh.act:583
+	if (va[0] == "FitnessComponent_metric") { // nexus.unit:679, g_structh.act:583
 		for _, st := range glob.Dats.ApFitnessComponent {
 			if (st.Kmetricp == me.Me) {
 				if len(va) > 1 {
@@ -7949,7 +8061,7 @@ func (me KpMetric) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Metric %s,%s > nexus.unit:771, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Metric %s,%s > nexus.unit:774, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -7998,46 +8110,46 @@ func loadCheckpoint(act *ActT, ln string, pos int, lno string, flag []string, na
 }
 
 func (me KpCheckpoint) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "project_ref" { // nexus.unit:793, g_structh.act:609
+	if va[0] == "project_ref" { // nexus.unit:796, g_structh.act:609
 		if (me.Kproject_refp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApProject[ me.Kproject_refp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "project_source" { // nexus.unit:798, g_structh.act:609
+	if va[0] == "project_source" { // nexus.unit:801, g_structh.act:609
 		if (me.Kproject_sourcep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApProject[ me.Kproject_sourcep ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if va[0] == "graph_snapshot" { // nexus.unit:799, g_structh.act:609
+	if va[0] == "graph_snapshot" { // nexus.unit:802, g_structh.act:609
 		if (me.Kgraph_snapshotp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApComputeGraph[ me.Kgraph_snapshotp ].GetVar(glob, va[1:], lno) )
 		}
 	}
-	if (va[0] == "RedundancyStrategy_checkpoints" && len(va) > 1) { // nexus.unit:255, g_structh.act:698
+	if (va[0] == "RedundancyStrategy_checkpoints" && len(va) > 1) { // nexus.unit:256, g_structh.act:698
 		for _, st := range glob.Dats.ApRedundancyStrategy {
 			if (st.Kcheckpointsp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if (va[0] == "OptimizationRun_best_checkpoint" && len(va) > 1) { // nexus.unit:422, g_structh.act:698
+	if (va[0] == "OptimizationRun_best_checkpoint" && len(va) > 1) { // nexus.unit:423, g_structh.act:698
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kbest_checkpointp == me.Me) {
 				return (st.GetVar(glob, va[1:], lno) )
 			}
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:788, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:791, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApCheckpoint[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Checkpoint > nexus.unit:788, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Checkpoint > nexus.unit:791, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Checkpoint > nexus.unit:788, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Checkpoint > nexus.unit:791, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
@@ -8072,7 +8184,7 @@ func (me KpCheckpoint) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "RedundancyStrategy_checkpoints") { // nexus.unit:255, g_structh.act:583
+	if (va[0] == "RedundancyStrategy_checkpoints") { // nexus.unit:256, g_structh.act:583
 		for _, st := range glob.Dats.ApRedundancyStrategy {
 			if (st.Kcheckpointsp == me.Me) {
 				if len(va) > 1 {
@@ -8090,7 +8202,7 @@ func (me KpCheckpoint) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "OptimizationRun_best_checkpoint") { // nexus.unit:422, g_structh.act:583
+	if (va[0] == "OptimizationRun_best_checkpoint") { // nexus.unit:423, g_structh.act:583
 		for _, st := range glob.Dats.ApOptimizationRun {
 			if (st.Kbest_checkpointp == me.Me) {
 				if len(va) > 1 {
@@ -8108,7 +8220,7 @@ func (me KpCheckpoint) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Checkpoint %s,%s > nexus.unit:788, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Checkpoint %s,%s > nexus.unit:791, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8151,22 +8263,22 @@ func loadParadigmRule(act *ActT, ln string, pos int, lno string, flag []string, 
 }
 
 func (me KpParadigmRule) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:805, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:808, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApParadigmRule[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,ParadigmRule > nexus.unit:805, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,ParadigmRule > nexus.unit:808, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ParadigmRule > nexus.unit:805, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,ParadigmRule > nexus.unit:808, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpParadigmRule) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for ParadigmRule %s,%s > nexus.unit:805, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for ParadigmRule %s,%s > nexus.unit:808, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8209,22 +8321,22 @@ func loadNeuronModelRule(act *ActT, ln string, pos int, lno string, flag []strin
 }
 
 func (me KpNeuronModelRule) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:812, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:815, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApNeuronModelRule[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,NeuronModelRule > nexus.unit:812, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,NeuronModelRule > nexus.unit:815, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,NeuronModelRule > nexus.unit:812, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,NeuronModelRule > nexus.unit:815, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpNeuronModelRule) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for NeuronModelRule %s,%s > nexus.unit:812, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for NeuronModelRule %s,%s > nexus.unit:815, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8267,22 +8379,22 @@ func loadQuantumGateRule(act *ActT, ln string, pos int, lno string, flag []strin
 }
 
 func (me KpQuantumGateRule) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:821, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:824, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApQuantumGateRule[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumGateRule > nexus.unit:821, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,QuantumGateRule > nexus.unit:824, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumGateRule > nexus.unit:821, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,QuantumGateRule > nexus.unit:824, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpQuantumGateRule) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for QuantumGateRule %s,%s > nexus.unit:821, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for QuantumGateRule %s,%s > nexus.unit:824, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8325,22 +8437,22 @@ func loadDataflowRule(act *ActT, ln string, pos int, lno string, flag []string, 
 }
 
 func (me KpDataflowRule) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:830, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:833, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApDataflowRule[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,DataflowRule > nexus.unit:830, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,DataflowRule > nexus.unit:833, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DataflowRule > nexus.unit:830, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,DataflowRule > nexus.unit:833, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpDataflowRule) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for DataflowRule %s,%s > nexus.unit:830, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for DataflowRule %s,%s > nexus.unit:833, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8383,22 +8495,22 @@ func loadFusionStrategyRule(act *ActT, ln string, pos int, lno string, flag []st
 }
 
 func (me KpFusionStrategyRule) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:838, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:841, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApFusionStrategyRule[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,FusionStrategyRule > nexus.unit:838, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,FusionStrategyRule > nexus.unit:841, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionStrategyRule > nexus.unit:838, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,FusionStrategyRule > nexus.unit:841, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpFusionStrategyRule) DoIts(glob *GlobT, va []string, lno string) int {
-	        fmt.Printf("?No its %s for FusionStrategyRule %s,%s > nexus.unit:838, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for FusionStrategyRule %s,%s > nexus.unit:841, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8443,22 +8555,22 @@ func loadExtension(act *ActT, ln string, pos int, lno string, flag []string, nam
 }
 
 func (me KpExtension) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "previous" { // nexus.unit:850, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:853, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApExtension[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,Extension > nexus.unit:850, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,Extension > nexus.unit:853, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Extension > nexus.unit:850, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,Extension > nexus.unit:853, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpExtension) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "CustomParadigm" { // nexus.unit:861, g_structh.act:676
+	if va[0] == "CustomParadigm" { // nexus.unit:864, g_structh.act:676
 		for _, st := range me.ItsCustomParadigm {
 			if len(va) > 1 {
 				ret := st.DoIts(glob, va[1:], lno)
@@ -8474,7 +8586,7 @@ func (me KpExtension) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for Extension %s,%s > nexus.unit:850, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for Extension %s,%s > nexus.unit:853, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }
@@ -8522,33 +8634,33 @@ func loadCustomParadigm(act *ActT, ln string, pos int, lno string, flag []string
 		print(lno + " CustomParadigm under wrong parent " + st.Parent + ", " +  par + "\n") ;
 	}
 	act.ApExtension[ len( act.ApExtension )-1 ].Childs = append(act.ApExtension[ len( act.ApExtension )-1 ].Childs, st)
-	act.ApExtension[ len( act.ApExtension )-1 ].ItsCustomParadigm = append(act.ApExtension[ len( act.ApExtension )-1 ].ItsCustomParadigm, st)	// nexus.unit:850, g_structh.act:403
+	act.ApExtension[ len( act.ApExtension )-1 ].ItsCustomParadigm = append(act.ApExtension[ len( act.ApExtension )-1 ].ItsCustomParadigm, st)	// nexus.unit:853, g_structh.act:403
 	act.ApCustomParadigm = append(act.ApCustomParadigm, st)
 	return 0
 }
 
 func (me KpCustomParadigm) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if (va[0] == "parent") { // nexus.unit:850, g_structh.act:572
+	if (va[0] == "parent") { // nexus.unit:853, g_structh.act:572
 		if (me.Kparentp >= 0 && len(va) > 1) {
 			return( glob.Dats.ApExtension[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
-	if va[0] == "previous" { // nexus.unit:861, g_structh.act:176
+	if va[0] == "previous" { // nexus.unit:864, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApCustomParadigm[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
 		}
 	}
 	if len(va) > 1 {
-		msg := fmt.Sprintf("?%s.?:%s,%s,CustomParadigm > nexus.unit:861, g_structh.act:183?", va[0], lno, me.LineNo)
+		msg := fmt.Sprintf("?%s.?:%s,%s,CustomParadigm > nexus.unit:864, g_structh.act:183?", va[0], lno, me.LineNo)
 		return false, msg
 	}
 	r,ok := me.Names[va[0]]
-	if !ok { r = fmt.Sprintf("?%s?:%s,%s,CustomParadigm > nexus.unit:861, g_structh.act:187?", va[0], lno, me.LineNo) }
+	if !ok { r = fmt.Sprintf("?%s?:%s,%s,CustomParadigm > nexus.unit:864, g_structh.act:187?", va[0], lno, me.LineNo) }
 	return ok,r
 }
 
 func (me KpCustomParadigm) DoIts(glob *GlobT, va []string, lno string) int {
-	if va[0] == "parent" { // nexus.unit:850, g_structh.act:557
+	if va[0] == "parent" { // nexus.unit:853, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApExtension[ me.Kparentp ]
 			if len(va) > 1 {
@@ -8558,7 +8670,7 @@ func (me KpCustomParadigm) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	        fmt.Printf("?No its %s for CustomParadigm %s,%s > nexus.unit:861, g_structh.act:209?", va[0], lno, me.LineNo)
+	        fmt.Printf("?No its %s for CustomParadigm %s,%s > nexus.unit:864, g_structh.act:209?", va[0], lno, me.LineNo)
 		glob.RunErrs += 1
 	return(0)
 }

@@ -1,0 +1,861 @@
+# Generated Python inference code for EventVisionSNN
+# Multi-paradigm targets: loihi2, truenorth, gpu_cuda
+# WARNING: Auto-generated file, do not edit manually
+
+import numpy as np
+from typing import Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass
+import time
+
+# Hardware-specific imports
+try:
+    import cupy as cp
+    CUDA_AVAILABLE = True
+except ImportError:
+    CUDA_AVAILABLE = False
+    print("Warning: CuPy not available, using NumPy fallback")
+
+try:
+    import nxsdk
+    LOIHI_AVAILABLE = True
+except ImportError:
+    LOIHI_AVAILABLE = False
+    print("Warning: Loihi SDK not available, using software simulation")
+
+# =========================================================================
+# 1. Project Configuration
+# =========================================================================
+PROJECT_NAME = "EventVisionSNN"
+VERSION = "1.0.0"
+TARGET_HARDWARE = "loihi2, truenorth, gpu_cuda".split(",")
+
+# =========================================================================
+# 2. Neuromorphic Data Structures
+# =========================================================================
+
+@dataclass
+class SpikeEvent:
+    """Single spike event"""
+    neuron_id: int
+    timestep: int
+    value: float = 1.0
+
+@dataclass
+class LIFState:
+    """Leaky Integrate-and-Fire neuron state"""
+    membrane_potential: np.ndarray  # V(t)
+    threshold: float
+    refractory_count: np.ndarray
+    tau_m: float = 20.0  # Membrane time constant (ms)
+    v_rest: float = 0.0
+    v_reset: float = 0.0
+
+@dataclass
+class STDPState:
+    """Spike-timing dependent plasticity state"""
+    pre_trace: np.ndarray
+    post_trace: np.ndarray
+    weights: np.ndarray
+    A_plus: float
+    A_minus: float
+    tau_plus: float
+    tau_minus: float
+
+class SpikeRegistry:
+    """Global spike train storage"""
+    def __init__(self):
+        self.spike_trains = {}
+        self.spike_counts = {}
+        self.neuron_states = {}
+        self.stdp_states = {}
+    
+    def register_layer(self, name, n_neurons, timesteps):
+        self.spike_trains[name] = np.zeros((n_neurons, timesteps), dtype=np.float32)
+        self.spike_counts[name] = np.zeros(n_neurons, dtype=np.int32)
+    
+    def add_spike(self, layer, neuron_id, timestep):
+        if layer in self.spike_trains:
+            self.spike_trains[layer][neuron_id, timestep] = 1.0
+            self.spike_counts[layer][neuron_id] += 1
+    
+    def get_spikes(self, layer):
+        return self.spike_trains.get(layer, None)
+    
+    def get_spike_rate(self, layer, timesteps):
+        counts = self.spike_counts.get(layer, None)
+        if counts is not None:
+            return counts / timesteps
+        return None
+
+spikes = SpikeRegistry()
+
+# Tensor: dvs_events [1,1000,4] event_based event_stream
+# Data type: event_based
+# Tensor: spike_train_input [1,784,100] event_based event_stream
+# Data type: event_based
+# Tensor: layer1_spikes [1,256,100] event_based event_stream
+# Data type: event_based
+# Tensor: layer2_spikes [1,128,100] event_based event_stream
+# Data type: event_based
+# Tensor: output_spikes [1,10,100] event_based event_stream
+# Data type: event_based
+# Tensor: class_probabilities [1,10] fp32 nhwc
+# Data type: fp32
+# Tensor: weights_in_l1 [784,256] fp32 nhwc
+# Data type: fp32
+# Tensor: weights_l1_l2 [256,128] fp32 nhwc
+# Data type: fp32
+# Tensor: weights_l2_out [128,10] fp32 nhwc
+# Data type: fp32
+
+# =========================================================================
+# 3. Neuromorphic Kernels and Operations
+# =========================================================================
+
+def kernel_rate_encoding_kernel():
+    """
+    Kernel: rate_encoding_kernel
+    Hardware: loihi2
+    Paradigm: neuromorphic
+    Rate-based encoding from events to spikes
+    Performance: latency = n_events * 0.1us
+    """
+    pass  # Kernel implementation placeholder
+
+def kernel_lif_kernel():
+    """
+    Kernel: lif_kernel
+    Hardware: loihi2
+    Paradigm: neuromorphic
+    Leaky Integrate-and-Fire neuron kernel
+    Performance: energy = 23pJ_per_spike * output_spike_count
+    """
+    pass  # Kernel implementation placeholder
+
+def kernel_stdp_update_kernel():
+    """
+    Kernel: stdp_update_kernel
+    Hardware: loihi2
+    Paradigm: neuromorphic
+    Spike-timing dependent plasticity update
+    Performance: energy = 5pJ_per_update * n_synapses
+    """
+    pass  # Kernel implementation placeholder
+
+def kernel_rate_decoder_kernel():
+    """
+    Kernel: rate_decoder_kernel
+    Hardware: gpu_cuda
+    Paradigm: classical
+    Decode spike rates to probabilities
+    Performance: FLOPS = n_neurons * timesteps + 3 * n_neurons
+    """
+    pass  # Kernel implementation placeholder
+
+def kernel_lif_sim_kernel():
+    """
+    Kernel: lif_sim_kernel
+    Hardware: gpu_cuda
+    Paradigm: classical
+    GPU-based LIF simulation fallback
+    Performance: FLOPS = n_neurons * timesteps * 10
+    """
+    pass  # Kernel implementation placeholder
+
+# =========================================================================
+# 4. LIF Neuron Simulation
+# =========================================================================
+
+def lif_dynamics(state: LIFState, input_current: np.ndarray, dt: float = 1.0) -> Tuple[LIFState, np.ndarray]:
+    """
+    Simulate LIF neuron dynamics for one timestep
+    dV/dt = (V_rest - V + R*I) / tau_m
+    """
+    n_neurons = state.membrane_potential.shape[0]
+    spikes = np.zeros(n_neurons, dtype=np.float32)
+    
+    # Only update neurons not in refractory period
+    active = state.refractory_count == 0
+    
+    # Membrane potential update (Euler integration)
+    dV = ((state.v_rest - state.membrane_potential + input_current) / state.tau_m) * dt
+    state.membrane_potential[active] += dV[active]
+    
+    # Check for spikes
+    fired = state.membrane_potential >= state.threshold
+    spikes[fired] = 1.0
+    
+    # Reset fired neurons
+    state.membrane_potential[fired] = state.v_reset
+    state.refractory_count[fired] = 2  # Set refractory period
+    
+    # Decrease refractory counter
+    state.refractory_count = np.maximum(0, state.refractory_count - 1)
+    
+    return state, spikes
+
+def stdp_update(stdp_state: STDPState, pre_spikes: np.ndarray, post_spikes: np.ndarray, dt: float = 1.0) -> STDPState:
+    """
+    Update synaptic weights using STDP
+    """
+    # Update eligibility traces
+    stdp_state.pre_trace *= np.exp(-dt / stdp_state.tau_plus)
+    stdp_state.post_trace *= np.exp(-dt / stdp_state.tau_minus)
+    
+    # Add new spikes to traces
+    stdp_state.pre_trace += pre_spikes
+    stdp_state.post_trace += post_spikes
+    
+    # Weight updates
+    # LTP (Long-term potentiation): post fires after pre
+    if np.any(post_spikes > 0):
+        post_indices = np.where(post_spikes > 0)[0]
+        for post_idx in post_indices:
+            stdp_state.weights[:, post_idx] += stdp_state.A_plus * stdp_state.pre_trace
+    
+    # LTD (Long-term depression): pre fires after post
+    if np.any(pre_spikes > 0):
+        pre_indices = np.where(pre_spikes > 0)[0]
+        for pre_idx in pre_indices:
+            stdp_state.weights[pre_idx, :] -= stdp_state.A_minus * stdp_state.post_trace
+    
+    # Clip weights to [0, max_weight]
+    stdp_state.weights = np.clip(stdp_state.weights, 0.0, 1.0)
+    
+    return stdp_state
+
+# =========================================================================
+# 5. Spike Encoding/Decoding
+# =========================================================================
+
+def rate_encode(data: np.ndarray, timesteps: int, max_rate: float = 100.0) -> np.ndarray:
+    """
+    Convert continuous data to Poisson spike trains
+    """
+    # Normalize data to [0, 1]
+    data_norm = (data - data.min()) / (data.max() - data.min() + 1e-8)
+    
+    # Generate Poisson spikes
+    n_neurons = data_norm.size
+    spike_train = np.zeros((n_neurons, timesteps), dtype=np.float32)
+    
+    for t in range(timesteps):
+        # Probability of spike proportional to input
+        spike_prob = data_norm.flatten() * (max_rate / 1000.0)  # Convert to probability per ms
+        spikes = np.random.rand(n_neurons) < spike_prob
+        spike_train[:, t] = spikes.astype(np.float32)
+    
+    return spike_train
+
+def latency_encode(data: np.ndarray, timesteps: int) -> np.ndarray:
+    """
+    Convert continuous data to latency-coded spikes (higher value = earlier spike)
+    """
+    n_neurons = data.size
+    spike_train = np.zeros((n_neurons, timesteps), dtype=np.float32)
+    
+    # Normalize data to [0, 1]
+    data_norm = (data - data.min()) / (data.max() - data.min() + 1e-8)
+    
+    # Convert to spike times (inverse relationship)
+    spike_times = ((1.0 - data_norm.flatten()) * (timesteps - 1)).astype(np.int32)
+    
+    for i, t in enumerate(spike_times):
+        if t < timesteps:
+            spike_train[i, t] = 1.0
+    
+    return spike_train
+
+def rate_decode(spike_train: np.ndarray, timesteps: int) -> np.ndarray:
+    """
+    Decode spike train to firing rates
+    """
+    spike_counts = np.sum(spike_train, axis=1)
+    rates = spike_counts / timesteps
+    return rates
+
+def softmax(x: np.ndarray) -> np.ndarray:
+    """Numerically stable softmax"""
+    exp_x = np.exp(x - np.max(x))
+    return exp_x / np.sum(exp_x)
+
+# =========================================================================
+# 6. Operation Implementations
+# =========================================================================
+
+def op_input_encoding(spikes: SpikeRegistry, timesteps: int = 100) -> np.ndarray:
+    """
+    Operation: input_encoding
+    Type: spiking.encoding
+    Convert DVS events to spike trains using rate encoding
+    """
+    # Rate-based spike encoding
+    input_data = np.random.randn(784).astype(np.float32)  # Placeholder input
+    
+    # Encode input to spike train
+    output = rate_encode(input_data, timesteps, max_rate=100.0)
+    
+    # Store spike train
+    layer_name = "spike_train_input"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    
+    return output
+
+def op_lif_layer1(spikes: SpikeRegistry, timesteps: int = 100) -> np.ndarray:
+    """
+    Operation: lif_layer1
+    Type: spiking.lif
+    Layer 1: 256 LIF neurons with STDP
+    """
+    # LIF neuron layer
+    input_spikes = spikes.get_spikes("spike_train_input")
+    if input_spikes is None:
+        raise ValueError(f"Input spike train spike_train_input not initialized")
+    # Initialize weights with small random values
+    n_input = input_spikes.shape[0]
+    # Get output dimension from tensor shape
+    shape_parts = "layer1_spikes".split("_")
+    if "layer1" in "layer1_spikes":
+        n_output = 256
+    elif "layer2" in "layer1_spikes":
+        n_output = 128
+    elif "output" in "layer1_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    weights = np.random.randn(n_input, n_output) * 0.1
+    
+    # Get layer dimensions from tensor shape
+    # Extract output dimension from tensor reference
+    if "layer1" in "layer1_spikes":
+        n_output = 256
+    elif "layer2" in "layer1_spikes":
+        n_output = 128
+    elif "output" in "layer1_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    
+    # Initialize LIF state
+    lif_state = LIFState(
+        membrane_potential=np.zeros(n_output, dtype=np.float32),
+        threshold=1.0,
+        refractory_count=np.zeros(n_output, dtype=np.int32),
+        tau_m=20.0,
+        v_rest=0.0,
+        v_reset=0.0
+    )
+    
+    # Initialize STDP state (if plasticity is enabled)
+    stdp_state = STDPState(
+        pre_trace=np.zeros(input_spikes.shape[0], dtype=np.float32),
+        post_trace=np.zeros(n_output, dtype=np.float32),
+        weights=weights,
+        A_plus=0.01,
+        A_minus=0.012,
+        tau_plus=20.0,
+        tau_minus=20.0
+    )
+    
+    # Initialize output spike train
+    output = np.zeros((n_output, timesteps), dtype=np.float32)
+    
+    # Simulate over time
+    for t in range(timesteps):
+        # Get input spikes at time t
+        input_spikes_t = input_spikes[:, t]
+        
+        # Compute synaptic current
+        synaptic_current = np.dot(input_spikes_t, weights)
+        
+        # Update LIF dynamics
+        lif_state, output_spikes_t = lif_dynamics(lif_state, synaptic_current, dt=1.0)
+        
+        # Store output spikes
+        output[:, t] = output_spikes_t
+        
+        # Update synaptic weights with STDP
+        stdp_state = stdp_update(stdp_state, input_spikes_t, output_spikes_t, dt=1.0)
+        weights = stdp_state.weights
+    
+    # Store spike train
+    layer_name = "layer1_spikes"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    
+    return output
+
+def op_lif_layer2(spikes: SpikeRegistry, timesteps: int = 100) -> np.ndarray:
+    """
+    Operation: lif_layer2
+    Type: spiking.lif
+    Layer 2: 128 LIF neurons with STDP
+    """
+    # LIF neuron layer
+    input_spikes = spikes.get_spikes("layer1_spikes")
+    if input_spikes is None:
+        raise ValueError(f"Input spike train layer1_spikes not initialized")
+    # Initialize weights with small random values
+    n_input = input_spikes.shape[0]
+    # Get output dimension from tensor shape
+    shape_parts = "layer2_spikes".split("_")
+    if "layer1" in "layer2_spikes":
+        n_output = 256
+    elif "layer2" in "layer2_spikes":
+        n_output = 128
+    elif "output" in "layer2_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    weights = np.random.randn(n_input, n_output) * 0.1
+    
+    # Get layer dimensions from tensor shape
+    # Extract output dimension from tensor reference
+    if "layer1" in "layer2_spikes":
+        n_output = 256
+    elif "layer2" in "layer2_spikes":
+        n_output = 128
+    elif "output" in "layer2_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    
+    # Initialize LIF state
+    lif_state = LIFState(
+        membrane_potential=np.zeros(n_output, dtype=np.float32),
+        threshold=1.0,
+        refractory_count=np.zeros(n_output, dtype=np.int32),
+        tau_m=20.0,
+        v_rest=0.0,
+        v_reset=0.0
+    )
+    
+    # Initialize STDP state (if plasticity is enabled)
+    stdp_state = STDPState(
+        pre_trace=np.zeros(input_spikes.shape[0], dtype=np.float32),
+        post_trace=np.zeros(n_output, dtype=np.float32),
+        weights=weights,
+        A_plus=0.008,
+        A_minus=0.01,
+        tau_plus=20.0,
+        tau_minus=20.0
+    )
+    
+    # Initialize output spike train
+    output = np.zeros((n_output, timesteps), dtype=np.float32)
+    
+    # Simulate over time
+    for t in range(timesteps):
+        # Get input spikes at time t
+        input_spikes_t = input_spikes[:, t]
+        
+        # Compute synaptic current
+        synaptic_current = np.dot(input_spikes_t, weights)
+        
+        # Update LIF dynamics
+        lif_state, output_spikes_t = lif_dynamics(lif_state, synaptic_current, dt=1.0)
+        
+        # Store output spikes
+        output[:, t] = output_spikes_t
+        
+        # Update synaptic weights with STDP
+        stdp_state = stdp_update(stdp_state, input_spikes_t, output_spikes_t, dt=1.0)
+        weights = stdp_state.weights
+    
+    # Store spike train
+    layer_name = "layer2_spikes"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    
+    return output
+
+def op_lif_output(spikes: SpikeRegistry, timesteps: int = 100) -> np.ndarray:
+    """
+    Operation: lif_output
+    Type: spiking.lif
+    Output layer: 10 LIF neurons (one per class)
+    """
+    # Rate-based spike encoding
+    input_data = np.random.randn(784).astype(np.float32)  # Placeholder input
+    
+    # Encode input to spike train
+    output = rate_encode(input_data, timesteps, max_rate=100.0)
+    
+    # Store spike train
+    layer_name = "output_spikes"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    # LIF neuron layer
+    input_spikes = spikes.get_spikes("layer2_spikes")
+    if input_spikes is None:
+        raise ValueError(f"Input spike train layer2_spikes not initialized")
+    # Initialize weights with small random values
+    n_input = input_spikes.shape[0]
+    # Get output dimension from tensor shape
+    shape_parts = "output_spikes".split("_")
+    if "layer1" in "output_spikes":
+        n_output = 256
+    elif "layer2" in "output_spikes":
+        n_output = 128
+    elif "output" in "output_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    weights = np.random.randn(n_input, n_output) * 0.1
+    
+    # Get layer dimensions from tensor shape
+    # Extract output dimension from tensor reference
+    if "layer1" in "output_spikes":
+        n_output = 256
+    elif "layer2" in "output_spikes":
+        n_output = 128
+    elif "output" in "output_spikes":
+        n_output = 10
+    else:
+        n_output = 128  # Default
+    
+    # Initialize LIF state
+    lif_state = LIFState(
+        membrane_potential=np.zeros(n_output, dtype=np.float32),
+        threshold=1.0,
+        refractory_count=np.zeros(n_output, dtype=np.int32),
+        tau_m=20.0,
+        v_rest=0.0,
+        v_reset=0.0
+    )
+    
+    # Initialize STDP state (if plasticity is enabled)
+    
+    # Initialize output spike train
+    output = np.zeros((n_output, timesteps), dtype=np.float32)
+    
+    # Simulate over time
+    for t in range(timesteps):
+        # Get input spikes at time t
+        input_spikes_t = input_spikes[:, t]
+        
+        # Compute synaptic current
+        synaptic_current = np.dot(input_spikes_t, weights)
+        
+        # Update LIF dynamics
+        lif_state, output_spikes_t = lif_dynamics(lif_state, synaptic_current, dt=1.0)
+        
+        # Store output spikes
+        output[:, t] = output_spikes_t
+        
+    
+    # Store spike train
+    layer_name = "output_spikes"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    
+    return output
+
+def op_spike_decoder(spikes: SpikeRegistry, timesteps: int = 100) -> np.ndarray:
+    """
+    Operation: spike_decoder
+    Type: spiking.decoding
+    Decode spike rates to class probabilities
+    """
+    # Rate-based spike encoding
+    input_data = np.random.randn(784).astype(np.float32)  # Placeholder input
+    
+    # Encode input to spike train
+    output = rate_encode(input_data, timesteps, max_rate=100.0)
+    
+    # Store spike train
+    layer_name = "class_probabilities"
+    n_neurons = output.shape[0]
+    spikes.register_layer(layer_name, n_neurons, timesteps)
+    spikes.spike_trains[layer_name] = output
+    
+    return output
+
+# =========================================================================
+# 7. Compute Graph Execution
+# =========================================================================
+
+def execute_snn_classifier(input_data: np.ndarray, timesteps: int = 100) -> np.ndarray:
+    """
+    Execute SNN compute graph: snn_classifier
+    SNN: Input Encoding -> LIF Layer 1 -> LIF Layer 2 -> Output Decoder
+    Entry point: input_encoding
+    Timesteps: Variable (default 100ms)
+    """
+    print(f"Executing SNN graph: snn_classifier")
+    print(f"Timesteps: {timesteps}")
+    
+    # Execute entry operation
+    op_input_encoding(spikes, timesteps)
+    
+    # Execute dependent operations in order
+    op_input_encoding(spikes, timesteps)
+    op_lif_layer1(spikes, timesteps)
+    op_lif_layer2(spikes, timesteps)
+    op_lif_output(spikes, timesteps)
+    
+    # Return final output
+    # Intermediate tensor: dvs_events
+    result = spikes.spike_trains.get("class_probabilities", np.zeros(10))
+    # Intermediate tensor: weights_in_l1
+    # Intermediate tensor: weights_l1_l2
+    # Intermediate tensor: weights_l2_out
+    
+    return result
+
+# =========================================================================
+# 8. Energy and Performance Monitoring
+# =========================================================================
+
+class EnergyMonitor:
+    """Energy monitoring for neuromorphic systems"""
+    def __init__(self):
+        self.total_budget = 0.001
+        self.source = "battery"
+        self.consumed = 0.0
+        self.spike_energy = 23e-12  # 23pJ per spike (Loihi 2)
+        self.operation_energy = {}
+        self.spike_counts = {}
+        
+        # lif_layer1: 0.0004J (high priority)
+        self.operation_energy["lif_layer1"] = 0.0
+        # lif_layer2: 0.0003J (high priority)
+        self.operation_energy["lif_layer2"] = 0.0
+        # lif_output: 0.0002J (high priority)
+        self.operation_energy["lif_output"] = 0.0
+        # input_encoding: 0.0001J (medium priority)
+        self.operation_energy["input_encoding"] = 0.0
+    
+    def record_spikes(self, op_name: str, spike_count: int):
+        """Record energy from spike activity"""
+        energy = spike_count * self.spike_energy
+        self.operation_energy[op_name] = self.operation_energy.get(op_name, 0.0) + energy
+        self.consumed += energy
+        self.spike_counts[op_name] = spike_count
+    
+    def record_static_energy(self, op_name: str, time_ms: float, power_w: float = 1.0):
+        """Record static power consumption"""
+        energy = power_w * (time_ms / 1000.0)
+        self.operation_energy[op_name] = self.operation_energy.get(op_name, 0.0) + energy
+        self.consumed += energy
+    
+    def get_remaining_budget(self) -> float:
+        return self.total_budget - self.consumed
+    
+    def check_violation(self) -> bool:
+        return self.consumed > self.total_budget
+    
+    def report(self):
+        print(f"\n=== Energy Report ===")
+        print(f"Total Budget: {self.total_budget*1000:.3f}mJ")
+        print(f"Energy Consumed: {self.consumed*1000:.3f}mJ")
+        print(f"Remaining: {self.get_remaining_budget()*1000:.3f}mJ")
+        print(f"Efficiency: {(self.consumed/self.total_budget)*100:.1f}% of budget")
+        print(f"\nPer-operation breakdown:")
+        for op, energy in self.operation_energy.items():
+            spikes = self.spike_counts.get(op, 0)
+            print(f"  {op}: {energy*1000:.3f}mJ ({spikes} spikes)")
+
+energy_monitor = EnergyMonitor()
+
+# =========================================================================
+# 9. Hardware Backend Abstraction
+# =========================================================================
+
+class loihi2Backend:
+    """Intel Loihi 2 neuromorphic chip"""
+    def __init__(self):
+        self.name = "loihi2"
+        self.paradigm = "neuromorphic"
+        self.backend = "loihi"
+        self.vendor = "intel"
+        self.emulation = false
+        self.chip_type = "loihi2"
+        self.neuron_count = 1000000
+        self.synapse_count = 120000000
+        self.spike_protocol = "aer"
+        self.timestep = 0.1
+        self.plasticity = true
+    
+    def is_available(self) -> bool:
+        if self.emulation:
+            return True
+        if self.backend == "loihi" and LOIHI_AVAILABLE:
+            return True
+        return False
+    
+    def execute_snn(self, graph_name: str, input_data: np.ndarray, timesteps: int):
+        """Execute SNN on neuromorphic hardware"""
+        if self.is_available() and not self.emulation:
+            print(f"Executing on {self.name} neuromorphic hardware")
+            # Hardware execution would go here
+        else:
+            print(f"Simulating {self.name} in software")
+        
+        # Call the generated graph execution
+        exec_func = globals().get(f"execute_{graph_name}")
+        if exec_func:
+            return exec_func(input_data, timesteps)
+        else:
+            raise ValueError(f"Graph {graph_name} not found")
+
+# loihi2_backend = loihi2Backend()
+
+
+class truenorthBackend:
+    """IBM TrueNorth neuromorphic chip"""
+    def __init__(self):
+        self.name = "truenorth"
+        self.paradigm = "neuromorphic"
+        self.backend = "truenorth"
+        self.vendor = "ibm"
+        self.emulation = false
+        self.chip_type = "truenorth"
+        self.neuron_count = 1000000
+        self.synapse_count = 256000000
+        self.spike_protocol = "aer"
+        self.timestep = 1.0
+        self.plasticity = false
+    
+    def is_available(self) -> bool:
+        if self.emulation:
+            return True
+        if self.backend == "loihi" and LOIHI_AVAILABLE:
+            return True
+        return False
+    
+    def execute_snn(self, graph_name: str, input_data: np.ndarray, timesteps: int):
+        """Execute SNN on neuromorphic hardware"""
+        if self.is_available() and not self.emulation:
+            print(f"Executing on {self.name} neuromorphic hardware")
+            # Hardware execution would go here
+        else:
+            print(f"Simulating {self.name} in software")
+        
+        # Call the generated graph execution
+        exec_func = globals().get(f"execute_{graph_name}")
+        if exec_func:
+            return exec_func(input_data, timesteps)
+        else:
+            raise ValueError(f"Graph {graph_name} not found")
+
+# truenorth_backend = truenorthBackend()
+
+
+class gpu_cudaBackend:
+    """GPU for SNN simulation fallback - GPU simulation fallback"""
+    def __init__(self):
+        self.name = "gpu_cuda"
+        self.paradigm = "classical"
+        self.backend = "cuda"
+        self.emulation = true
+    
+    def is_available(self) -> bool:
+        if self.backend == "cuda":
+            return CUDA_AVAILABLE
+        return True  # CPU always available
+
+# gpu_cuda_backend = gpu_cudaBackend()
+
+
+class evolutionary_snn_optOptimizer:
+    """CMA-ES optimization for SNN parameters"""
+    def __init__(self):
+        self.strategy = "evolutionary_snn_opt"
+        self.algorithm = "cma_es"
+        self.parallel = true
+        self.objective = "maximize_throughput"
+        self.constraints = "energy<1mJ,accuracy>0.90,spike_rate<50Hz"
+        self.parameters = {}
+        self.parameters["threshold"] = {
+            "type": "continuous",
+            "range": (0.5, 2.0),
+            "initial": 1.0,
+            "mutation_rate": 0.1
+        }
+        self.parameters["refractory"] = {
+            "type": "continuous",
+            "range": (1.0, 5.0),
+            "initial": 2.0,
+            "mutation_rate": 0.1
+        }
+        self.parameters["A_plus"] = {
+            "type": "continuous",
+            "range": (0.001, 0.05),
+            "initial": 0.01,
+            "mutation_rate": 0.15
+        }
+        self.parameters["A_minus"] = {
+            "type": "continuous",
+            "range": (0.001, 0.05),
+            "initial": 0.012,
+            "mutation_rate": 0.15
+        }
+    
+    def optimize(self, objective_fn, n_trials: int = 100):
+        """Run SNN parameter optimization"""
+        print(f"Running {self.algorithm} optimization for SNN parameters...")
+        print(f"Objective: {self.objective}")
+        print(f"Constraints: {self.constraints}")
+        
+        best_fitness = -np.inf
+        best_params = {}
+        
+        for trial in range(n_trials):
+            # Sample parameters
+            params = {}
+            params["threshold"] = np.random.uniform(0.5, 2.0)
+            params["refractory"] = np.random.uniform(1.0, 5.0)
+            params["A_plus"] = np.random.uniform(0.001, 0.05)
+            params["A_minus"] = np.random.uniform(0.001, 0.05)
+            
+            # Evaluate fitness
+            fitness = objective_fn(params)
+            
+            if fitness > best_fitness:
+                best_fitness = fitness
+                best_params = params.copy()
+            
+            if trial % 10 == 0:
+                print(f"  Trial {trial}: fitness = {fitness:.4f}, best = {best_fitness:.4f}")
+        
+        print(f"\nOptimization complete!")
+        print(f"Best fitness: {best_fitness:.4f}")
+        print(f"Best parameters: {best_params}")
+        return best_params
+
+# evolutionary_snn_opt_optimizer = evolutionary_snn_optOptimizer()
+
+
+# =========================================================================
+# 10. Main Inference Entry Point
+# =========================================================================
+
+if __name__ == "__main__":
+    print(f"Generated SNN inference code for {PROJECT_NAME} v{VERSION}")
+    print(f"Target hardware: {TARGET_HARDWARE}")
+    
+    # Initialize system
+    if LOIHI_AVAILABLE:
+        print("Loihi neuromorphic backend available")
+    elif CUDA_AVAILABLE:
+        print("CUDA GPU simulation backend initialized")
+    else:
+        print("Using CPU simulation fallback")
+    
+    # Run sample inference
+    print("\nRunning sample inference with random DVS events...")
+    sample_events = np.random.randn(1, 100, 4).astype(np.float32)  # (batch, events, [x,y,t,p])
+    
+    result = execute_snn_classifier(sample_events, timesteps=100)
+    
+    print(f"\nInference completed.")
+    print(f"Output shape: {result.shape}")
+    print(f"Class probabilities: {result.flatten()}")
+    print(f"Predicted class: {np.argmax(result)}")

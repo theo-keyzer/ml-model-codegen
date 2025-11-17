@@ -161,19 +161,19 @@ func refs(act *ActT) int {
 
 //  nexus.unit:144, g_runh.act:180
 
-		v, _ = st.Names["hardware"]
-		err, res = fnd3(act, "Hardware_" + v, v, "ref:AnalogOp.hardware:Hardware." + v,  "+", st.LineNo, "nexus.unit:144, g_runh.act:184" );
-		st.Khardwarep = res
+		v, _ = st.Names["array_target"]
+		err, res = fnd3(act, "AnalogHardware_" + v, v, "ref:AnalogOp.array_target:AnalogHardware." + v,  "+", st.LineNo, "nexus.unit:144, g_runh.act:184" );
+		st.Karray_targetp = res
 		if (err == false) {
 			errs += 1
 		}
 	}
 	for _, st := range act.ApRedundancyStrategy {
 
-//  nexus.unit:256, g_runh.act:180
+//  nexus.unit:255, g_runh.act:180
 
 		v, _ = st.Names["checkpoints"]
-		err, res = fnd3(act, "Checkpoint_" + v, v, "ref:RedundancyStrategy.checkpoints:Checkpoint." + v,  "*", st.LineNo, "nexus.unit:256, g_runh.act:184" );
+		err, res = fnd3(act, "Checkpoint_" + v, v, "ref:RedundancyStrategy.checkpoints:Checkpoint." + v,  "*", st.LineNo, "nexus.unit:255, g_runh.act:184" );
 		st.Kcheckpointsp = res
 		if (err == false) {
 			errs += 1
@@ -181,10 +181,10 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApProfilingHook {
 
-//  nexus.unit:267, g_runh.act:180
+//  nexus.unit:266, g_runh.act:180
 
 		v, _ = st.Names["metrics_ref"]
-		err, res = fnd3(act, "Metric_" + v, v, "ref:ProfilingHook.metrics_ref:Metric." + v,  "*", st.LineNo, "nexus.unit:267, g_runh.act:184" );
+		err, res = fnd3(act, "Metric_" + v, v, "ref:ProfilingHook.metrics_ref:Metric." + v,  "*", st.LineNo, "nexus.unit:266, g_runh.act:184" );
 		st.Kmetrics_refp = res
 		if (err == false) {
 			errs += 1
@@ -192,10 +192,10 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApEvolvableGraph {
 
-//  nexus.unit:396, g_runh.act:180
+//  nexus.unit:395, g_runh.act:180
 
 		v, _ = st.Names["fitness_metric"]
-		err, res = fnd3(act, "Metric_" + v, v, "ref:EvolvableGraph.fitness_metric:Metric." + v,  "+", st.LineNo, "nexus.unit:396, g_runh.act:184" );
+		err, res = fnd3(act, "Metric_" + v, v, "ref:EvolvableGraph.fitness_metric:Metric." + v,  "+", st.LineNo, "nexus.unit:395, g_runh.act:184" );
 		st.Kfitness_metricp = res
 		if (err == false) {
 			errs += 1
@@ -203,26 +203,26 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApOptimizationRun {
 
-//  nexus.unit:421, g_runh.act:180
+//  nexus.unit:420, g_runh.act:180
 
 		v, _ = st.Names["project_ref"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:OptimizationRun.project_ref:Project." + v,  "+", st.LineNo, "nexus.unit:421, g_runh.act:184" );
+		err, res = fnd3(act, "Project_" + v, v, "ref:OptimizationRun.project_ref:Project." + v,  "+", st.LineNo, "nexus.unit:420, g_runh.act:184" );
 		st.Kproject_refp = res
+		if (err == false) {
+			errs += 1
+		}
+//  nexus.unit:421, g_runh.act:180
+
+		v, _ = st.Names["strategy_ref"]
+		err, res = fnd3(act, "OptimizationStrategy_" + v, v, "ref:OptimizationRun.strategy_ref:OptimizationStrategy." + v,  "+", st.LineNo, "nexus.unit:421, g_runh.act:184" );
+		st.Kstrategy_refp = res
 		if (err == false) {
 			errs += 1
 		}
 //  nexus.unit:422, g_runh.act:180
 
-		v, _ = st.Names["strategy_ref"]
-		err, res = fnd3(act, "OptimizationStrategy_" + v, v, "ref:OptimizationRun.strategy_ref:OptimizationStrategy." + v,  "+", st.LineNo, "nexus.unit:422, g_runh.act:184" );
-		st.Kstrategy_refp = res
-		if (err == false) {
-			errs += 1
-		}
-//  nexus.unit:423, g_runh.act:180
-
 		v, _ = st.Names["best_checkpoint"]
-		err, res = fnd3(act, "Checkpoint_" + v, v, "ref:OptimizationRun.best_checkpoint:Checkpoint." + v,  "*", st.LineNo, "nexus.unit:423, g_runh.act:184" );
+		err, res = fnd3(act, "Checkpoint_" + v, v, "ref:OptimizationRun.best_checkpoint:Checkpoint." + v,  "*", st.LineNo, "nexus.unit:422, g_runh.act:184" );
 		st.Kbest_checkpointp = res
 		if (err == false) {
 			errs += 1
@@ -230,18 +230,18 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApPhenotype {
 
-//  nexus.unit:456, g_runh.act:209
+//  nexus.unit:455, g_runh.act:209
 
 		v, _ = st.Names["realized_graph"]
-		err, res = fnd3(act, strconv.Itoa(st.Kparentp) + "_ComputeGraph_" + v,v, "ref_link:Phenotype.realized_graph:Project." + st.Parent + ".ComputeGraph." + v,  "+", st.LineNo, "nexus.unit:456, g_runh.act:212" );
+		err, res = fnd3(act, strconv.Itoa(st.Kparentp) + "_ComputeGraph_" + v,v, "ref_link:Phenotype.realized_graph:Project." + st.Parent + ".ComputeGraph." + v,  "+", st.LineNo, "nexus.unit:455, g_runh.act:212" );
 		st.Krealized_graphp = res
 		if (err == false) {
 			errs += 1
 		}
-//  nexus.unit:457, g_runh.act:209
+//  nexus.unit:456, g_runh.act:209
 
 		v, _ = st.Names["genome_source"]
-		err, res = fnd3(act, strconv.Itoa(st.Kparentp) + "_Genotype_" + v,v, "ref_link:Phenotype.genome_source:Project." + st.Parent + ".Genotype." + v,  "+", st.LineNo, "nexus.unit:457, g_runh.act:212" );
+		err, res = fnd3(act, strconv.Itoa(st.Kparentp) + "_Genotype_" + v,v, "ref_link:Phenotype.genome_source:Project." + st.Parent + ".Genotype." + v,  "+", st.LineNo, "nexus.unit:456, g_runh.act:212" );
 		st.Kgenome_sourcep = res
 		if (err == false) {
 			errs += 1
@@ -249,18 +249,18 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApKernel {
 
-//  nexus.unit:598, g_runh.act:180
+//  nexus.unit:597, g_runh.act:180
 
 		v, _ = st.Names["hardware_target"]
-		err, res = fnd3(act, "Hardware_" + v, v, "ref:Kernel.hardware_target:Hardware." + v,  "+", st.LineNo, "nexus.unit:598, g_runh.act:184" );
+		err, res = fnd3(act, "Hardware_" + v, v, "ref:Kernel.hardware_target:Hardware." + v,  "+", st.LineNo, "nexus.unit:597, g_runh.act:184" );
 		st.Khardware_targetp = res
 		if (err == false) {
 			errs += 1
 		}
-//  nexus.unit:599, g_runh.act:180
+//  nexus.unit:598, g_runh.act:180
 
 		v, _ = st.Names["fusion_source"]
-		err, res = fnd3(act, "FusionPattern_" + v, v, "ref:Kernel.fusion_source:FusionPattern." + v,  "*", st.LineNo, "nexus.unit:599, g_runh.act:184" );
+		err, res = fnd3(act, "FusionPattern_" + v, v, "ref:Kernel.fusion_source:FusionPattern." + v,  "*", st.LineNo, "nexus.unit:598, g_runh.act:184" );
 		st.Kfusion_sourcep = res
 		if (err == false) {
 			errs += 1
@@ -268,10 +268,10 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApFusionPattern {
 
-//  nexus.unit:610, g_runh.act:180
+//  nexus.unit:609, g_runh.act:180
 
 		v, _ = st.Names["fused_kernel_ref"]
-		err, res = fnd3(act, "Kernel_" + v, v, "ref:FusionPattern.fused_kernel_ref:Kernel." + v,  "+", st.LineNo, "nexus.unit:610, g_runh.act:184" );
+		err, res = fnd3(act, "Kernel_" + v, v, "ref:FusionPattern.fused_kernel_ref:Kernel." + v,  "+", st.LineNo, "nexus.unit:609, g_runh.act:184" );
 		st.Kfused_kernel_refp = res
 		if (err == false) {
 			errs += 1
@@ -279,10 +279,10 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApFusionHardwareTarget {
 
-//  nexus.unit:616, g_runh.act:180
+//  nexus.unit:615, g_runh.act:180
 
 		v, _ = st.Names["hardware"]
-		err, res = fnd3(act, "Hardware_" + v, v, "ref:FusionHardwareTarget.hardware:Hardware." + v,  "+", st.LineNo, "nexus.unit:616, g_runh.act:184" );
+		err, res = fnd3(act, "Hardware_" + v, v, "ref:FusionHardwareTarget.hardware:Hardware." + v,  "+", st.LineNo, "nexus.unit:615, g_runh.act:184" );
 		st.Khardwarep = res
 		if (err == false) {
 			errs += 1
@@ -290,18 +290,18 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApOptimizationStrategy {
 
-//  nexus.unit:660, g_runh.act:180
+//  nexus.unit:659, g_runh.act:180
 
 		v, _ = st.Names["project_ref"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:OptimizationStrategy.project_ref:Project." + v,  "*", st.LineNo, "nexus.unit:660, g_runh.act:184" );
+		err, res = fnd3(act, "Project_" + v, v, "ref:OptimizationStrategy.project_ref:Project." + v,  "*", st.LineNo, "nexus.unit:659, g_runh.act:184" );
 		st.Kproject_refp = res
 		if (err == false) {
 			errs += 1
 		}
-//  nexus.unit:663, g_runh.act:180
+//  nexus.unit:662, g_runh.act:180
 
 		v, _ = st.Names["strategy"]
-		err, res = fnd3(act, "OptimizationStrategy_" + v, v, "ref:OptimizationStrategy.strategy:OptimizationStrategy." + v,  "+", st.LineNo, "nexus.unit:663, g_runh.act:184" );
+		err, res = fnd3(act, "OptimizationStrategy_" + v, v, "ref:OptimizationStrategy.strategy:OptimizationStrategy." + v,  "+", st.LineNo, "nexus.unit:662, g_runh.act:184" );
 		st.Kstrategyp = res
 		if (err == false) {
 			errs += 1
@@ -309,10 +309,10 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApFitnessComponent {
 
-//  nexus.unit:679, g_runh.act:180
+//  nexus.unit:678, g_runh.act:180
 
 		v, _ = st.Names["metric"]
-		err, res = fnd3(act, "Metric_" + v, v, "ref:FitnessComponent.metric:Metric." + v,  "+", st.LineNo, "nexus.unit:679, g_runh.act:184" );
+		err, res = fnd3(act, "Metric_" + v, v, "ref:FitnessComponent.metric:Metric." + v,  "+", st.LineNo, "nexus.unit:678, g_runh.act:184" );
 		st.Kmetricp = res
 		if (err == false) {
 			errs += 1
@@ -320,48 +320,40 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApSimulator {
 
-//  nexus.unit:718, g_runh.act:180
+//  nexus.unit:717, g_runh.act:180
 
 		v, _ = st.Names["project_ref"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:Simulator.project_ref:Project." + v,  "*", st.LineNo, "nexus.unit:718, g_runh.act:184" );
+		err, res = fnd3(act, "Project_" + v, v, "ref:Simulator.project_ref:Project." + v,  "*", st.LineNo, "nexus.unit:717, g_runh.act:184" );
 		st.Kproject_refp = res
-		if (err == false) {
-			errs += 1
-		}
-//  nexus.unit:720, g_runh.act:180
-
-		v, _ = st.Names["fault_models"]
-		err, res = fnd3(act, "FaultModel_" + v, v, "ref:Simulator.fault_models:FaultModel." + v,  "*", st.LineNo, "nexus.unit:720, g_runh.act:184" );
-		st.Kfault_modelsp = res
 		if (err == false) {
 			errs += 1
 		}
 	}
 	for _, st := range act.ApSimulationLevel {
 
-//  nexus.unit:732, g_runh.act:180
+//  nexus.unit:731, g_runh.act:180
 
-		v, _ = st.Names["project"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:SimulationLevel.project:Project." + v,  "+", st.LineNo, "nexus.unit:732, g_runh.act:184" );
-		st.Kprojectp = res
+		v, _ = st.Names["target_component"]
+		err, res = fnd3(act, "Operation_" + v, v, "ref:SimulationLevel.target_component:Operation." + v,  "+", st.LineNo, "nexus.unit:731, g_runh.act:184" );
+		st.Ktarget_componentp = res
 		if (err == false) {
 			errs += 1
 		}
 	}
 	for _, st := range act.ApCheckpoint {
 
-//  nexus.unit:796, g_runh.act:180
+//  nexus.unit:793, g_runh.act:180
 
 		v, _ = st.Names["project_ref"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:Checkpoint.project_ref:Project." + v,  "+", st.LineNo, "nexus.unit:796, g_runh.act:184" );
+		err, res = fnd3(act, "Project_" + v, v, "ref:Checkpoint.project_ref:Project." + v,  "+", st.LineNo, "nexus.unit:793, g_runh.act:184" );
 		st.Kproject_refp = res
 		if (err == false) {
 			errs += 1
 		}
-//  nexus.unit:801, g_runh.act:180
+//  nexus.unit:798, g_runh.act:180
 
 		v, _ = st.Names["project_source"]
-		err, res = fnd3(act, "Project_" + v, v, "ref:Checkpoint.project_source:Project." + v,  "+", st.LineNo, "nexus.unit:801, g_runh.act:184" );
+		err, res = fnd3(act, "Project_" + v, v, "ref:Checkpoint.project_source:Project." + v,  "+", st.LineNo, "nexus.unit:798, g_runh.act:184" );
 		st.Kproject_sourcep = res
 		if (err == false) {
 			errs += 1
@@ -489,50 +481,30 @@ func refs(act *ActT) int {
 		}
 	}
 	}
-	for _, st := range act.ApAnalogOp {
-
-//  nexus.unit:145, g_runh.act:224
-
- 
-	if st.Khardwarep < 0 {
-		if "+" != "*" {
-			fmt.Printf("ref_child:AnalogOp.array_target unresolved from ref:AnalogOp.hardware:Hardware %s > nexus.unit:145, g_runh.act:229", st.LineNo)
-			errs += 1
-		}
-	} else {
-		parent := act.ApHardware[st.Khardwarep].MyName
-		v, _ = st.Names["array_target"]
-		err, res = fnd3(act, strconv.Itoa(st.Khardwarep) + "_AnalogHardware_" + v, v, "ref_child:AnalogOp.array_target:Hardware." + parent + "." + v + " from ref:AnalogOp.hardware", "+", st.LineNo, "nexus.unit:145, g_runh.act:236")
-		st.Karray_targetp = res
-		if !err {
-			errs += 1
-		}
-	}
-	}
 	for _, st := range act.ApSearchTarget {
 
-//  nexus.unit:303, g_runh.act:262
+//  nexus.unit:302, g_runh.act:262
 	p = st.Me
 	p = act.ApSearchTarget[p].Kparentp
 	p = act.ApSearchSpace[p].Kparentp
 	if p >= 0 {
 		st.Kgraphp = p
 	} else if "+" != "*" {
-		fmt.Printf("ref_copy:SearchTarget.graph unresolved from text:SearchTarget.desc:..x %s (+) > nexus.unit:303, g_runh.act:275\n", st.LineNo)
+		fmt.Printf("ref_copy:SearchTarget.graph unresolved from text:SearchTarget.desc:..x %s (+) > nexus.unit:302, g_runh.act:275\n", st.LineNo)
 		errs += 1
 	}
-//  nexus.unit:304, g_runh.act:224
+//  nexus.unit:303, g_runh.act:224
 
  
 	if st.Kgraphp < 0 {
 		if "+" != "*" {
-			fmt.Printf("ref_child:SearchTarget.operation unresolved from up_copy:SearchTarget.graph:ComputeGraph %s > nexus.unit:304, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:SearchTarget.operation unresolved from up_copy:SearchTarget.graph:ComputeGraph %s > nexus.unit:303, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApComputeGraph[st.Kgraphp].MyName
 		v, _ = st.Names["operation"]
-		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:SearchTarget.operation:ComputeGraph." + parent + "." + v + " from up_copy:SearchTarget.graph", "+", st.LineNo, "nexus.unit:304, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:SearchTarget.operation:ComputeGraph." + parent + "." + v + " from up_copy:SearchTarget.graph", "+", st.LineNo, "nexus.unit:303, g_runh.act:236")
 		st.Koperationp = res
 		if !err {
 			errs += 1
@@ -541,28 +513,28 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApEnergyAllocation {
 
-//  nexus.unit:338, g_runh.act:262
+//  nexus.unit:337, g_runh.act:262
 	p = st.Me
 	p = act.ApEnergyAllocation[p].Kparentp
 	p = act.ApEnergyBudget[p].Kparentp
 	if p >= 0 {
 		st.Kgraphp = p
 	} else if "+" != "*" {
-		fmt.Printf("ref_copy:EnergyAllocation.graph unresolved from text:EnergyAllocation.desc:..x %s (+) > nexus.unit:338, g_runh.act:275\n", st.LineNo)
+		fmt.Printf("ref_copy:EnergyAllocation.graph unresolved from text:EnergyAllocation.desc:..x %s (+) > nexus.unit:337, g_runh.act:275\n", st.LineNo)
 		errs += 1
 	}
-//  nexus.unit:339, g_runh.act:224
+//  nexus.unit:338, g_runh.act:224
 
  
 	if st.Kgraphp < 0 {
 		if "+" != "*" {
-			fmt.Printf("ref_child:EnergyAllocation.operation unresolved from up_copy:EnergyAllocation.graph:ComputeGraph %s > nexus.unit:339, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:EnergyAllocation.operation unresolved from up_copy:EnergyAllocation.graph:ComputeGraph %s > nexus.unit:338, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApComputeGraph[st.Kgraphp].MyName
 		v, _ = st.Names["operation"]
-		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:EnergyAllocation.operation:ComputeGraph." + parent + "." + v + " from up_copy:EnergyAllocation.graph", "+", st.LineNo, "nexus.unit:339, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:EnergyAllocation.operation:ComputeGraph." + parent + "." + v + " from up_copy:EnergyAllocation.graph", "+", st.LineNo, "nexus.unit:338, g_runh.act:236")
 		st.Koperationp = res
 		if !err {
 			errs += 1
@@ -571,28 +543,28 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApTileTarget {
 
-//  nexus.unit:360, g_runh.act:262
+//  nexus.unit:359, g_runh.act:262
 	p = st.Me
 	p = act.ApTileTarget[p].Kparentp
 	p = act.ApTileMapping[p].Kparentp
 	if p >= 0 {
 		st.Kgraphp = p
 	} else if "+" != "*" {
-		fmt.Printf("ref_copy:TileTarget.graph unresolved from text:TileTarget.desc:..x %s (+) > nexus.unit:360, g_runh.act:275\n", st.LineNo)
+		fmt.Printf("ref_copy:TileTarget.graph unresolved from text:TileTarget.desc:..x %s (+) > nexus.unit:359, g_runh.act:275\n", st.LineNo)
 		errs += 1
 	}
-//  nexus.unit:361, g_runh.act:224
+//  nexus.unit:360, g_runh.act:224
 
  
 	if st.Kgraphp < 0 {
 		if "+" != "*" {
-			fmt.Printf("ref_child:TileTarget.operation unresolved from up_copy:TileTarget.graph:ComputeGraph %s > nexus.unit:361, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:TileTarget.operation unresolved from up_copy:TileTarget.graph:ComputeGraph %s > nexus.unit:360, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApComputeGraph[st.Kgraphp].MyName
 		v, _ = st.Names["operation"]
-		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:TileTarget.operation:ComputeGraph." + parent + "." + v + " from up_copy:TileTarget.graph", "+", st.LineNo, "nexus.unit:361, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kgraphp) + "_Operation_" + v, v, "ref_child:TileTarget.operation:ComputeGraph." + parent + "." + v + " from up_copy:TileTarget.graph", "+", st.LineNo, "nexus.unit:360, g_runh.act:236")
 		st.Koperationp = res
 		if !err {
 			errs += 1
@@ -601,35 +573,35 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApOptimizationStrategy {
 
-//  nexus.unit:661, g_runh.act:224
+//  nexus.unit:660, g_runh.act:224
 
  
 	if st.Kproject_refp < 0 {
 		if "*" != "*" {
-			fmt.Printf("ref_child:OptimizationStrategy.target_graph unresolved from ref:OptimizationStrategy.project_ref:Project %s > nexus.unit:661, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:OptimizationStrategy.target_graph unresolved from ref:OptimizationStrategy.project_ref:Project %s > nexus.unit:660, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApProject[st.Kproject_refp].MyName
 		v, _ = st.Names["target_graph"]
-		err, res = fnd3(act, strconv.Itoa(st.Kproject_refp) + "_ComputeGraph_" + v, v, "ref_child:OptimizationStrategy.target_graph:Project." + parent + "." + v + " from ref:OptimizationStrategy.project_ref", "*", st.LineNo, "nexus.unit:661, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kproject_refp) + "_ComputeGraph_" + v, v, "ref_child:OptimizationStrategy.target_graph:Project." + parent + "." + v + " from ref:OptimizationStrategy.project_ref", "*", st.LineNo, "nexus.unit:660, g_runh.act:236")
 		st.Ktarget_graphp = res
 		if !err {
 			errs += 1
 		}
 	}
-//  nexus.unit:662, g_runh.act:224
+//  nexus.unit:661, g_runh.act:224
 
  
 	if st.Ktarget_graphp < 0 {
 		if "+" != "*" {
-			fmt.Printf("ref_child:OptimizationStrategy.search_space unresolved from ref_child:OptimizationStrategy.target_graph:ComputeGraph %s > nexus.unit:662, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:OptimizationStrategy.search_space unresolved from ref_child:OptimizationStrategy.target_graph:ComputeGraph %s > nexus.unit:661, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApComputeGraph[st.Ktarget_graphp].MyName
 		v, _ = st.Names["search_space"]
-		err, res = fnd3(act, strconv.Itoa(st.Ktarget_graphp) + "_SearchSpace_" + v, v, "ref_child:OptimizationStrategy.search_space:ComputeGraph." + parent + "." + v + " from ref_child:OptimizationStrategy.target_graph", "+", st.LineNo, "nexus.unit:662, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Ktarget_graphp) + "_SearchSpace_" + v, v, "ref_child:OptimizationStrategy.search_space:ComputeGraph." + parent + "." + v + " from ref_child:OptimizationStrategy.target_graph", "+", st.LineNo, "nexus.unit:661, g_runh.act:236")
 		st.Ksearch_spacep = res
 		if !err {
 			errs += 1
@@ -638,56 +610,36 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApSimulator {
 
-//  nexus.unit:719, g_runh.act:224
+//  nexus.unit:718, g_runh.act:224
 
  
 	if st.Kproject_refp < 0 {
 		if "*" != "*" {
-			fmt.Printf("ref_child:Simulator.target_graph unresolved from ref:Simulator.project_ref:Project %s > nexus.unit:719, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:Simulator.target_graph unresolved from ref:Simulator.project_ref:Project %s > nexus.unit:718, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApProject[st.Kproject_refp].MyName
 		v, _ = st.Names["target_graph"]
-		err, res = fnd3(act, strconv.Itoa(st.Kproject_refp) + "_ComputeGraph_" + v, v, "ref_child:Simulator.target_graph:Project." + parent + "." + v + " from ref:Simulator.project_ref", "*", st.LineNo, "nexus.unit:719, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kproject_refp) + "_ComputeGraph_" + v, v, "ref_child:Simulator.target_graph:Project." + parent + "." + v + " from ref:Simulator.project_ref", "*", st.LineNo, "nexus.unit:718, g_runh.act:236")
 		st.Ktarget_graphp = res
 		if !err {
 			errs += 1
 		}
 	}
-	}
-	for _, st := range act.ApSimulationLevel {
-
-//  nexus.unit:733, g_runh.act:224
+//  nexus.unit:719, g_runh.act:224
 
  
-	if st.Kprojectp < 0 {
-		if "+" != "*" {
-			fmt.Printf("ref_child:SimulationLevel.sim_graph unresolved from ref:SimulationLevel.project:Project %s > nexus.unit:733, g_runh.act:229", st.LineNo)
+	if st.Ktarget_graphp < 0 {
+		if "*" != "*" {
+			fmt.Printf("ref_child:Simulator.fault_models unresolved from ref_child:Simulator.target_graph:ComputeGraph %s > nexus.unit:719, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
-		parent := act.ApProject[st.Kprojectp].MyName
-		v, _ = st.Names["sim_graph"]
-		err, res = fnd3(act, strconv.Itoa(st.Kprojectp) + "_ComputeGraph_" + v, v, "ref_child:SimulationLevel.sim_graph:Project." + parent + "." + v + " from ref:SimulationLevel.project", "+", st.LineNo, "nexus.unit:733, g_runh.act:236")
-		st.Ksim_graphp = res
-		if !err {
-			errs += 1
-		}
-	}
-//  nexus.unit:734, g_runh.act:224
-
- 
-	if st.Ksim_graphp < 0 {
-		if "+" != "*" {
-			fmt.Printf("ref_child:SimulationLevel.target_component unresolved from ref_child:SimulationLevel.sim_graph:ComputeGraph %s > nexus.unit:734, g_runh.act:229", st.LineNo)
-			errs += 1
-		}
-	} else {
-		parent := act.ApComputeGraph[st.Ksim_graphp].MyName
-		v, _ = st.Names["target_component"]
-		err, res = fnd3(act, strconv.Itoa(st.Ksim_graphp) + "_Operation_" + v, v, "ref_child:SimulationLevel.target_component:ComputeGraph." + parent + "." + v + " from ref_child:SimulationLevel.sim_graph", "+", st.LineNo, "nexus.unit:734, g_runh.act:236")
-		st.Ktarget_componentp = res
+		parent := act.ApComputeGraph[st.Ktarget_graphp].MyName
+		v, _ = st.Names["fault_models"]
+		err, res = fnd3(act, strconv.Itoa(st.Ktarget_graphp) + "_FaultModel_" + v, v, "ref_child:Simulator.fault_models:ComputeGraph." + parent + "." + v + " from ref_child:Simulator.target_graph", "*", st.LineNo, "nexus.unit:719, g_runh.act:236")
+		st.Kfault_modelsp = res
 		if !err {
 			errs += 1
 		}
@@ -695,18 +647,18 @@ func refs(act *ActT) int {
 	}
 	for _, st := range act.ApCheckpoint {
 
-//  nexus.unit:802, g_runh.act:224
+//  nexus.unit:799, g_runh.act:224
 
  
 	if st.Kproject_sourcep < 0 {
 		if "*" != "*" {
-			fmt.Printf("ref_child:Checkpoint.graph_snapshot unresolved from ref:Checkpoint.project_source:Project %s > nexus.unit:802, g_runh.act:229", st.LineNo)
+			fmt.Printf("ref_child:Checkpoint.graph_snapshot unresolved from ref:Checkpoint.project_source:Project %s > nexus.unit:799, g_runh.act:229", st.LineNo)
 			errs += 1
 		}
 	} else {
 		parent := act.ApProject[st.Kproject_sourcep].MyName
 		v, _ = st.Names["graph_snapshot"]
-		err, res = fnd3(act, strconv.Itoa(st.Kproject_sourcep) + "_ComputeGraph_" + v, v, "ref_child:Checkpoint.graph_snapshot:Project." + parent + "." + v + " from ref:Checkpoint.project_source", "*", st.LineNo, "nexus.unit:802, g_runh.act:236")
+		err, res = fnd3(act, strconv.Itoa(st.Kproject_sourcep) + "_ComputeGraph_" + v, v, "ref_child:Checkpoint.graph_snapshot:Project." + parent + "." + v + " from ref:Checkpoint.project_source", "*", st.LineNo, "nexus.unit:799, g_runh.act:236")
 		st.Kgraph_snapshotp = res
 		if !err {
 			errs += 1
