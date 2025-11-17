@@ -467,6 +467,12 @@ func getPath(glob *GlobT, winp int, va []string, lno string) Record {
 		return Record{Ok: true, Dat: glob.Wins[winp].Dat, Path: va[1:]}
 	}
 	
+	if va[1] == "_cnt" {
+		return Record{Ok: true, Dat: strconv.Itoa(glob.Wins[winp].Cnt), Path: []string{}}
+	}
+	if va[1] == "_prev_cnt" {
+		return Record{Ok: true, Dat: strconv.Itoa(glob.Wins[winp].PrevCnt), Path: []string{}}
+	}
 	if va[1] == "+" {
 		return Record{Ok: true, Dat: strconv.Itoa(glob.Wins[winp].Cnt + 1), Path: []string{}}
 	}
