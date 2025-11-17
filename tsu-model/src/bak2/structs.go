@@ -4998,13 +4998,6 @@ func (me KpEvolutionStrategy) GetVar(glob *GlobT, va []string, lno string) (bool
 			}
 		}
 	}
-	if (va[0] == "AutoTuneExtension_evolution_strategy" && len(va) > 1) { // tsu-ext.unit:310, g_structh.act:698
-		for _, st := range glob.Dats.ApAutoTuneExtension {
-			if (st.Kevolution_strategyp == me.Me) {
-				return (st.GetVar(glob, va[1:], lno) )
-			}
-		}
-	}
 	if va[0] == "previous" { // tsu-auto.unit:41, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApEvolutionStrategy[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
@@ -5119,24 +5112,6 @@ func (me KpEvolutionStrategy) DoIts(glob *GlobT, va []string, lno string) int {
 	if (va[0] == "VariationalModel_optimizer_ref") { // tsu-ext.unit:38, g_structh.act:583
 		for _, st := range glob.Dats.ApVariationalModel {
 			if (st.Koptimizer_refp == me.Me) {
-				if len(va) > 1 {
-					ret := st.DoIts(glob, va[1:], lno)
-					if (ret != 0) {
-						return(ret)
-					}
-					continue
-				}
-				ret := GoAct(glob, st)
-				if (ret != 0) {
-					return(ret)
-				}
-			}
-		}
-		return(0)
-	}
-	if (va[0] == "AutoTuneExtension_evolution_strategy") { // tsu-ext.unit:310, g_structh.act:583
-		for _, st := range glob.Dats.ApAutoTuneExtension {
-			if (st.Kevolution_strategyp == me.Me) {
 				if len(va) > 1 {
 					ret := st.DoIts(glob, va[1:], lno)
 					if (ret != 0) {
@@ -6540,6 +6515,13 @@ func (me KpMultiObjective) GetVar(glob *GlobT, va []string, lno string) (bool, s
 			return( glob.Dats.ApEvolutionStrategy[ me.Kparentp ].GetVar(glob, va[1:], lno) );
 		}
 	}
+	if (va[0] == "AutoTuneExtension_multi_objective" && len(va) > 1) { // tsu-ext.unit:310, g_structh.act:698
+		for _, st := range glob.Dats.ApAutoTuneExtension {
+			if (st.Kmulti_objectivep == me.Me) {
+				return (st.GetVar(glob, va[1:], lno) )
+			}
+		}
+	}
 	if va[0] == "previous" { // tsu-auto.unit:225, g_structh.act:176
 		if (me.Me > 0 && len(va) > 1) {
 			return( glob.Dats.ApMultiObjective[ me.Me - 1 ].GetVar(glob, va[1:], lno) )
@@ -6565,7 +6547,7 @@ func (me KpMultiObjective) DoIts(glob *GlobT, va []string, lno string) int {
 		}
 		return(0)
 	}
-	if (va[0] == "AutoTuneExtension_multi_objective") { // tsu-ext.unit:311, g_structh.act:583
+	if (va[0] == "AutoTuneExtension_multi_objective") { // tsu-ext.unit:310, g_structh.act:583
 		for _, st := range glob.Dats.ApAutoTuneExtension {
 			if (st.Kmulti_objectivep == me.Me) {
 				if len(va) > 1 {
@@ -9332,7 +9314,6 @@ type KpAutoTuneExtension struct {
 	Flags [] string
 	Names map[string]string
 	Kparentp int
-	Kevolution_strategyp int
 	Kmulti_objectivep int
 }
 
@@ -9355,7 +9336,6 @@ func loadAutoTuneExtension(act *ActT, ln string, pos int, lno string, flag []str
 	st.Names["kComp"] = st.Comp
 	st.Names["kMe"] = strconv.Itoa(st.Me)
 	st.Names["_lno"] = lno
-	st.Kevolution_strategyp = -1
 	st.Kmulti_objectivep = -1
 	st.Kparentp = len( act.ApAutoTuneConfig ) - 1;
 	st.Names["kParentp"] = strconv.Itoa(st.Kparentp)
@@ -9379,12 +9359,7 @@ func loadAutoTuneExtension(act *ActT, ln string, pos int, lno string, flag []str
 }
 
 func (me KpAutoTuneExtension) GetVar(glob *GlobT, va []string, lno string) (bool, string) {
-	if va[0] == "evolution_strategy" { // tsu-ext.unit:310, g_structh.act:609
-		if (me.Kevolution_strategyp >= 0 && len(va) > 1) {
-			return( glob.Dats.ApEvolutionStrategy[ me.Kevolution_strategyp ].GetVar(glob, va[1:], lno) )
-		}
-	}
-	if va[0] == "multi_objective" { // tsu-ext.unit:311, g_structh.act:609
+	if va[0] == "multi_objective" { // tsu-ext.unit:310, g_structh.act:609
 		if (me.Kmulti_objectivep >= 0 && len(va) > 1) {
 			return( glob.Dats.ApMultiObjective[ me.Kmulti_objectivep ].GetVar(glob, va[1:], lno) )
 		}
@@ -9412,16 +9387,6 @@ func (me KpAutoTuneExtension) DoIts(glob *GlobT, va []string, lno string) int {
 	if va[0] == "parent" { // tsu-auto.unit:159, g_structh.act:557
 		if me.Kparentp >= 0 {
 			st := glob.Dats.ApAutoTuneConfig[ me.Kparentp ]
-			if len(va) > 1 {
-				return( st.DoIts(glob, va[1:], lno) )
-			}
-			return( GoAct(glob, st) )
-		}
-		return(0)
-	}
-	if va[0] == "evolution_strategy" {
-		if me.Kevolution_strategyp >= 0 {
-			st := glob.Dats.ApEvolutionStrategy[ me.Kevolution_strategyp ]
 			if len(va) > 1 {
 				return( st.DoIts(glob, va[1:], lno) )
 			}
