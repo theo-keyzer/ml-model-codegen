@@ -1,24 +1,162 @@
 // ================================================================
-// NET5.UNIT SCHEMA CONSTRUCTION GUIDE
-// How to build unit files and use the generator system
+// SCHEMA VALIDATION REPORT
+// Run: check.act net5.unit
 // ================================================================
 
-Artifact domain_component structure overview
+
+**Note:** This documentation was generated from the schema.
+For validation results, run the check.act actor on your schema.
+
+Expected validation checks:
+- Reference integrity (ref, link, ref_child, ref_copy, up_copy)
+- Component searchability (Find/FindIn matching)
+- Parent-child relationship consistency
+- Key field uniqueness
+- Check marker validity (+, 1, *, .)
+
+Artifact error-list error guide
+
+Section ref_child 2 Error in ref_child
+D - Block.parameters. Previous element reference (Layer) not a parent of (BlockParam)
+
+Section ref_child 2 Error in ref_child
+D - BlockInstance.param_values. Previous element reference (Block) not a parent of (ParamValue)
+
+// ================================================================
+// NET5.UNIT SCHEMA CONSTRUCTION GUIDE
+// Auto-generated documentation from schema definitions
+// ================================================================
+
+Artifact table-of-contents navigation guide
+O Quick navigation to all components in the schema.
+
+Section components 2 Component Index
+D
+D - [Domain](#domain-component) - 
+D - [Kernel](#kernel-component) - 
+D   - [Kernelparam](#kernelparam-component) - 
+D   - [Kernelop](#kernelop-component) - 
+D - [Optimization](#optimization-component) - 
+D - [Scheduleop](#scheduleop-component) - 
+D - [Memlayout](#memlayout-component) - 
+D - [Fusion](#fusion-component) - 
+D - [Model](#model-component) - 
+D   - [Tensor](#tensor-component) - 
+D   - [Layer](#layer-component) - 
+D     - [Blockinstance](#blockinstance-component) - 
+D       - [Paramvalue](#paramvalue-component) - 
+D     - [Op](#op-component) - 
+D       - [Arg](#arg-component) - 
+D       - [Attentionop](#attentionop-component) - 
+D       - [Attentionfreeop](#attentionfreeop-component) - 
+D         - [Recurrentformulation](#recurrentformulation-component) - 
+D       - [Graphop](#graphop-component) - 
+D       - [Graphlearningop](#graphlearningop-component) - 
+D       - [Statefulop](#statefulop-component) - 
+D       - [Ltcop](#ltcop-component) - 
+D       - [Odeop](#odeop-component) - 
+D       - [Sdeop](#sdeop-component) - 
+D       - [Pdeop](#pdeop-component) - 
+D       - [Memoryop](#memoryop-component) - 
+D       - [Expertroutingop](#expertroutingop-component) - 
+D         - [Capacityawareroutingop](#capacityawareroutingop-component) - 
+D       - [Samplingop](#samplingop-component) - 
+D       - [Stochasticop](#stochasticop-component) - 
+D       - [Dynamicroutingop](#dynamicroutingop-component) - 
+D       - [Dynamicop](#dynamicop-component) - 
+D       - [Neuralprogramop](#neuralprogramop-component) - 
+D       - [Weightgenerationop](#weightgenerationop-component) - 
+D       - [Architecturesearchop](#architecturesearchop-component) - 
+D       - [Continuousdepthop](#continuousdepthop-component) - 
+D   - [Config](#config-component) - 
+D     - [Schedule](#schedule-component) - 
+D     - [Statetransfer](#statetransfer-component) - 
+D   - [Controlflow](#controlflow-component) - 
+D     - [Condition](#condition-component) - 
+D     - [Branch](#branch-component) - 
+D   - [Graphtensor](#graphtensor-component) - 
+D   - [Continuouslayer](#continuouslayer-component) - 
+D   - [Searchspace](#searchspace-component) - 
+D     - [Searchop](#searchop-component) - 
+D     - [Searchedge](#searchedge-component) - 
+D   - [Architectureparam](#architectureparam-component) - 
+D   - [Architecturegradient](#architecturegradient-component) - 
+D   - [Hypernetwork](#hypernetwork-component) - 
+D     - [Weightgenerator](#weightgenerator-component) - 
+D   - [Memorymatrix](#memorymatrix-component) - 
+D   - [Differentiableprogram](#differentiableprogram-component) - 
+D     - [Programinstruction](#programinstruction-component) - 
+D   - [Metalearner](#metalearner-component) - 
+D   - [Sparseexpertsystem](#sparseexpertsystem-component) - 
+D     - [Capacityawarerouter](#capacityawarerouter-component) - 
+D   - [Neuralsde](#neuralsde-component) - 
+D   - [Neuralpde](#neuralpde-component) - 
+D   - [Dynamicgraphnetwork](#dynamicgraphnetwork-component) - 
+D     - [Graphlearner](#graphlearner-component) - 
+D   - [Neuralprogram](#neuralprogram-component) - 
+D     - [Proginstruction](#proginstruction-component) - 
+D   - [Liquidnetwork](#liquidnetwork-component) - 
+D   - [Symbolicshape](#symbolicshape-component) - 
+D   - [Jitcompiler](#jitcompiler-component) - 
+D - [Block](#block-component) - 
+D   - [Blockparam](#blockparam-component) - 
+D - [Optyperule](#optyperule-component) - 
+D - [Argrolerule](#argrolerule-component) - 
+D - [Targetrule](#targetrule-component) - 
+D - [Dtyperule](#dtyperule-component) - 
+D - [Flagrule](#flagrule-component) - 
+D - [Distributionrule](#distributionrule-component) - 
+D - [Searchstrategyrule](#searchstrategyrule-component) - 
+D - [Dynamicgraphrule](#dynamicgraphrule-component) - 
+D - [Compatibilitynote](#compatibilitynote-component) - 
+
+Artifact element-types-reference quick reference
+O Complete reference for all element type keywords and their behaviors.
+
+Section type_summary 2 Element Type Summary
+D
+D | Type | Scope | Resolution | Navigation |
+D |------|-------|------------|------------|
+D | `key` | Local | Immediate | Field access only |
+D | `word` | Local | Immediate | Field access only |
+D | `text` | Local | Immediate | Field access only |
+D | `number` | Local | Immediate | Field access only |
+D | `ref` | Global | Pass 1 | `Its field actor` |
+D | `link` | Sibling | Pass 1 | `Its field actor` |
+D | `ref_copy` | Previous | Pass 2+ | `Its field actor` |
+D | `ref_child` | Parent→Child | Pass 2+ | `Its field actor` |
+D | `up_copy` | Ancestor | Pass 2+ | `Its field actor` |
+D | `type_of` | Child by type | Pass 2+ | `Its field actor` |
+D | `tree` | Local | Immediate | `Its field.up/down/left/right actor` |
+D
+Section type_resolution_passes 2 Multi-Pass Resolution Details
+D
+D **Pass 1: Direct References**
+D - `ref`: Global lookup by key in Find index
+D - `link`: Parent-scoped lookup by key in FindIn index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copy pointer from previous resolved field
+D - `ref_child`: Look up child in previously resolved parent
+D - `up_copy`: Walk parent chain to ancestor type
+D - `type_of`: Match child by component type name
+D
+D The loader continues passes until all references resolve or error count stabilizes.
+
+Artifact domain-component structure overview
+
+O Comp Domain parent . Find
 
 O Defines a top-level Domain component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Domain component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Domain parent . Find
-D Element name key . + Domain name
-D Element desc text . * Domain description
-D Element version word . + Schema version of this domain knowledge (e.g., 2.0.0)
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + | Domain name |
+D | desc | text | . | * | Domain description |
+D | version | word | . | + | Schema version of this domain knowledge (e.g., 2.0.0) |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -30,26 +168,24 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact kernel_component structure overview
+Artifact kernel-component structure overview
+
+O Comp Kernel parent . Find
 
 O Defines a top-level Kernel component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Kernel component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Kernel parent . Find
-D Element kernel key . + Kernel identifier (unique name)
-D Element backend word . + Target hardware (cuda, hip, metal, vulkan)
-D Element desc text . * Kernel description
-D Element signature text . + Kernel signature
-D Element body text . + Template for kernel implementation
-D Element stochastic word . * true/false for stochastic operations
-D Element dynamic_dims word . * true/false for dynamic dimensions support
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | kernel | key | . | + | Kernel identifier (unique name) |
+D | backend | word | . | + | Target hardware (cuda, hip, metal, vulkan) |
+D | desc | text | . | * | Kernel description |
+D | signature | text | . | + | Kernel signature |
+D | body | text | . | + | Template for kernel implementation |
+D | stochastic | word | . | * | true/false for stochastic operations |
+D | dynamic_dims | word | . | * | true/false for dynamic dimensions support |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -64,27 +200,26 @@ D ${Op_kernel.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Kernelparam actor
-D Its Kernelop actor
-D Its Op_kernel actor
+D Its Kernelparam actor  [Link to Kernelparam](#kernelparam-component)
+D Its Kernelop actor  [Link to Kernelop](#kernelop-component)
+D Its Op_kernel actor  [Reverse link to Op](#op-component)
 D ```
 
-Artifact kernelparam_component structure detail
+Artifact kernelparam-component structure detail
+
+O Comp Kernelparam parent Kernel FindIn
+
 O Defines a Kernelparam component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Kernelparam component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Kernelparam parent Kernel FindIn
-D Element param key . + Parameter name (M, N, K, stride, etc)
-D Element type word . + C data type (float*, int, etc)
-D Element calculation text . + How to calculate from tensor shapes
-D Element dynamic word . * true/false for runtime calculation
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param | key | . | + | Parameter name (M, N, K, stride, etc) |
+D | type | word | . | + | C data type (float*, int, etc) |
+D | calculation | text | . | + | How to calculate from tensor shapes |
+D | dynamic | word | . | * | true/false for runtime calculation |
 D
-D This creates a nested component under Kernel that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -96,28 +231,27 @@ D ${parent.kernel}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Kernel](#kernel-component)
 D ```
 
-Artifact kernelop_component structure detail
+Artifact kernelop-component structure detail
+
+O Comp Kernelop parent Kernel FindIn
+
 O Defines a Kernelop component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Kernelop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Kernelop parent Kernel FindIn
-D Element op key . + Operation primitive name
-D Element desc text . * Operation description
-D Element input_rank word . * Expected input rank
-D Element output_rank word . * Expected output rank
-D Element dimension_calc text . + Code to calculate dimensions
-D Element block_size word . + Threads per block
-D Element grid_calc text . + Grid size calculation formula
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op | key | . | + | Operation primitive name |
+D | desc | text | . | * | Operation description |
+D | input_rank | word | . | * | Expected input rank |
+D | output_rank | word | . | * | Expected output rank |
+D | dimension_calc | text | . | + | Code to calculate dimensions |
+D | block_size | word | . | + | Threads per block |
+D | grid_calc | text | . | + | Grid size calculation formula |
 D
-D This creates a nested component under Kernel that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -133,28 +267,25 @@ D ${Op_kernel_op.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Op_kernel_op actor
+D Its parent actor  [Link to Kernel](#kernel-component)
+D Its Op_kernel_op actor  [Reverse link to Op](#op-component)
 D ```
 
-Artifact optimization_component structure overview
+Artifact optimization-component structure overview
+
+O Comp Optimization parent . Find
 
 O Defines a top-level Optimization component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Optimization component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Optimization parent . Find
-D Element target key . + Target device
-D Element flags ref FlagRule + Optimization flags
-D Element transform_rules text . + Transformation rules to apply
-D Element fusion_patterns text . + Which ops to fuse
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | target | key | . | + | Target device |
+D | flags | ref | FlagRule | + | Optimization flags |
+D | transform_rules | text | . | + | Transformation rules to apply |
+D | fusion_patterns | text | . | + | Which ops to fuse |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
-Link flagrule_component ref
 
 Section variables 2 Variable fields
 D ```
@@ -166,26 +297,24 @@ D ${flags.flag}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its flags actor
+D Its flags actor  [Link to Flagrule](#flagrule-component)
 D ```
 
-Artifact scheduleop_component structure overview
+Artifact scheduleop-component structure overview
+
+O Comp Scheduleop parent . Find
 
 O Defines a top-level Scheduleop component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Scheduleop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Scheduleop parent . Find
-D Element schedule_op key . + Name
-D Element layer word . + Layer name pattern
-D Element op word . + Op name pattern
-D Element optimized_call text . + Optimized invocation code
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | schedule_op | key | . | + | Name |
+D | layer | word | . | + | Layer name pattern |
+D | op | word | . | + | Op name pattern |
+D | optimized_call | text | . | + | Optimized invocation code |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -198,23 +327,21 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact memlayout_component structure overview
+Artifact memlayout-component structure overview
+
+O Comp Memlayout parent . Find
 
 O Defines a top-level Memlayout component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Memlayout component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Memlayout parent . Find
-D Element target key . + Target device
-D Element dtype word . + Data type
-D Element layout word . + Layout name (nchw, nhwc, etc)
-D Element alignment word . + Alignment requirement (bytes)
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | target | key | . | + | Target device |
+D | dtype | word | . | + | Data type |
+D | layout | word | . | + | Layout name (nchw, nhwc, etc) |
+D | alignment | word | . | + | Alignment requirement (bytes) |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -227,22 +354,20 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact fusion_component structure overview
+Artifact fusion-component structure overview
+
+O Comp Fusion parent . Find
 
 O Defines a top-level Fusion component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Fusion component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Fusion parent . Find
-D Element fusion key . + Fusion pattern name
-D Element pattern text . + Operation sequence pattern
-D Element fused_kernel word . + Name of fused kernel
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | fusion | key | . | + | Fusion pattern name |
+D | pattern | text | . | + | Operation sequence pattern |
+D | fused_kernel | word | . | + | Name of fused kernel |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -254,22 +379,20 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact model_component structure overview
+Artifact model-component structure overview
+
+O Comp Model parent . Find
 
 O Defines a top-level Model component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Model component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Model parent . Find
-D Element model key . + Model name
-D Element desc text . * Model description
-D Element type word . * static, dynamic, searchable, meta
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | model | key | . | + | Model name |
+D | desc | text | . | * | Model description |
+D | type | word | . | * | static, dynamic, searchable, meta |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -317,89 +440,84 @@ D ${Liquidnetwork_model.liquid_net}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Tensor actor
-D Its Layer actor
-D Its Config actor
-D Its Controlflow actor
-D Its Graphtensor actor
-D Its Continuouslayer actor
-D Its Searchspace actor
-D Its Architectureparam actor
-D Its Architecturegradient actor
-D Its Hypernetwork actor
-D Its Memorymatrix actor
-D Its Differentiableprogram actor
-D Its Metalearner actor
-D Its Sparseexpertsystem actor
-D Its Neuralsde actor
-D Its Neuralpde actor
-D Its Dynamicgraphnetwork actor
-D Its Neuralprogram actor
-D Its Liquidnetwork actor
-D Its Symbolicshape actor
-D Its Jitcompiler actor
-D Its Block_model actor
-D Its Arg_model actor
-D Its Expertroutingop_model2 actor
-D Its Schedule_model1 actor
-D Its Schedule_model2 actor
-D Its Condition_model actor
-D Its Branch_model actor
-D Its Statetransfer_model1 actor
-D Its Statetransfer_model2 actor
-D Its Continuouslayer_model actor
-D Its Searchop_model actor
-D Its Architecturegradient_model actor
-D Its Architecturegradient_model2 actor
-D Its Hypernetwork_model1 actor
-D Its Hypernetwork_model2 actor
-D Its Weightgenerator_model1 actor
-D Its Weightgenerator_model2 actor
-D Its Programinstruction_model1 actor
-D Its Programinstruction_model2 actor
-D Its Metalearner_model1 actor
-D Its Metalearner_model2 actor
-D Its Sparseexpertsystem_model actor
-D Its Capacityawarerouter_model1 actor
-D Its Capacityawarerouter_model2 actor
-D Its Capacityawarerouter_model3 actor
-D Its Neuralsde_model1 actor
-D Its Neuralsde_model2 actor
-D Its Neuralpde_model1 actor
-D Its Neuralpde_model2 actor
-D Its Neuralpde_model3 actor
-D Its Dynamicgraphnetwork_model1 actor
-D Its Dynamicgraphnetwork_model2 actor
-D Its Graphlearner_model1 actor
-D Its Graphlearner_model2 actor
-D Its Neuralprogram_model actor
-D Its Proginstruction_model1 actor
-D Its Proginstruction_model2 actor
-D Its Liquidnetwork_model actor
+D Its Tensor actor  [Link to Tensor](#tensor-component)
+D Its Layer actor  [Link to Layer](#layer-component)
+D Its Config actor  [Link to Config](#config-component)
+D Its Controlflow actor  [Link to Controlflow](#controlflow-component)
+D Its Graphtensor actor  [Link to Graphtensor](#graphtensor-component)
+D Its Continuouslayer actor  [Link to Continuouslayer](#continuouslayer-component)
+D Its Searchspace actor  [Link to Searchspace](#searchspace-component)
+D Its Architectureparam actor  [Link to Architectureparam](#architectureparam-component)
+D Its Architecturegradient actor  [Link to Architecturegradient](#architecturegradient-component)
+D Its Hypernetwork actor  [Link to Hypernetwork](#hypernetwork-component)
+D Its Memorymatrix actor  [Link to Memorymatrix](#memorymatrix-component)
+D Its Differentiableprogram actor  [Link to Differentiableprogram](#differentiableprogram-component)
+D Its Metalearner actor  [Link to Metalearner](#metalearner-component)
+D Its Sparseexpertsystem actor  [Link to Sparseexpertsystem](#sparseexpertsystem-component)
+D Its Neuralsde actor  [Link to Neuralsde](#neuralsde-component)
+D Its Neuralpde actor  [Link to Neuralpde](#neuralpde-component)
+D Its Dynamicgraphnetwork actor  [Link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
+D Its Neuralprogram actor  [Link to Neuralprogram](#neuralprogram-component)
+D Its Liquidnetwork actor  [Link to Liquidnetwork](#liquidnetwork-component)
+D Its Symbolicshape actor  [Link to Symbolicshape](#symbolicshape-component)
+D Its Jitcompiler actor  [Link to Jitcompiler](#jitcompiler-component)
+D Its Block_model actor  [Reverse link to Block](#block-component)
+D Its Arg_model actor  [Reverse link to Arg](#arg-component)
+D Its Expertroutingop_model2 actor  [Reverse link to Expertroutingop](#expertroutingop-component)
+D Its Schedule_model1 actor  [Reverse link to Schedule](#schedule-component)
+D Its Schedule_model2 actor  [Reverse link to Schedule](#schedule-component)
+D Its Condition_model actor  [Reverse link to Condition](#condition-component)
+D Its Branch_model actor  [Reverse link to Branch](#branch-component)
+D Its Statetransfer_model1 actor  [Reverse link to Statetransfer](#statetransfer-component)
+D Its Statetransfer_model2 actor  [Reverse link to Statetransfer](#statetransfer-component)
+D Its Continuouslayer_model actor  [Reverse link to Continuouslayer](#continuouslayer-component)
+D Its Searchop_model actor  [Reverse link to Searchop](#searchop-component)
+D Its Architecturegradient_model actor  [Reverse link to Architecturegradient](#architecturegradient-component)
+D Its Architecturegradient_model2 actor  [Reverse link to Architecturegradient](#architecturegradient-component)
+D Its Hypernetwork_model1 actor  [Reverse link to Hypernetwork](#hypernetwork-component)
+D Its Hypernetwork_model2 actor  [Reverse link to Hypernetwork](#hypernetwork-component)
+D Its Weightgenerator_model1 actor  [Reverse link to Weightgenerator](#weightgenerator-component)
+D Its Weightgenerator_model2 actor  [Reverse link to Weightgenerator](#weightgenerator-component)
+D Its Programinstruction_model1 actor  [Reverse link to Programinstruction](#programinstruction-component)
+D Its Programinstruction_model2 actor  [Reverse link to Programinstruction](#programinstruction-component)
+D Its Metalearner_model1 actor  [Reverse link to Metalearner](#metalearner-component)
+D Its Metalearner_model2 actor  [Reverse link to Metalearner](#metalearner-component)
+D Its Sparseexpertsystem_model actor  [Reverse link to Sparseexpertsystem](#sparseexpertsystem-component)
+D Its Capacityawarerouter_model1 actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Capacityawarerouter_model2 actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Capacityawarerouter_model3 actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Neuralsde_model1 actor  [Reverse link to Neuralsde](#neuralsde-component)
+D Its Neuralsde_model2 actor  [Reverse link to Neuralsde](#neuralsde-component)
+D Its Neuralpde_model1 actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Neuralpde_model2 actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Neuralpde_model3 actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Dynamicgraphnetwork_model1 actor  [Reverse link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
+D Its Dynamicgraphnetwork_model2 actor  [Reverse link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
+D Its Graphlearner_model1 actor  [Reverse link to Graphlearner](#graphlearner-component)
+D Its Graphlearner_model2 actor  [Reverse link to Graphlearner](#graphlearner-component)
+D Its Neuralprogram_model actor  [Reverse link to Neuralprogram](#neuralprogram-component)
+D Its Proginstruction_model1 actor  [Reverse link to Proginstruction](#proginstruction-component)
+D Its Proginstruction_model2 actor  [Reverse link to Proginstruction](#proginstruction-component)
+D Its Liquidnetwork_model actor  [Reverse link to Liquidnetwork](#liquidnetwork-component)
 D ```
 
-Artifact block_component structure overview
+Artifact block-component structure overview
+
+O Comp Block parent . Find
 
 O Defines a top-level Block component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Block component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Block parent . Find
-D Element block key . + Block identifier (e.g., resnet_block, transformer_block)
-D Element block_type word . + Type: sequential, parallel, residual, attention
-D Element model ref Model + Model
-D Element layers ref_child Layer * Layers contained in this block
-D Element parameters ref_child BlockParam * Parameterizable aspects
-D Element desc text . * Block description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | block | key | . | + | Block identifier (e.g., resnet_block, transformer_block) |
+D | block_type | word | . | + | Type: sequential, parallel, residual, attention |
+D | model | ref | Model | + | Model |
+D | layers | ref_child | Layer | * | Layers contained in this block |
+D | parameters | ref_child | BlockParam | * | Parameterizable aspects |
+D | desc | text | . | * | Block description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
-Link model_component ref
-Link layer_component ref_child
-Link blockparam_component ref_child
 
 Section variables 2 Variable fields
 D ```
@@ -416,29 +534,28 @@ D ${Blockinstance_block.instance}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Blockparam actor
-D Its model actor
-D Its layers actor
-D Its parameters actor
-D Its Blockinstance_block actor
+D Its Blockparam actor  [Link to Blockparam](#blockparam-component)
+D Its model actor  [Link to Model](#model-component)
+D Its layers actor  [Link to Layer](#layer-component)
+D Its parameters actor  [Link to Blockparam](#blockparam-component)
+D Its Blockinstance_block actor  [Reverse link to Blockinstance](#blockinstance-component)
 D ```
 
-Artifact blockparam_component structure detail
+Artifact blockparam-component structure detail
+
+O Comp Blockparam parent Block FindIn
+
 O Defines a Blockparam component with FindIn searchability under parent Block, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Blockparam component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Blockparam parent Block FindIn
-D Element param key . + Parameter name (e.g., num_filters, hidden_dim)
-D Element param_type word . + int, float, tensor_shape, layer_count
-D Element default word . * Default value
-D Element desc text . * Parameter description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param | key | . | + | Parameter name (e.g., num_filters, hidden_dim) |
+D | param_type | word | . | + | int, float, tensor_shape, layer_count |
+D | default | word | . | * | Default value |
+D | desc | text | . | * | Parameter description |
 D
-D This creates a nested component under Block that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -451,29 +568,26 @@ D ${Block_parameters.block}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Block_parameters actor
+D Its parent actor  [Link to Block](#block-component)
+D Its Block_parameters actor  [Reverse link to Block](#block-component)
 D ```
 
-Artifact blockinstance_component structure detail
+Artifact blockinstance-component structure detail
+
+O Comp Blockinstance parent Layer FindIn
+
 O Defines a Blockinstance component with FindIn searchability under parent Layer, meaning instances are searchable within their parent's context.
 
-Link block_component ref
-Link paramvalue_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Blockinstance component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Blockinstance parent Layer FindIn
-D Element instance key . + Instance identifier
-D Element block ref Block + Reference to block definition
-D Element param_values ref_child ParamValue * Parameter value overrides
-D Element repeat word . * Number of times to repeat (for stacked blocks)
-D Element desc text . * Instance description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | instance | key | . | + | Instance identifier |
+D | block | ref | Block | + | Reference to block definition |
+D | param_values | ref_child | ParamValue | * | Parameter value overrides |
+D | repeat | word | . | * | Number of times to repeat (for stacked blocks) |
+D | desc | text | . | * | Instance description |
 D
-D This creates a nested component under Layer that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -488,27 +602,26 @@ D ${param_values.param}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Paramvalue actor
-D Its block actor
-D Its param_values actor
+D Its parent actor  [Link to Layer](#layer-component)
+D Its Paramvalue actor  [Link to Paramvalue](#paramvalue-component)
+D Its block actor  [Link to Block](#block-component)
+D Its param_values actor  [Link to Paramvalue](#paramvalue-component)
 D ```
 
-Artifact paramvalue_component structure detail
+Artifact paramvalue-component structure detail
+
+O Comp Paramvalue parent BlockInstance FindIn
+
 O Defines a Paramvalue component with FindIn searchability under parent Blockinstance, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Paramvalue component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Paramvalue parent Blockinstance FindIn
-D Element param key . + Parameter name (must match BlockParam)
-D Element value word . + Concrete value
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param | key | . | + | Parameter name (must match BlockParam) |
+D | value | word | . | + | Concrete value |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Blockinstance that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -520,31 +633,29 @@ D ${Blockinstance_param_values.instance}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Blockinstance_param_values actor
+D Its parent actor  [Link to Blockinstance](#blockinstance-component)
+D Its Blockinstance_param_values actor  [Reverse link to Blockinstance](#blockinstance-component)
 D ```
 
-Artifact tensor_component structure detail
+Artifact tensor-component structure detail
+
+O Comp Tensor parent Model FindIn
+
 O Defines a Tensor component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link dtyperule_component ref
-
-Section declaration 2 Component Declaration
-D To declare a Tensor component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Tensor parent Model FindIn
-D Element tensor key . + Tensor identifier
-D Element shape word . + Logical shape (batch,height,width,channels)
-D Element shape_type word . * static (default), dynamic, or symbolic
-D Element dyn_dims word . * Comma-separated indices of dynamic dimensions (e.g., "0,1")
-D Element layout word . + Memory layout (nhwc, nchw, csr, coo, jagged, etc)
-D Element dtype ref DtypeRule + Data type (linked to Rule)
-D Element desc text . * Tensor description
-D Element symbolic word . * Symbolic shape expression
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | tensor | key | . | + | Tensor identifier |
+D | shape | word | . | + | Logical shape (batch,height,width,channels) |
+D | shape_type | word | . | * | static (default), dynamic, or symbolic |
+D | dyn_dims | word | . | * | Comma-separated indices of dynamic dimensions (e.g., "0,1") |
+D | layout | word | . | + | Memory layout (nhwc, nchw, csr, coo, jagged, etc) |
+D | dtype | ref | DtypeRule | + | Data type (linked to Rule) |
+D | desc | text | . | * | Tensor description |
+D | symbolic | word | . | * | Symbolic shape expression |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -578,43 +689,42 @@ D ${Liquidnetwork_time_const.liquid_net}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its dtype actor
-D Its Arg_tensor actor
-D Its Condition_input actor
-D Its Statetransfer_source_state actor
-D Its Statetransfer_target_state actor
-D Its Hypernetwork_condition actor
-D Its Weightgenerator_input_tensor actor
-D Its Weightgenerator_output_tensor actor
-D Its Programinstruction_operands actor
-D Its Capacityawarerouter_gate_input actor
-D Its Capacityawarerouter_expert_mask actor
-D Its Capacityawarerouter_token_assign actor
-D Its Neuralpde_domain actor
-D Its Neuralpde_boundary actor
-D Its Neuralpde_initial actor
-D Its Neuralprogram_memory actor
-D Its Proginstruction_operands actor
-D Its Liquidnetwork_time_const actor
+D Its parent actor  [Link to Model](#model-component)
+D Its dtype actor  [Link to Dtyperule](#dtyperule-component)
+D Its Arg_tensor actor  [Reverse link to Arg](#arg-component)
+D Its Condition_input actor  [Reverse link to Condition](#condition-component)
+D Its Statetransfer_source_state actor  [Reverse link to Statetransfer](#statetransfer-component)
+D Its Statetransfer_target_state actor  [Reverse link to Statetransfer](#statetransfer-component)
+D Its Hypernetwork_condition actor  [Reverse link to Hypernetwork](#hypernetwork-component)
+D Its Weightgenerator_input_tensor actor  [Reverse link to Weightgenerator](#weightgenerator-component)
+D Its Weightgenerator_output_tensor actor  [Reverse link to Weightgenerator](#weightgenerator-component)
+D Its Programinstruction_operands actor  [Reverse link to Programinstruction](#programinstruction-component)
+D Its Capacityawarerouter_gate_input actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Capacityawarerouter_expert_mask actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Capacityawarerouter_token_assign actor  [Reverse link to Capacityawarerouter](#capacityawarerouter-component)
+D Its Neuralpde_domain actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Neuralpde_boundary actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Neuralpde_initial actor  [Reverse link to Neuralpde](#neuralpde-component)
+D Its Neuralprogram_memory actor  [Reverse link to Neuralprogram](#neuralprogram-component)
+D Its Proginstruction_operands actor  [Reverse link to Proginstruction](#proginstruction-component)
+D Its Liquidnetwork_time_const actor  [Reverse link to Liquidnetwork](#liquidnetwork-component)
 D ```
 
-Artifact layer_component structure detail
+Artifact layer-component structure detail
+
+O Comp Layer parent Model FindIn
+
 O Defines a Layer component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Layer component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Layer parent Model FindIn
-D Element layer key . + Layer identifier
-D Element type word . + Layer type (conv, dense, pool, residual, etc)
-D Element desc text . * Layer description
-D Element dynamic word . * true/false for dynamic structure
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | layer | key | . | + | Layer identifier |
+D | type | word | . | + | Layer type (conv, dense, pool, residual, etc) |
+D | desc | text | . | * | Layer description |
+D | dynamic | word | . | * | true/false for dynamic structure |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -640,47 +750,44 @@ D ${Dynamicgraphnetwork_edge_predictor.dynamic_graph}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Blockinstance actor
-D Its Op actor
-D Its Block_layers actor
-D Its Expertroutingop_experts actor
-D Its Schedule_layer actor
-D Its Branch_layers actor
-D Its Continuouslayer_dynamics actor
-D Its Searchop_layer actor
-D Its Architecturegradient_layer actor
-D Its Hypernetwork_target_net actor
-D Its Metalearner_inner_loop actor
-D Its Metalearner_outer_loop actor
-D Its Sparseexpertsystem_experts actor
-D Its Neuralsde_drift_net actor
-D Its Neuralsde_diffusion_net actor
-D Its Dynamicgraphnetwork_edge_predictor actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Blockinstance actor  [Link to Blockinstance](#blockinstance-component)
+D Its Op actor  [Link to Op](#op-component)
+D Its Block_layers actor  [Reverse link to Block](#block-component)
+D Its Expertroutingop_experts actor  [Reverse link to Expertroutingop](#expertroutingop-component)
+D Its Schedule_layer actor  [Reverse link to Schedule](#schedule-component)
+D Its Branch_layers actor  [Reverse link to Branch](#branch-component)
+D Its Continuouslayer_dynamics actor  [Reverse link to Continuouslayer](#continuouslayer-component)
+D Its Searchop_layer actor  [Reverse link to Searchop](#searchop-component)
+D Its Architecturegradient_layer actor  [Reverse link to Architecturegradient](#architecturegradient-component)
+D Its Hypernetwork_target_net actor  [Reverse link to Hypernetwork](#hypernetwork-component)
+D Its Metalearner_inner_loop actor  [Reverse link to Metalearner](#metalearner-component)
+D Its Metalearner_outer_loop actor  [Reverse link to Metalearner](#metalearner-component)
+D Its Sparseexpertsystem_experts actor  [Reverse link to Sparseexpertsystem](#sparseexpertsystem-component)
+D Its Neuralsde_drift_net actor  [Reverse link to Neuralsde](#neuralsde-component)
+D Its Neuralsde_diffusion_net actor  [Reverse link to Neuralsde](#neuralsde-component)
+D Its Dynamicgraphnetwork_edge_predictor actor  [Reverse link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
 D ```
 
-Artifact op_component structure detail
+Artifact op-component structure detail
+
+O Comp Op parent Layer FindIn
+
 O Defines a Op component with FindIn searchability under parent Layer, meaning instances are searchable within their parent's context.
 
-Link kernel_component ref
-Link kernelop_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Op component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Op parent Layer FindIn
-D Element op key . + Operation name
-D Element op_type type_of Op * Type of Op (e.g., "AttentionOp")
-D Element op_rule word . + Operation category (see OpTypeRule)
-D Element desc text . * Operation description
-D Element stochastic word . * true/false for stochastic operations
-D Element dynamic word . * true/false for dynamic execution
-D Element kernel ref Kernel * Kernel reference
-D Element kernel_op ref_child KernelOp * KernelOp from domain knowledge
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op | key | . | + | Operation name |
+D | op_type | type_of | Op | * | Type of Op (e.g., "AttentionOp") |
+D | op_rule | word | . | + | Operation category (see OpTypeRule) |
+D | desc | text | . | * | Operation description |
+D | stochastic | word | . | * | true/false for stochastic operations |
+D | dynamic | word | . | * | true/false for dynamic execution |
+D | kernel | ref | Kernel | * | Kernel reference |
+D | kernel_op | ref_child | KernelOp | * | KernelOp from domain knowledge |
 D
-D This creates a nested component under Layer that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -701,54 +808,51 @@ D ${Architecturegradient_gradient_ops.arch_gradient}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Arg actor
-D Its Attentionop actor
-D Its Attentionfreeop actor
-D Its Graphop actor
-D Its Graphlearningop actor
-D Its Statefulop actor
-D Its Ltcop actor
-D Its Odeop actor
-D Its Sdeop actor
-D Its Pdeop actor
-D Its Memoryop actor
-D Its Expertroutingop actor
-D Its Samplingop actor
-D Its Stochasticop actor
-D Its Dynamicroutingop actor
-D Its Dynamicop actor
-D Its Neuralprogramop actor
-D Its Weightgenerationop actor
-D Its Architecturesearchop actor
-D Its Continuousdepthop actor
-D Its kernel actor
-D Its kernel_op actor
-D Its Schedule_op actor
-D Its Searchop_operation actor
-D Its Architecturegradient_gradient_ops actor
+D Its parent actor  [Link to Layer](#layer-component)
+D Its Arg actor  [Link to Arg](#arg-component)
+D Its Attentionop actor  [Link to Attentionop](#attentionop-component)
+D Its Attentionfreeop actor  [Link to Attentionfreeop](#attentionfreeop-component)
+D Its Graphop actor  [Link to Graphop](#graphop-component)
+D Its Graphlearningop actor  [Link to Graphlearningop](#graphlearningop-component)
+D Its Statefulop actor  [Link to Statefulop](#statefulop-component)
+D Its Ltcop actor  [Link to Ltcop](#ltcop-component)
+D Its Odeop actor  [Link to Odeop](#odeop-component)
+D Its Sdeop actor  [Link to Sdeop](#sdeop-component)
+D Its Pdeop actor  [Link to Pdeop](#pdeop-component)
+D Its Memoryop actor  [Link to Memoryop](#memoryop-component)
+D Its Expertroutingop actor  [Link to Expertroutingop](#expertroutingop-component)
+D Its Samplingop actor  [Link to Samplingop](#samplingop-component)
+D Its Stochasticop actor  [Link to Stochasticop](#stochasticop-component)
+D Its Dynamicroutingop actor  [Link to Dynamicroutingop](#dynamicroutingop-component)
+D Its Dynamicop actor  [Link to Dynamicop](#dynamicop-component)
+D Its Neuralprogramop actor  [Link to Neuralprogramop](#neuralprogramop-component)
+D Its Weightgenerationop actor  [Link to Weightgenerationop](#weightgenerationop-component)
+D Its Architecturesearchop actor  [Link to Architecturesearchop](#architecturesearchop-component)
+D Its Continuousdepthop actor  [Link to Continuousdepthop](#continuousdepthop-component)
+D Its kernel actor  [Link to Kernel](#kernel-component)
+D Its kernel_op actor  [Link to Kernelop](#kernelop-component)
+D Its Schedule_op actor  [Reverse link to Schedule](#schedule-component)
+D Its Searchop_operation actor  [Reverse link to Searchop](#searchop-component)
+D Its Architecturegradient_gradient_ops actor  [Reverse link to Architecturegradient](#architecturegradient-component)
 D ```
 
-Artifact arg_component structure detail
+Artifact arg-component structure detail
+
+O Comp Arg parent Op FindIn
+
 O Defines a Arg component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Arg component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Arg parent Op FindIn
-D Element arg key . + Argument name
-D Element role word . + input, output, param
-D Element model up_copy Model + Navigate up to parent Model
-D Element tensor ref_child Tensor + Tensor reference in Model
-D Element dtype word . * Data type (override if needed)
-D Element desc text . * Argument description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | arg | key | . | + | Argument name |
+D | role | word | . | + | input, output, param |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | tensor | ref_child | Tensor | + | Tensor reference in Model |
+D | dtype | word | . | * | Data type (override if needed) |
+D | desc | text | . | * | Argument description |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -764,28 +868,27 @@ D ${tensor.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its tensor actor
+D Its parent actor  [Link to Op](#op-component)
+D Its model actor  [Link to Model](#model-component)
+D Its tensor actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact attentionop_component structure detail
+Artifact attentionop-component structure detail
+
+O Comp Attentionop parent Op FindIn
+
 O Defines a Attentionop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Attentionop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Attentionop parent Op FindIn
-D Element attn_op key . + Attention Operation name
-D Element attn_type word . + self, cross, multi_head, sparse
-D Element num_heads word . * Number of attention heads
-D Element head_dim word . * Dimension per head
-D Element causal word . * true/false for causal masking
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | attn_op | key | . | + | Attention Operation name |
+D | attn_type | word | . | + | self, cross, multi_head, sparse |
+D | num_heads | word | . | * | Number of attention heads |
+D | head_dim | word | . | * | Dimension per head |
+D | causal | word | . | * | true/false for causal masking |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -798,26 +901,25 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact attentionfreeop_component structure detail
+Artifact attentionfreeop-component structure detail
+
+O Comp Attentionfreeop parent Op FindIn
+
 O Defines a Attentionfreeop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Attentionfreeop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Attentionfreeop parent Op FindIn
-D Element aft_op key . + AFT operation identifier
-D Element variant word . + aft, rwkv, linear_attention
-D Element hidden_dim word . + Hidden dimension
-D Element sequence_dim word . + Sequence dimension index
-D Element recurrent word . * true/false for recurrent formulation
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | aft_op | key | . | + | AFT operation identifier |
+D | variant | word | . | + | aft, rwkv, linear_attention |
+D | hidden_dim | word | . | + | Hidden dimension |
+D | sequence_dim | word | . | + | Sequence dimension index |
+D | recurrent | word | . | * | true/false for recurrent formulation |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -830,27 +932,26 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Recurrentformulation actor
+D Its parent actor  [Link to Op](#op-component)
+D Its Recurrentformulation actor  [Link to Recurrentformulation](#recurrentformulation-component)
 D ```
 
-Artifact recurrentformulation_component structure detail
+Artifact recurrentformulation-component structure detail
+
+O Comp Recurrentformulation parent AttentionFreeOp FindIn
+
 O Defines a Recurrentformulation component with FindIn searchability under parent Attentionfreeop, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Recurrentformulation component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Recurrentformulation parent Attentionfreeop FindIn
-D Element formulation key . + Formulation identifier
-D Element time_decay word . + Time decay parameter
-D Element time_first word . + Time first parameter
-D Element state_update word . + State update mechanism
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | formulation | key | . | + | Formulation identifier |
+D | time_decay | word | . | + | Time decay parameter |
+D | time_first | word | . | + | Time first parameter |
+D | state_update | word | . | + | State update mechanism |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Attentionfreeop that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -863,25 +964,24 @@ D ${parent.aft_op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Attentionfreeop](#attentionfreeop-component)
 D ```
 
-Artifact graphop_component structure detail
+Artifact graphop-component structure detail
+
+O Comp Graphop parent Op FindIn
+
 O Defines a Graphop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Graphop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Graphop parent Op FindIn
-D Element graph_op key . + Graph operation identifier
-D Element gnn_type word . + gcn, gat, graphsage, message_passing
-D Element aggregation word . + sum, mean, max, attention
-D Element num_layers word . * Number of message passing layers
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | graph_op | key | . | + | Graph operation identifier |
+D | gnn_type | word | . | + | gcn, gat, graphsage, message_passing |
+D | aggregation | word | . | + | sum, mean, max, attention |
+D | num_layers | word | . | * | Number of message passing layers |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -893,27 +993,26 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact graphlearningop_component structure detail
+Artifact graphlearningop-component structure detail
+
+O Comp Graphlearningop parent Op FindIn
+
 O Defines a Graphlearningop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Graphlearningop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Graphlearningop parent Op FindIn
-D Element graph_op key . + GraphLearning operation identifier
-D Element graph_learner word . + knn, attention, mlp
-D Element k_neighbors word . * Number of neighbors
-D Element threshold word . * Edge threshold
-D Element similarity word . + cosine, dot_product, mlp
-D Element sparse word . * true/false for sparse output
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | graph_op | key | . | + | GraphLearning operation identifier |
+D | graph_learner | word | . | + | knn, attention, mlp |
+D | k_neighbors | word | . | * | Number of neighbors |
+D | threshold | word | . | * | Edge threshold |
+D | similarity | word | . | + | cosine, dot_product, mlp |
+D | sparse | word | . | * | true/false for sparse output |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -927,25 +1026,24 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact statefulop_component structure detail
+Artifact statefulop-component structure detail
+
+O Comp Statefulop parent Op FindIn
+
 O Defines a Statefulop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Statefulop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Statefulop parent Op FindIn
-D Element state_op key . + Stateful operation identifier
-D Element state_type word . + lstm, gru, custom_rnn
-D Element sequence_dim word . + Dimension index for sequence
-D Element stateful word . + true (maintains state) or false
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | state_op | key | . | + | Stateful operation identifier |
+D | state_type | word | . | + | lstm, gru, custom_rnn |
+D | sequence_dim | word | . | + | Dimension index for sequence |
+D | stateful | word | . | + | true (maintains state) or false |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -957,27 +1055,26 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact ltcop_component structure detail
+Artifact ltcop-component structure detail
+
+O Comp Ltcop parent Op FindIn
+
 O Defines a Ltcop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Ltcop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Ltcop parent Op FindIn
-D Element ltc_op key . + LTC operation identifier
-D Element solver word . + ODE solver type
-D Element adaptive word . * true/false adaptive time stepping
-D Element time_decay word . * Time decay parameter
-D Element time_first word . * Time first parameter
-D Element state_update word . * State update mechanism
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ltc_op | key | . | + | LTC operation identifier |
+D | solver | word | . | + | ODE solver type |
+D | adaptive | word | . | * | true/false adaptive time stepping |
+D | time_decay | word | . | * | Time decay parameter |
+D | time_first | word | . | * | Time first parameter |
+D | state_update | word | . | * | State update mechanism |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -991,28 +1088,27 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact odeop_component structure detail
+Artifact odeop-component structure detail
+
+O Comp Odeop parent Op FindIn
+
 O Defines a Odeop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Odeop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Odeop parent Op FindIn
-D Element ode_op key . + ODE operation identifier
-D Element integration word . + Integration method (euler, rk4, dopri5)
-D Element solver word . + Solver type
-D Element time_steps word . * Number of evaluation time steps
-D Element adaptive word . * true/false for adaptive stepping
-D Element tolerance word . * Error tolerance
-D Element adjoint word . * true/false for adjoint method (backprop)
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ode_op | key | . | + | ODE operation identifier |
+D | integration | word | . | + | Integration method (euler, rk4, dopri5) |
+D | solver | word | . | + | Solver type |
+D | time_steps | word | . | * | Number of evaluation time steps |
+D | adaptive | word | . | * | true/false for adaptive stepping |
+D | tolerance | word | . | * | Error tolerance |
+D | adjoint | word | . | * | true/false for adjoint method (backprop) |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1027,26 +1123,25 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact sdeop_component structure detail
+Artifact sdeop-component structure detail
+
+O Comp Sdeop parent Op FindIn
+
 O Defines a Sdeop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Sdeop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Sdeop parent Op FindIn
-D Element sde_op key . + SDE operation identifier
-D Element solver word . + euler, milstein, sra
-D Element brownian_dim word . + Brownian motion dimension
-D Element time_step word . + Time step size
-D Element adaptive word . * true/false for adaptive stepping
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | sde_op | key | . | + | SDE operation identifier |
+D | solver | word | . | + | euler, milstein, sra |
+D | brownian_dim | word | . | + | Brownian motion dimension |
+D | time_step | word | . | + | Time step size |
+D | adaptive | word | . | * | true/false for adaptive stepping |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1059,25 +1154,24 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact pdeop_component structure detail
+Artifact pdeop-component structure detail
+
+O Comp Pdeop parent Op FindIn
+
 O Defines a Pdeop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Pdeop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Pdeop parent Op FindIn
-D Element pde_op key . + SDE operation identifier
-D Element pde_type word . + heat, wave, burger, custom
-D Element solver word . + Solver method
-D Element spatial_dims word . + Number of spatial dimensions
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | pde_op | key | . | + | SDE operation identifier |
+D | pde_type | word | . | + | heat, wave, burger, custom |
+D | solver | word | . | + | Solver method |
+D | spatial_dims | word | . | + | Number of spatial dimensions |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1089,28 +1183,27 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact memoryop_component structure detail
+Artifact memoryop-component structure detail
+
+O Comp Memoryop parent Op FindIn
+
 O Defines a Memoryop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Memoryop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Memoryop parent Op FindIn
-D Element mem_op key . + Memory operation identifier
-D Element memory_op word . + read, write, content_address
-D Element memory_size word . * Number of memory slots
-D Element slot_dim word . * Dimension per slot
-D Element read_heads word . * Number of read heads
-D Element write_heads word . * Number of write heads
-D Element addressing word . + content_based, location_based
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | mem_op | key | . | + | Memory operation identifier |
+D | memory_op | word | . | + | read, write, content_address |
+D | memory_size | word | . | * | Number of memory slots |
+D | slot_dim | word | . | * | Dimension per slot |
+D | read_heads | word | . | * | Number of read heads |
+D | write_heads | word | . | * | Number of write heads |
+D | addressing | word | . | + | content_based, location_based |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1125,32 +1218,29 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact expertroutingop_component structure detail
+Artifact expertroutingop-component structure detail
+
+O Comp Expertroutingop parent Op FindIn
+
 O Defines a Expertroutingop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Expertroutingop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Expertroutingop parent Op FindIn
-D Element expert_op key . + ExpertRouting operation identifier
-D Element num_experts word . + Number of expert networks
-D Element top_k word . + Number of experts to activate
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element experts ref_child Layer + Expert layer references
-D Element load_balance word . * Load balancing strategy
-D Element capacity word . * Expert capacity
-D Element router_type word . + top_k, learned, hash
-D Element aux_loss word . * Auxiliary loss weight
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | expert_op | key | . | + | ExpertRouting operation identifier |
+D | num_experts | word | . | + | Number of expert networks |
+D | top_k | word | . | + | Number of experts to activate |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | experts | ref_child | Layer | + | Expert layer references |
+D | load_balance | word | . | * | Load balancing strategy |
+D | capacity | word | . | * | Expert capacity |
+D | router_type | word | . | + | top_k, learned, hash |
+D | aux_loss | word | . | * | Auxiliary loss weight |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1169,26 +1259,25 @@ D ${experts.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Capacityawareroutingop actor
-D Its model2 actor
-D Its experts actor
+D Its parent actor  [Link to Op](#op-component)
+D Its Capacityawareroutingop actor  [Link to Capacityawareroutingop](#capacityawareroutingop-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its experts actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact capacityawareroutingop_component structure detail
+Artifact capacityawareroutingop-component structure detail
+
+O Comp Capacityawareroutingop parent ExpertRoutingOp FindIn
+
 O Defines a Capacityawareroutingop component with FindIn searchability under parent Expertroutingop, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Capacityawareroutingop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Capacityawareroutingop parent Expertroutingop FindIn
-D Element router key . + Router identifier
-D Element load_metric word . + Utilization metric
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | router | key | . | + | Router identifier |
+D | load_metric | word | . | + | Utilization metric |
 D
-D This creates a nested component under Expertroutingop that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1198,25 +1287,24 @@ D ${parent.expert_op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Expertroutingop](#expertroutingop-component)
 D ```
 
-Artifact samplingop_component structure detail
+Artifact samplingop-component structure detail
+
+O Comp Samplingop parent Op FindIn
+
 O Defines a Samplingop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Samplingop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Samplingop parent Op FindIn
-D Element sampling_op key . + Sampling operation identifier
-D Element distribution word . + normal, categorical, gumbel, bernoulli
-D Element temperature word . * Sampling temperature
-D Element reparam word . * true/false for reparameterization trick
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | sampling_op | key | . | + | Sampling operation identifier |
+D | distribution | word | . | + | normal, categorical, gumbel, bernoulli |
+D | temperature | word | . | * | Sampling temperature |
+D | reparam | word | . | * | true/false for reparameterization trick |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1228,24 +1316,23 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact stochasticop_component structure detail
+Artifact stochasticop-component structure detail
+
+O Comp Stochasticop parent Op FindIn
+
 O Defines a Stochasticop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Stochasticop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Stochasticop parent Op FindIn
-D Element Stochastic_op key . + Stochastic operation identifier
-D Element distribution word . + Distribution type
-D Element reparam word . * true/false for reparameterization
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | Stochastic_op | key | . | + | Stochastic operation identifier |
+D | distribution | word | . | + | Distribution type |
+D | reparam | word | . | * | true/false for reparameterization |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1256,24 +1343,23 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact dynamicroutingop_component structure detail
+Artifact dynamicroutingop-component structure detail
+
+O Comp Dynamicroutingop parent Op FindIn
+
 O Defines a Dynamicroutingop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Dynamicroutingop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Dynamicroutingop parent Op FindIn
-D Element dr_op key . + DynamicRouting operation identifier
-D Element mechanism word . + softmax, gumbel, hard
-D Element num_paths word . + Number of alternative paths
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dr_op | key | . | + | DynamicRouting operation identifier |
+D | mechanism | word | . | + | softmax, gumbel, hard |
+D | num_paths | word | . | + | Number of alternative paths |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1284,23 +1370,22 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact dynamicop_component structure detail
+Artifact dynamicop-component structure detail
+
+O Comp Dynamicop parent Op FindIn
+
 O Defines a Dynamicop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Dynamicop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Dynamicop parent Op FindIn
-D Element dynamic_op key . + Dynamic operation identifier
-D Element selector_type word . + tensor_based, control_flow, learned
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dynamic_op | key | . | + | Dynamic operation identifier |
+D | selector_type | word | . | + | tensor_based, control_flow, learned |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1310,25 +1395,24 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact neuralprogramop_component structure detail
+Artifact neuralprogramop-component structure detail
+
+O Comp Neuralprogramop parent Op FindIn
+
 O Defines a Neuralprogramop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Neuralprogramop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Neuralprogramop parent Op FindIn
-D Element np_op key . + NeuralProgram operation identifier
-D Element opcode word . + Operation code
-D Element next_pc word . * Next program counter
-D Element max_steps word . * Maximum execution steps
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | np_op | key | . | + | NeuralProgram operation identifier |
+D | opcode | word | . | + | Operation code |
+D | next_pc | word | . | * | Next program counter |
+D | max_steps | word | . | * | Maximum execution steps |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1340,25 +1424,24 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact weightgenerationop_component structure detail
+Artifact weightgenerationop-component structure detail
+
+O Comp Weightgenerationop parent Op FindIn
+
 O Defines a Weightgenerationop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Weightgenerationop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Weightgenerationop parent Op FindIn
-D Element wg_op key . + WeightGeneration operation identifier
-D Element target_param word . + Target parameter name
-D Element input_size word . + Input dimension
-D Element output_size word . + Generated weight size
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | wg_op | key | . | + | WeightGeneration operation identifier |
+D | target_param | word | . | + | Target parameter name |
+D | input_size | word | . | + | Input dimension |
+D | output_size | word | . | + | Generated weight size |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1370,25 +1453,24 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact architecturesearchop_component structure detail
+Artifact architecturesearchop-component structure detail
+
+O Comp Architecturesearchop parent Op FindIn
+
 O Defines a Architecturesearchop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Architecturesearchop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Architecturesearchop parent Op FindIn
-D Element as_op key . + ArchitectureSearch operation identifier
-D Element arch_param word . + Architecture parameter name
-D Element complexity word . * Computational complexity estimate
-D Element weight_share word . * true/false for supernet weight sharing
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | as_op | key | . | + | ArchitectureSearch operation identifier |
+D | arch_param | word | . | + | Architecture parameter name |
+D | complexity | word | . | * | Computational complexity estimate |
+D | weight_share | word | . | * | true/false for supernet weight sharing |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1400,28 +1482,27 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact continuousdepthop_component structure detail
+Artifact continuousdepthop-component structure detail
+
+O Comp Continuousdepthop parent Op FindIn
+
 O Defines a Continuousdepthop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Continuousdepthop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Continuousdepthop parent Op FindIn
-D Element cd_op key . + ContinuousDepth operation identifier
-D Element solver word . + ODE solver type (euler, rk4, dopri5)
-D Element time_steps word . * Number of evaluation time steps
-D Element t_start word . + Start time
-D Element t_end word . + End time
-D Element adaptive word . * true/false for adaptive stepping
-D Element tolerance word . * Error tolerance
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | cd_op | key | . | + | ContinuousDepth operation identifier |
+D | solver | word | . | + | ODE solver type (euler, rk4, dopri5) |
+D | time_steps | word | . | * | Number of evaluation time steps |
+D | t_start | word | . | + | Start time |
+D | t_end | word | . | + | End time |
+D | adaptive | word | . | * | true/false for adaptive stepping |
+D | tolerance | word | . | * | Error tolerance |
 D
-D This creates a nested component under Op that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1436,25 +1517,23 @@ D ${parent.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Op](#op-component)
 D ```
 
-Artifact optyperule_component structure overview
+Artifact optyperule-component structure overview
+
+O Comp Optyperule parent . Find
 
 O Defines a top-level Optyperule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Optyperule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Optyperule parent . Find
-D Element op_type key . + Operation type name
-D Element category word . + Category (compute, attention, graph, memory, control, etc)
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op_type | key | . | + | Operation type name |
+D | category | word | . | + | Category (compute, attention, graph, memory, control, etc) |
+D | desc | text | . | * | Description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -1466,32 +1545,29 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact argrolerule_component structure overview
+Artifact argrolerule-component structure overview
+
+O Comp Argrolerule parent . Find
 
 O Defines a top-level Argrolerule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Argrolerule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Argrolerule parent . Find
-D Element role key . + Role name
-D Element op_types word . + Comma-separated list of applicable op_types
-D Element required word . + true/false if required for those op_types
-D Element desc text . * Description
-D Element tensor key . + Tensor identifier
-D Element shape word . + Logical shape (batch,height,width,channels)
-D Element shape_type word . * static (default), dynamic, or symbolic
-D Element dyn_dims word . * Comma-separated indices of dynamic dimensions (e.g., "0,1")
-D Element layout word . + Memory layout (nhwc, nchw, csr, coo, jagged, etc)
-D Element dtype ref DtypeRule + Data type (linked to Rule)
-D Element desc text . * Tensor description
-D Element symbolic word . * Symbolic shape expression
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | role | key | . | + | Role name |
+D | op_types | word | . | + | Comma-separated list of applicable op_types |
+D | required | word | . | + | true/false if required for those op_types |
+D | desc | text | . | * | Description |
+D | tensor | key | . | + | Tensor identifier |
+D | shape | word | . | + | Logical shape (batch,height,width,channels) |
+D | shape_type | word | . | * | static (default), dynamic, or symbolic |
+D | dyn_dims | word | . | * | Comma-separated indices of dynamic dimensions (e.g., "0,1") |
+D | layout | word | . | + | Memory layout (nhwc, nchw, csr, coo, jagged, etc) |
+D | dtype | ref | DtypeRule | + | Data type (linked to Rule) |
+D | desc | text | . | * | Tensor description |
+D | symbolic | word | . | * | Symbolic shape expression |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
-Link dtyperule_component ref
 
 Section variables 2 Variable fields
 D ```
@@ -1511,28 +1587,25 @@ D ${dtype.dtype}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its dtype actor
+D Its dtype actor  [Link to Dtyperule](#dtyperule-component)
 D ```
 
-Artifact config_component structure detail
+Artifact config-component structure detail
+
+O Comp Config parent Model FindIn
+
 O Defines a Config component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link targetrule_component ref
-Link flagrule_component ref
-
-Section declaration 2 Component Declaration
-D To declare a Config component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Config parent Model FindIn
-D Element config key . + Configuration name
-D Element target ref TargetRule + Target device (linked to Rule)
-D Element batch word . + Batch size
-D Element opt_flags ref FlagRule * Optimization preference (linked to Rule)
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | config | key | . | + | Configuration name |
+D | target | ref | TargetRule | + | Target device (linked to Rule) |
+D | batch | word | . | + | Batch size |
+D | opt_flags | ref | FlagRule | * | Optimization preference (linked to Rule) |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1547,37 +1620,31 @@ D ${opt_flags.flag}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Schedule actor
-D Its Statetransfer actor
-D Its target actor
-D Its opt_flags actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Schedule actor  [Link to Schedule](#schedule-component)
+D Its Statetransfer actor  [Link to Statetransfer](#statetransfer-component)
+D Its target actor  [Link to Targetrule](#targetrule-component)
+D Its opt_flags actor  [Link to Flagrule](#flagrule-component)
 D ```
 
-Artifact schedule_component structure detail
+Artifact schedule-component structure detail
+
+O Comp Schedule parent Config E_O_L
+
 O Defines a Schedule component with no indexing under parent Config. Instances are not searchable but accessible through parent iteration.
 
-Link model_component up_copy
-Link layer_component ref_child
-Link op_component ref_child
-Link model_component up_copy
-Link controlflow_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Schedule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Schedule parent Config .
-D Element seq word . + Sequence number
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element layer ref_child Layer + Layer within parent Model
-D Element op ref_child Op + Operation within Layer
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element control ref_child ControlFlow * Control flow reference
-D Element desc text . * Scheduling note
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | seq | word | . | + | Sequence number |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | layer | ref_child | Layer | + | Layer within parent Model |
+D | op | ref_child | Op | + | Operation within Layer |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | control | ref_child | ControlFlow | * | Control flow reference |
+D | desc | text | . | * | Scheduling note |
 D
-D This creates a non-indexed nested component under Config.
 
 Section variables 2 Variable fields
 D ```
@@ -1597,29 +1664,28 @@ D ${control.control}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its layer actor
-D Its op actor
-D Its model2 actor
-D Its control actor
+D Its parent actor  [Link to Config](#config-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its layer actor  [Link to Layer](#layer-component)
+D Its op actor  [Link to Op](#op-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its control actor  [Link to Controlflow](#controlflow-component)
 D ```
 
-Artifact controlflow_component structure detail
+Artifact controlflow-component structure detail
+
+O Comp Controlflow parent Model FindIn
+
 O Defines a Controlflow component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Controlflow component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Controlflow parent Model FindIn
-D Element control key . + Control flow identifier
-D Element type word . + conditional, loop, switch, dynamic_dispatch
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | control | key | . | + | Control flow identifier |
+D | type | word | . | + | conditional, loop, switch, dynamic_dispatch |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1633,34 +1699,31 @@ D ${Proginstruction_control_flow.prog_inst}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Condition actor
-D Its Branch actor
-D Its Schedule_control actor
-D Its Programinstruction_control_flow actor
-D Its Proginstruction_control_flow actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Condition actor  [Link to Condition](#condition-component)
+D Its Branch actor  [Link to Branch](#branch-component)
+D Its Schedule_control actor  [Reverse link to Schedule](#schedule-component)
+D Its Programinstruction_control_flow actor  [Reverse link to Programinstruction](#programinstruction-component)
+D Its Proginstruction_control_flow actor  [Reverse link to Proginstruction](#proginstruction-component)
 D ```
 
-Artifact condition_component structure detail
+Artifact condition-component structure detail
+
+O Comp Condition parent ControlFlow FindIn
+
 O Defines a Condition component with FindIn searchability under parent Controlflow, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Condition component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Condition parent Controlflow FindIn
-D Element condition key . + Condition identifier
-D Element predicate word . + Predicate type (tensor_value, expert_router, threshold)
-D Element model up_copy Model + Navigate up to parent Model
-D Element input ref_child Tensor * Input tensor for evaluation
-D Element threshold word . * Threshold value (for threshold predicates)
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | condition | key | . | + | Condition identifier |
+D | predicate | word | . | + | Predicate type (tensor_value, expert_router, threshold) |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | input | ref_child | Tensor | * | Input tensor for evaluation |
+D | threshold | word | . | * | Threshold value (for threshold predicates) |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Controlflow that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1678,33 +1741,30 @@ D ${Proginstruction_condition.prog_inst}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its input actor
-D Its Programinstruction_condition actor
-D Its Proginstruction_condition actor
+D Its parent actor  [Link to Controlflow](#controlflow-component)
+D Its model actor  [Link to Model](#model-component)
+D Its input actor  [Link to Tensor](#tensor-component)
+D Its Programinstruction_condition actor  [Reverse link to Programinstruction](#programinstruction-component)
+D Its Proginstruction_condition actor  [Reverse link to Proginstruction](#proginstruction-component)
 D ```
 
-Artifact branch_component structure detail
+Artifact branch-component structure detail
+
+O Comp Branch parent ControlFlow FindIn
+
 O Defines a Branch component with FindIn searchability under parent Controlflow, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Branch component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Branch parent Controlflow FindIn
-D Element branch key . + Branch identifier
-D Element branch_id word . + Branch number (0, 1, 2, etc) or "default"
-D Element model up_copy Model + Navigate up to parent Model
-D Element layers ref_child Layer + Layers to execute in this branch
-D Element weight word . * Branch selection weight (for routing)
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | branch | key | . | + | Branch identifier |
+D | branch_id | word | . | + | Branch number (0, 1, 2, etc) or "default" |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | layers | ref_child | Layer | + | Layers to execute in this branch |
+D | weight | word | . | * | Branch selection weight (for routing) |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Controlflow that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1720,32 +1780,30 @@ D ${layers.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its layers actor
+D Its parent actor  [Link to Controlflow](#controlflow-component)
+D Its model actor  [Link to Model](#model-component)
+D Its layers actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact graphtensor_component structure detail
+Artifact graphtensor-component structure detail
+
+O Comp Graphtensor parent Model FindIn
+
 O Defines a Graphtensor component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link dtyperule_component ref
-
-Section declaration 2 Component Declaration
-D To declare a Graphtensor component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Graphtensor parent Model FindIn
-D Element graph_tensor key . + Graph tensor identifier
-D Element graph_type word . + node_features, edge_features, adjacency
-D Element num_nodes word . * Number of nodes (can be dynamic)
-D Element num_edges word . * Number of edges (can be dynamic)
-D Element feature_dim word . * Feature dimensionality
-D Element sparse_format word . + csr, coo, edge_list
-D Element dtype ref DtypeRule + Data type
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | graph_tensor | key | . | + | Graph tensor identifier |
+D | graph_type | word | . | + | node_features, edge_features, adjacency |
+D | num_nodes | word | . | * | Number of nodes (can be dynamic) |
+D | num_edges | word | . | * | Number of edges (can be dynamic) |
+D | feature_dim | word | . | * | Feature dimensionality |
+D | sparse_format | word | . | + | csr, coo, edge_list |
+D | dtype | ref | DtypeRule | + | Data type |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1765,37 +1823,32 @@ D ${Graphlearner_adjacency.learner}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its dtype actor
-D Its Dynamicgraphnetwork_node_features actor
-D Its Graphlearner_input_nodes actor
-D Its Graphlearner_adjacency actor
+D Its parent actor  [Link to Model](#model-component)
+D Its dtype actor  [Link to Dtyperule](#dtyperule-component)
+D Its Dynamicgraphnetwork_node_features actor  [Reverse link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
+D Its Graphlearner_input_nodes actor  [Reverse link to Graphlearner](#graphlearner-component)
+D Its Graphlearner_adjacency actor  [Reverse link to Graphlearner](#graphlearner-component)
 D ```
 
-Artifact statetransfer_component structure detail
+Artifact statetransfer-component structure detail
+
+O Comp Statetransfer parent Config FindIn
+
 O Defines a Statetransfer component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Statetransfer component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Statetransfer parent Config FindIn
-D Element transfer key . + State transfer identifier
-D Element policy word . + keep, reset, transfer
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element source_state ref_child Tensor + Source state tensor
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element target_state ref_child Tensor + Target state tensor
-D Element trigger word . + batch_boundary, sequence_end, manual
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | transfer | key | . | + | State transfer identifier |
+D | policy | word | . | + | keep, reset, transfer |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | source_state | ref_child | Tensor | + | Source state tensor |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | target_state | ref_child | Tensor | + | Target state tensor |
+D | trigger | word | . | + | batch_boundary, sequence_end, manual |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Config that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1815,37 +1868,34 @@ D ${target_state.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its source_state actor
-D Its model2 actor
-D Its target_state actor
+D Its parent actor  [Link to Config](#config-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its source_state actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its target_state actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact continuouslayer_component structure detail
+Artifact continuouslayer-component structure detail
+
+O Comp Continuouslayer parent Model FindIn
+
 O Defines a Continuouslayer component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Continuouslayer component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Continuouslayer parent Model FindIn
-D Element cont_layer key . + Continuous layer identifier
-D Element solver word . + ode_solver type (euler, rk4, dopri5)
-D Element time_steps word . * Number of evaluation time steps
-D Element t_start word . + Start time
-D Element t_end word . + End time
-D Element adaptive word . * true/false for adaptive stepping
-D Element model up_copy Model + Navigate up to parent Model
-D Element dynamics ref_child Layer + Layer defining dynamics function
-D Element tolerance word . * Error tolerance for adaptive solvers
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | cont_layer | key | . | + | Continuous layer identifier |
+D | solver | word | . | + | ode_solver type (euler, rk4, dopri5) |
+D | time_steps | word | . | * | Number of evaluation time steps |
+D | t_start | word | . | + | Start time |
+D | t_end | word | . | + | End time |
+D | adaptive | word | . | * | true/false for adaptive stepping |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | dynamics | ref_child | Layer | + | Layer defining dynamics function |
+D | tolerance | word | . | * | Error tolerance for adaptive solvers |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1865,27 +1915,26 @@ D ${dynamics.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its dynamics actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model actor  [Link to Model](#model-component)
+D Its dynamics actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact searchspace_component structure detail
+Artifact searchspace-component structure detail
+
+O Comp Searchspace parent Model FindIn
+
 O Defines a Searchspace component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Searchspace component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Searchspace parent Model FindIn
-D Element search_space key . + Search space identifier
-D Element supernet word . * true/false for weight-sharing
-D Element temperature word . * Softmax temperature for relaxation
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | search_space | key | . | + | Search space identifier |
+D | supernet | word | . | * | true/false for weight-sharing |
+D | temperature | word | . | * | Softmax temperature for relaxation |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1897,33 +1946,29 @@ D ${parent.model}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Searchop actor
-D Its Searchedge actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Searchop actor  [Link to Searchop](#searchop-component)
+D Its Searchedge actor  [Link to Searchedge](#searchedge-component)
 D ```
 
-Artifact searchop_component structure detail
+Artifact searchop-component structure detail
+
+O Comp Searchop parent SearchSpace FindIn
+
 O Defines a Searchop component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-Link op_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Searchop component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Searchop parent Searchspace FindIn
-D Element search_op key . + Operation candidate name
-D Element model up_copy Model + Navigate up to parent Model
-D Element layer ref_child Layer + Navigate up to parent Layer
-D Element operation ref_child Op * Concrete operation
-D Element arch_param word . + Architecture parameter name
-D Element complexity word . * Computational complexity estimate
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | search_op | key | . | + | Operation candidate name |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | layer | ref_child | Layer | + | Navigate up to parent Layer |
+D | operation | ref_child | Op | * | Concrete operation |
+D | arch_param | word | . | + | Architecture parameter name |
+D | complexity | word | . | * | Computational complexity estimate |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Searchspace that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1941,29 +1986,28 @@ D ${operation.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its layer actor
-D Its operation actor
+D Its parent actor  [Link to Searchspace](#searchspace-component)
+D Its model actor  [Link to Model](#model-component)
+D Its layer actor  [Link to Layer](#layer-component)
+D Its operation actor  [Link to Op](#op-component)
 D ```
 
-Artifact searchedge_component structure detail
+Artifact searchedge-component structure detail
+
+O Comp Searchedge parent SearchSpace FindIn
+
 O Defines a Searchedge component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Searchedge component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Searchedge parent Searchspace FindIn
-D Element search_edge key . + Edge identifier
-D Element from_node word . + Source node name
-D Element to_node word . + Target node name  
-D Element arch_param word . + Architecture parameter name
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | search_edge | key | . | + | Edge identifier |
+D | from_node | word | . | + | Source node name |
+D | to_node | word | . | + | Target node name   |
+D | arch_param | word | . | + | Architecture parameter name |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Searchspace that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -1976,26 +2020,25 @@ D ${parent.search_space}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Searchspace](#searchspace-component)
 D ```
 
-Artifact architectureparam_component structure detail
+Artifact architectureparam-component structure detail
+
+O Comp Architectureparam parent Model FindIn
+
 O Defines a Architectureparam component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Architectureparam component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Architectureparam parent Model FindIn
-D Element arch_param key . + Architecture parameter name
-D Element value word . * Initial value
-D Element learnable word . + true/false
-D Element constraint word . * simplex, none, positive
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | arch_param | key | . | + | Architecture parameter name |
+D | value | word | . | * | Initial value |
+D | learnable | word | . | + | true/false |
+D | constraint | word | . | * | simplex, none, positive |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2009,36 +2052,30 @@ D ${Architecturegradient_arch_params.arch_gradient}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Architecturegradient_arch_params actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Architecturegradient_arch_params actor  [Reverse link to Architecturegradient](#architecturegradient-component)
 D ```
 
-Artifact architecturegradient_component structure detail
+Artifact architecturegradient-component structure detail
+
+O Comp Architecturegradient parent Model FindIn
+
 O Defines a Architecturegradient component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link architectureparam_component ref_child
-Link model_component up_copy
-Link layer_component ref_child
-Link op_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Architecturegradient component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Architecturegradient parent Model FindIn
-D Element arch_gradient key . + Architecture gradient identifier
-D Element model up_copy Model + Navigate up to parent Model
-D Element arch_params ref_child ArchitectureParam * Architecture parameters
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element layer ref_child Layer * Layer
-D Element gradient_ops ref_child Op * Gradient operations
-D Element optimizer word . + Architecture optimizer
-D Element learning_rate word . + Architecture learning rate
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | arch_gradient | key | . | + | Architecture gradient identifier |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | arch_params | ref_child | ArchitectureParam | * | Architecture parameters |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | layer | ref_child | Layer | * | Layer |
+D | gradient_ops | ref_child | Op | * | Gradient operations |
+D | optimizer | word | . | + | Architecture optimizer |
+D | learning_rate | word | . | + | Architecture learning rate |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2060,38 +2097,33 @@ D ${gradient_ops.op}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its arch_params actor
-D Its model2 actor
-D Its layer actor
-D Its gradient_ops actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model actor  [Link to Model](#model-component)
+D Its arch_params actor  [Link to Architectureparam](#architectureparam-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its layer actor  [Link to Layer](#layer-component)
+D Its gradient_ops actor  [Link to Op](#op-component)
 D ```
 
-Artifact hypernetwork_component structure detail
+Artifact hypernetwork-component structure detail
+
+O Comp Hypernetwork parent Model FindIn
+
 O Defines a Hypernetwork component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Hypernetwork component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Hypernetwork parent Model FindIn
-D Element hypernet key . + Hypernetwork identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element target_net ref_child Layer * Target network layer
-D Element input_size word . + Input dimension
-D Element output_size word . + Generated weight size
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element condition ref_child Tensor * Conditioning input
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | hypernet | key | . | + | Hypernetwork identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | target_net | ref_child | Layer | * | Target network layer |
+D | input_size | word | . | + | Input dimension |
+D | output_size | word | . | + | Generated weight size |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | condition | ref_child | Tensor | * | Conditioning input |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2111,37 +2143,32 @@ D ${condition.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Weightgenerator actor
-D Its model1 actor
-D Its target_net actor
-D Its model2 actor
-D Its condition actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Weightgenerator actor  [Link to Weightgenerator](#weightgenerator-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its target_net actor  [Link to Layer](#layer-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its condition actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact weightgenerator_component structure detail
+Artifact weightgenerator-component structure detail
+
+O Comp Weightgenerator parent HyperNetwork FindIn
+
 O Defines a Weightgenerator component with FindIn searchability under parent Hypernetwork, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Weightgenerator component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Weightgenerator parent Hypernetwork FindIn
-D Element generator key . + Generator identifier
-D Element target_param word . + Target parameter name
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element input_tensor ref_child Tensor * Input to generator
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element output_tensor ref_child Tensor * Generated weights
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | generator | key | . | + | Generator identifier |
+D | target_param | word | . | + | Target parameter name |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | input_tensor | ref_child | Tensor | * | Input to generator |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | output_tensor | ref_child | Tensor | * | Generated weights |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Hypernetwork that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2160,31 +2187,30 @@ D ${output_tensor.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its input_tensor actor
-D Its model2 actor
-D Its output_tensor actor
+D Its parent actor  [Link to Hypernetwork](#hypernetwork-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its input_tensor actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its output_tensor actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact memorymatrix_component structure detail
+Artifact memorymatrix-component structure detail
+
+O Comp Memorymatrix parent Model FindIn
+
 O Defines a Memorymatrix component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Memorymatrix component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Memorymatrix parent Model FindIn
-D Element memory key . + Memory identifier
-D Element memory_size word . + Number of memory slots
-D Element slot_dim word . + Dimension per slot
-D Element read_heads word . + Number of read heads
-D Element write_heads word . + Number of write heads
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | memory | key | . | + | Memory identifier |
+D | memory_size | word | . | + | Number of memory slots |
+D | slot_dim | word | . | + | Dimension per slot |
+D | read_heads | word | . | + | Number of read heads |
+D | write_heads | word | . | + | Number of write heads |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2198,25 +2224,24 @@ D ${parent.model}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Model](#model-component)
 D ```
 
-Artifact differentiableprogram_component structure detail
+Artifact differentiableprogram-component structure detail
+
+O Comp Differentiableprogram parent Model FindIn
+
 O Defines a Differentiableprogram component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Differentiableprogram component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Differentiableprogram parent Model FindIn
-D Element program key . + Program identifier
-D Element state_size word . + Program state dimension
-D Element max_steps word . + Maximum execution steps
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | program | key | . | + | Program identifier |
+D | state_size | word | . | + | Program state dimension |
+D | max_steps | word | . | + | Maximum execution steps |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2228,36 +2253,30 @@ D ${parent.model}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Programinstruction actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Programinstruction actor  [Link to Programinstruction](#programinstruction-component)
 D ```
 
-Artifact programinstruction_component structure detail
+Artifact programinstruction-component structure detail
+
+O Comp Programinstruction parent DifferentiableProgram FindIn
+
 O Defines a Programinstruction component with FindIn searchability under parent Differentiableprogram, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link controlflow_component ref_child
-Link condition_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Programinstruction component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Programinstruction parent Differentiableprogram FindIn
-D Element instruction key . + Instruction identifier
-D Element op_type word . + add, mul, branch, loop, call
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element operands ref_child Tensor * Instruction operands
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element control_flow ref_child ControlFlow * Navigate to ControlFlow
-D Element condition ref_child Condition * Execution condition
-D Element target word . * Target instruction for jumps
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | instruction | key | . | + | Instruction identifier |
+D | op_type | word | . | + | add, mul, branch, loop, call |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | operands | ref_child | Tensor | * | Instruction operands |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | control_flow | ref_child | ControlFlow | * | Navigate to ControlFlow |
+D | condition | ref_child | Condition | * | Execution condition |
+D | target | word | . | * | Target instruction for jumps |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Differentiableprogram that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2279,37 +2298,32 @@ D ${condition.condition}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its operands actor
-D Its model2 actor
-D Its control_flow actor
-D Its condition actor
+D Its parent actor  [Link to Differentiableprogram](#differentiableprogram-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its operands actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its control_flow actor  [Link to Controlflow](#controlflow-component)
+D Its condition actor  [Link to Condition](#condition-component)
 D ```
 
-Artifact metalearner_component structure detail
+Artifact metalearner-component structure detail
+
+O Comp Metalearner parent Model FindIn
+
 O Defines a Metalearner component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Metalearner component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Metalearner parent Model FindIn
-D Element meta_learner key . + Meta-learner identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element inner_loop ref_child Layer * Inner loop layers
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element outer_loop ref_child Layer * Outer loop layers
-D Element adapt_steps word . + Adaptation steps
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | meta_learner | key | . | + | Meta-learner identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | inner_loop | ref_child | Layer | * | Inner loop layers |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | outer_loop | ref_child | Layer | * | Outer loop layers |
+D | adapt_steps | word | . | + | Adaptation steps |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2328,35 +2342,32 @@ D ${outer_loop.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its inner_loop actor
-D Its model2 actor
-D Its outer_loop actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its inner_loop actor  [Link to Layer](#layer-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its outer_loop actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact sparseexpertsystem_component structure detail
+Artifact sparseexpertsystem-component structure detail
+
+O Comp Sparseexpertsystem parent Model FindIn
+
 O Defines a Sparseexpertsystem component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Sparseexpertsystem component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Sparseexpertsystem parent Model FindIn
-D Element expert_system key . + Expert system identifier
-D Element model up_copy Model + Navigate up to parent Model
-D Element experts ref_child Layer * Expert layers
-D Element capacity word . + Expert capacity
-D Element load_balance word . + Load balancing strategy
-D Element router_type word . + top_k, learned, hash
-D Element aux_loss word . * Auxiliary loss weight
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | expert_system | key | . | + | Expert system identifier |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | experts | ref_child | Layer | * | Expert layers |
+D | capacity | word | . | + | Expert capacity |
+D | load_balance | word | . | + | Load balancing strategy |
+D | router_type | word | . | + | top_k, learned, hash |
+D | aux_loss | word | . | * | Auxiliary loss weight |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2374,39 +2385,32 @@ D ${experts.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Capacityawarerouter actor
-D Its model actor
-D Its experts actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Capacityawarerouter actor  [Link to Capacityawarerouter](#capacityawarerouter-component)
+D Its model actor  [Link to Model](#model-component)
+D Its experts actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact capacityawarerouter_component structure detail
+Artifact capacityawarerouter-component structure detail
+
+O Comp Capacityawarerouter parent SparseExpertSystem FindIn
+
 O Defines a Capacityawarerouter component with FindIn searchability under parent Sparseexpertsystem, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Capacityawarerouter component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Capacityawarerouter parent Sparseexpertsystem FindIn
-D Element router key . + Router identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element gate_input ref_child Tensor + Gate input tensor
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element expert_mask ref_child Tensor * Expert capacity mask
-D Element model3 up_copy Model + Navigate up to parent Model
-D Element token_assign ref_child Tensor * Token assignment
-D Element load_metric word . + Utilization metric
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | router | key | . | + | Router identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | gate_input | ref_child | Tensor | + | Gate input tensor |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | expert_mask | ref_child | Tensor | * | Expert capacity mask |
+D | model3 | up_copy | Model | + | Navigate up to parent Model |
+D | token_assign | ref_child | Tensor | * | Token assignment |
+D | load_metric | word | . | + | Utilization metric |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Sparseexpertsystem that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2429,39 +2433,34 @@ D ${token_assign.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its gate_input actor
-D Its model2 actor
-D Its expert_mask actor
-D Its model3 actor
-D Its token_assign actor
+D Its parent actor  [Link to Sparseexpertsystem](#sparseexpertsystem-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its gate_input actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its expert_mask actor  [Link to Tensor](#tensor-component)
+D Its model3 actor  [Link to Model](#model-component)
+D Its token_assign actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact neuralsde_component structure detail
+Artifact neuralsde-component structure detail
+
+O Comp Neuralsde parent Model FindIn
+
 O Defines a Neuralsde component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link layer_component ref_child
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Neuralsde component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Neuralsde parent Model FindIn
-D Element neural_sde key . + SDE identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element drift_net ref_child Layer + Drift network
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element diffusion_net ref_child Layer + Diffusion network
-D Element brownian_dim word . + Brownian motion dimension
-D Element solver word . + euler, milstein, sra
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_sde | key | . | + | SDE identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | drift_net | ref_child | Layer | + | Drift network |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | diffusion_net | ref_child | Layer | + | Diffusion network |
+D | brownian_dim | word | . | + | Brownian motion dimension |
+D | solver | word | . | + | euler, milstein, sra |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2481,40 +2480,33 @@ D ${diffusion_net.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its drift_net actor
-D Its model2 actor
-D Its diffusion_net actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its drift_net actor  [Link to Layer](#layer-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its diffusion_net actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact neuralpde_component structure detail
+Artifact neuralpde-component structure detail
+
+O Comp Neuralpde parent Model FindIn
+
 O Defines a Neuralpde component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Neuralpde component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Neuralpde parent Model FindIn
-D Element neural_pde key . + PDE identifier
-D Element pde_type word . + heat, wave, burger, custom
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element domain ref_child Tensor + Spatial domain
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element boundary ref_child Tensor * Boundary conditions
-D Element model3 up_copy Model + Navigate up to parent Model
-D Element initial ref_child Tensor * Initial conditions
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_pde | key | . | + | PDE identifier |
+D | pde_type | word | . | + | heat, wave, burger, custom |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | domain | ref_child | Tensor | + | Spatial domain |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | boundary | ref_child | Tensor | * | Boundary conditions |
+D | model3 | up_copy | Model | + | Navigate up to parent Model |
+D | initial | ref_child | Tensor | * | Initial conditions |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2537,40 +2529,35 @@ D ${initial.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its domain actor
-D Its model2 actor
-D Its boundary actor
-D Its model3 actor
-D Its initial actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its domain actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its boundary actor  [Link to Tensor](#tensor-component)
+D Its model3 actor  [Link to Model](#model-component)
+D Its initial actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact dynamicgraphnetwork_component structure detail
+Artifact dynamicgraphnetwork-component structure detail
+
+O Comp Dynamicgraphnetwork parent Model FindIn
+
 O Defines a Dynamicgraphnetwork component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link graphtensor_component ref_child
-Link model_component up_copy
-Link layer_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Dynamicgraphnetwork component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Dynamicgraphnetwork parent Model FindIn
-D Element dynamic_graph key . + Dynamic graph identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element node_features ref_child GraphTensor + Node features
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element edge_predictor ref_child Layer + Edge predictor network
-D Element graph_learner word . + knn, attention, mlp
-D Element k_neighbors word . * Number of neighbors
-D Element threshold word . * Edge threshold
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dynamic_graph | key | . | + | Dynamic graph identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | node_features | ref_child | GraphTensor | + | Node features |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | edge_predictor | ref_child | Layer | + | Edge predictor network |
+D | graph_learner | word | . | + | knn, attention, mlp |
+D | k_neighbors | word | . | * | Number of neighbors |
+D | threshold | word | . | * | Edge threshold |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2591,38 +2578,33 @@ D ${edge_predictor.layer}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Graphlearner actor
-D Its model1 actor
-D Its node_features actor
-D Its model2 actor
-D Its edge_predictor actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Graphlearner actor  [Link to Graphlearner](#graphlearner-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its node_features actor  [Link to Graphtensor](#graphtensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its edge_predictor actor  [Link to Layer](#layer-component)
 D ```
 
-Artifact graphlearner_component structure detail
+Artifact graphlearner-component structure detail
+
+O Comp Graphlearner parent DynamicGraphNetwork FindIn
+
 O Defines a Graphlearner component with FindIn searchability under parent Dynamicgraphnetwork, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link graphtensor_component ref_child
-Link model_component up_copy
-Link graphtensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Graphlearner component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Graphlearner parent Dynamicgraphnetwork FindIn
-D Element learner key . + Graph learner identifier
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element input_nodes ref_child GraphTensor + Input node features
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element adjacency ref_child GraphTensor + Learned adjacency
-D Element similarity word . + cosine, dot_product, mlp
-D Element sparse word . * true/false for sparse output
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | learner | key | . | + | Graph learner identifier |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | input_nodes | ref_child | GraphTensor | + | Input node features |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | adjacency | ref_child | GraphTensor | + | Learned adjacency |
+D | similarity | word | . | + | cosine, dot_product, mlp |
+D | sparse | word | . | * | true/false for sparse output |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Dynamicgraphnetwork that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2642,33 +2624,30 @@ D ${adjacency.graph_tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its input_nodes actor
-D Its model2 actor
-D Its adjacency actor
+D Its parent actor  [Link to Dynamicgraphnetwork](#dynamicgraphnetwork-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its input_nodes actor  [Link to Graphtensor](#graphtensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its adjacency actor  [Link to Graphtensor](#graphtensor-component)
 D ```
 
-Artifact neuralprogram_component structure detail
+Artifact neuralprogram-component structure detail
+
+O Comp Neuralprogram parent Model FindIn
+
 O Defines a Neuralprogram component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Neuralprogram component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Neuralprogram parent Model FindIn
-D Element neural_prog key . + Neural program identifier
-D Element program_counter word . + Program counter tensor
-D Element model up_copy Model + Navigate up to parent Model
-D Element memory ref_child Tensor * Program memory
-D Element max_steps word . + Maximum execution steps
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_prog | key | . | + | Neural program identifier |
+D | program_counter | word | . | + | Program counter tensor |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | memory | ref_child | Tensor | * | Program memory |
+D | max_steps | word | . | + | Maximum execution steps |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2684,38 +2663,32 @@ D ${memory.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its Proginstruction actor
-D Its model actor
-D Its memory actor
+D Its parent actor  [Link to Model](#model-component)
+D Its Proginstruction actor  [Link to Proginstruction](#proginstruction-component)
+D Its model actor  [Link to Model](#model-component)
+D Its memory actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact proginstruction_component structure detail
+Artifact proginstruction-component structure detail
+
+O Comp Proginstruction parent NeuralProgram FindIn
+
 O Defines a Proginstruction component with FindIn searchability under parent Neuralprogram, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-Link model_component up_copy
-Link controlflow_component ref_child
-Link condition_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Proginstruction component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Proginstruction parent Neuralprogram FindIn
-D Element prog_inst key . + Program instruction identifier
-D Element opcode word . + Operation code
-D Element model1 up_copy Model + Navigate up to parent Model
-D Element operands ref_child Tensor * Instruction operands
-D Element model2 up_copy Model + Navigate up to parent Model
-D Element control_flow ref_child ControlFlow * Navigate to ControlFlow
-D Element condition ref_child Condition * Execution condition
-D Element next_pc word . * Next program counter
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | prog_inst | key | . | + | Program instruction identifier |
+D | opcode | word | . | + | Operation code |
+D | model1 | up_copy | Model | + | Navigate up to parent Model |
+D | operands | ref_child | Tensor | * | Instruction operands |
+D | model2 | up_copy | Model | + | Navigate up to parent Model |
+D | control_flow | ref_child | ControlFlow | * | Navigate to ControlFlow |
+D | condition | ref_child | Condition | * | Execution condition |
+D | next_pc | word | . | * | Next program counter |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Neuralprogram that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2737,35 +2710,32 @@ D ${condition.condition}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model1 actor
-D Its operands actor
-D Its model2 actor
-D Its control_flow actor
-D Its condition actor
+D Its parent actor  [Link to Neuralprogram](#neuralprogram-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its operands actor  [Link to Tensor](#tensor-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its control_flow actor  [Link to Controlflow](#controlflow-component)
+D Its condition actor  [Link to Condition](#condition-component)
 D ```
 
-Artifact liquidnetwork_component structure detail
+Artifact liquidnetwork-component structure detail
+
+O Comp Liquidnetwork parent Model FindIn
+
 O Defines a Liquidnetwork component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-Link model_component up_copy
-Link tensor_component ref_child
-
-Section declaration 2 Component Declaration
-D To declare a Liquidnetwork component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Liquidnetwork parent Model FindIn
-D Element liquid_net key . + Liquid network identifier
-D Element model up_copy Model + Navigate up to parent Model
-D Element time_const ref_child Tensor + Time constant parameters
-D Element hidden_dim word . + Hidden dimension
-D Element solver word . + ODE solver type
-D Element adaptive word . * true/false adaptive
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | liquid_net | key | . | + | Liquid network identifier |
+D | model | up_copy | Model | + | Navigate up to parent Model |
+D | time_const | ref_child | Tensor | + | Time constant parameters |
+D | hidden_dim | word | . | + | Hidden dimension |
+D | solver | word | . | + | ODE solver type |
+D | adaptive | word | . | * | true/false adaptive |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2782,28 +2752,27 @@ D ${time_const.tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
-D Its model actor
-D Its time_const actor
+D Its parent actor  [Link to Model](#model-component)
+D Its model actor  [Link to Model](#model-component)
+D Its time_const actor  [Link to Tensor](#tensor-component)
 D ```
 
-Artifact symbolicshape_component structure detail
+Artifact symbolicshape-component structure detail
+
+O Comp Symbolicshape parent Model FindIn
+
 O Defines a Symbolicshape component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Symbolicshape component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Symbolicshape parent Model FindIn
-D Element symbolic_shape key . + Symbolic shape identifier
-D Element expression text . + Shape expression
-D Element variables word . * Comma-separated variables
-D Element constraints text . * Shape constraints
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | symbolic_shape | key | . | + | Symbolic shape identifier |
+D | expression | text | . | + | Shape expression |
+D | variables | word | . | * | Comma-separated variables |
+D | constraints | text | . | * | Shape constraints |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2816,26 +2785,25 @@ D ${parent.model}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Model](#model-component)
 D ```
 
-Artifact jitcompiler_component structure detail
+Artifact jitcompiler-component structure detail
+
+O Comp Jitcompiler parent Model FindIn
+
 O Defines a Jitcompiler component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
 
-
-Section declaration 2 Component Declaration
-D To declare a Jitcompiler component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Jitcompiler parent Model FindIn
-D Element jit_compiler key . + JIT compiler identifier
-D Element dynamic_dims word . * Dynamic dimensions
-D Element specialization word . * Specialization strategy
-D Element cache_key text . * Cache key expression
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | jit_compiler | key | . | + | JIT compiler identifier |
+D | dynamic_dims | word | . | * | Dynamic dimensions |
+D | specialization | word | . | * | Specialization strategy |
+D | cache_key | text | . | * | Cache key expression |
+D | desc | text | . | * | Description |
 D
-D This creates a nested component under Model that will be indexed within its parent's namespace.
 
 Section variables 2 Variable fields
 D ```
@@ -2848,25 +2816,23 @@ D ${parent.model}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its parent actor
+D Its parent actor  [Link to Model](#model-component)
 D ```
 
-Artifact targetrule_component structure overview
+Artifact targetrule-component structure overview
+
+O Comp Targetrule parent . Find
 
 O Defines a top-level Targetrule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Targetrule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Targetrule parent . Find
-D Element target key . + Target name (e.g., gpu_a100)
-D Element arch word . + Hardware architecture (e.g., ampere, mali)
-D Element vendor word . + Vendor name (e.g., nvidia, arm)
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | target | key | . | + | Target name (e.g., gpu_a100) |
+D | arch | word | . | + | Hardware architecture (e.g., ampere, mali) |
+D | vendor | word | . | + | Vendor name (e.g., nvidia, arm) |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -2877,25 +2843,23 @@ D ${Config_target.config}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Config_target actor
+D Its Config_target actor  [Reverse link to Config](#config-component)
 D ```
 
-Artifact dtyperule_component structure overview
+Artifact dtyperule-component structure overview
+
+O Comp Dtyperule parent . Find
 
 O Defines a top-level Dtyperule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Dtyperule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Dtyperule parent . Find
-D Element dtype key . + Data type name (e.g., fp32, int8)
-D Element bits word . + Bit width (e.g., 32, 8)
-D Element type word . + Type category (float, int, bool)
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dtype | key | . | + | Data type name (e.g., fp32, int8) |
+D | bits | word | . | + | Bit width (e.g., 32, 8) |
+D | type | word | . | + | Type category (float, int, bool) |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -2908,26 +2872,24 @@ D ${Graphtensor_dtype.graph_tensor}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Tensor_dtype actor
-D Its Argrolerule_dtype actor
-D Its Graphtensor_dtype actor
+D Its Tensor_dtype actor  [Reverse link to Tensor](#tensor-component)
+D Its Argrolerule_dtype actor  [Reverse link to Argrolerule](#argrolerule-component)
+D Its Graphtensor_dtype actor  [Reverse link to Graphtensor](#graphtensor-component)
 D ```
 
-Artifact flagrule_component structure overview
+Artifact flagrule-component structure overview
+
+O Comp Flagrule parent . Find
 
 O Defines a top-level Flagrule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Flagrule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Flagrule parent . Find
-D Element flag key . + Optimization flag (e.g., fused_ops)
-D Element desc text . * Description of the optimization strategy
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | flag | key | . | + | Optimization flag (e.g., fused_ops) |
+D | desc | text | . | * | Description of the optimization strategy |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -2938,27 +2900,25 @@ D ${Config_opt_flags.config}
 D ```
 Section Navigation 2 Command navigation
 D ```
-D Its Optimization_flags actor
-D Its Config_opt_flags actor
+D Its Optimization_flags actor  [Reverse link to Optimization](#optimization-component)
+D Its Config_opt_flags actor  [Reverse link to Config](#config-component)
 D ```
 
-Artifact distributionrule_component structure overview
+Artifact distributionrule-component structure overview
+
+O Comp Distributionrule parent . Find
 
 O Defines a top-level Distributionrule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Distributionrule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Distributionrule parent . Find
-D Element distribution key . + Distribution name (normal, categorical, gumbel, etc)
-D Element params word . + Parameter names (comma-separated)
-D Element reparam word . + true/false for reparameterization trick support
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | distribution | key | . | + | Distribution name (normal, categorical, gumbel, etc) |
+D | params | word | . | + | Parameter names (comma-separated) |
+D | reparam | word | . | + | true/false for reparameterization trick support |
+D | desc | text | . | * | Description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -2971,23 +2931,21 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact searchstrategyrule_component structure overview
+Artifact searchstrategyrule-component structure overview
+
+O Comp Searchstrategyrule parent . Find
 
 O Defines a top-level Searchstrategyrule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Searchstrategyrule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Searchstrategyrule parent . Find
-D Element strategy key . + Search strategy name (darts, enas, proxyless, etc)
-D Element differentiable word . + true/false
-D Element weight_share word . + true/false for supernet weight sharing
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | strategy | key | . | + | Search strategy name (darts, enas, proxyless, etc) |
+D | differentiable | word | . | + | true/false |
+D | weight_share | word | . | + | true/false for supernet weight sharing |
+D | desc | text | . | * | Description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -3000,23 +2958,21 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact dynamicgraphrule_component structure overview
+Artifact dynamicgraphrule-component structure overview
+
+O Comp Dynamicgraphrule parent . Find
 
 O Defines a top-level Dynamicgraphrule component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Dynamicgraphrule component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Dynamicgraphrule parent . Find
-D Element graph_rule key . + Graph rule name (knn, attention, threshold, etc)
-D Element sparse word . + true/false for sparse adjacency
-D Element symmetric word . + true/false for symmetric edges
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | graph_rule | key | . | + | Graph rule name (knn, attention, threshold, etc) |
+D | sparse | word | . | + | true/false for sparse adjacency |
+D | symmetric | word | . | + | true/false for symmetric edges |
+D | desc | text | . | * | Description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -3029,24 +2985,22 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-Artifact compatibilitynote_component structure overview
+Artifact compatibilitynote-component structure overview
+
+O Comp Compatibilitynote parent . Find
 
 O Defines a top-level Compatibilitynote component with Find searchability, meaning instances can be looked up globally by their key field.
 
-Section declaration 2 Component Declaration
-D To declare a Compatibilitynote component in a .unit file:
+Section element_summary 2 Element Summary
 D
-D ```
-D Comp Compatibilitynote parent . Find
-D Element note key . + Note identifier
-D Element component word . + Component name affected
-D Element version word . + Required version
-D Element migration text . * Migration instructions
-D Element desc text . * Description
-D ```
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | note | key | . | + | Note identifier |
+D | component | word | . | + | Component name affected |
+D | version | word | . | + | Required version |
+D | migration | text | . | * | Migration instructions |
+D | desc | text | . | * | Description |
 D
-D This creates a root-level component that will be searchable by name across the entire schema.
-
 
 Section variables 2 Variable fields
 D ```
@@ -3060,25 +3014,20 @@ Section Navigation 2 Command navigation
 D ```
 D ```
 
-
-// ================================================================
-// REFERENCE AND NAVIGATION PATTERNS
-// ================================================================
-
-Artifact reference_resolution_guide workflow overview
+Artifact reference-resolution-guide workflow overview
 O Multi-pass reference resolution algorithm that handles complex reference chains.
 
 Section resolution_order 2 Resolution Order
 D References resolve in passes until stable:
 D
 D **Pass 1: Direct References**
-D - ref: Direct lookup in global index
-D - link: Lookup in parent's child index
+D - `ref`: Direct lookup in global index
+D - `link`: Lookup in parent's child index
 D
 D **Pass 2+: Derived References**
-D - ref_copy: Copies resolved reference from previous field
-D - ref_child: Looks up child in previously referenced component
-D - up_copy: Walks parent chain to find ancestor
+D - `ref_copy`: Copies resolved reference from previous field
+D - `ref_child`: Looks up child in previously referenced component
+D - `up_copy`: Walks parent chain to find ancestor
 D
 D The loader repeats passes until error count stops changing (typically 2-4 passes).
 
@@ -3095,4 +3044,40 @@ D Element context     up_copy   Ancestor  +
 D Element target      ref_child ChildType +
 D ```
 D First field walks parents to find Ancestor, second field looks up ChildType within it.
+
+Section common_patterns 2 Common Design Patterns
+D
+D **Pattern 1: Direct Reference**
+D ```
+D Element target ref ComponentType +
+D ```
+D Simple global lookup.
+D
+D **Pattern 2: Reference Chain**
+D ```
+D Element parent_ref   ref       Parent +
+D Element child_ref    ref_child Child  +
+D ```
+D Two-level lookup: resolve parent, then find child within parent.
+D
+D **Pattern 3: Ancestor Lookup**
+D ```
+D Element ancestor  up_copy   Ancestor +
+D Element target    ref_child Target   +
+D ```
+D Navigate up hierarchy to find ancestor, then look up child within it.
+D
+D **Pattern 4: Reference Reuse**
+D ```
+D Element original  ref      Target +
+D Element copy      ref_copy Target +
+D ```
+D Resolve once, copy pointer multiple times for efficiency.
+D
+D **Pattern 5: Sibling Link**
+D ```
+D Element sibling link SiblingType +
+D ```
+D Reference sibling component under same parent.
+D
 
