@@ -133,7 +133,7 @@ Actor generate Op platform = ${.config.platform}
 Add _.tensors:${name} ${data}
 
 # Check existence
-Add.check.break _.tensors:${name} ${data} check break
+Add.check.break _.tensors:${name} ${data}
 
 # Map operations
 Add.map _:config

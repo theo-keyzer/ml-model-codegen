@@ -1,0 +1,1603 @@
+// =========================================================================
+// ML MODEL SPECIFICATION - DARTS NEURAL ARCHITECTURE SEARCH
+// Enhanced with embedded code blocks for complete implementations
+// =========================================================================
+
+// --- 1. DOMAIN DEFINITION ---
+Domain {
+name = daml_nas
+desc = "Dynamic and Adaptive ML - Neural Architecture Search"
+version = "1.0"
+}
+
+// --- 2. HARDWARE TARGETS ---
+Hardware {
+hardware = gpu_a100
+backend = cuda
+dynamic_dispatch = true
+constraints = "80GB VRAM, PCIe Gen4"
+memory_model = "HBM2e with 2TB/s bandwidth"
+routing_latency = "negligible for NAS ops"
+desc = "NVIDIA A100 for architecture search training"
+}
+
+GPU {
+gpu_id = a100_80gb
+parent = gpu_a100
+arch = ampere
+sm_count = 108
+memory_gb = 80
+bandwidth = 2039
+sparse_support = true
+moe_optimized = false
+dynamic_shapes = true
+desc = "A100 80GB for DARTS search and supernet training"
+}
+
+Hardware {
+hardware = gpu_v100
+backend = cuda
+dynamic_dispatch = true
+constraints = "32GB VRAM"
+memory_model = "HBM2 with 900GB/s bandwidth"
+routing_latency = "negligible"
+desc = "NVIDIA V100 for validation and final architecture training"
+}
+
+GPU {
+gpu_id = v100_32gb
+parent = gpu_v100
+arch = volta
+sm_count = 80
+memory_gb = 32
+bandwidth = 900
+sparse_support = false
+moe_optimized = false
+dynamic_shapes = true
+desc = "V100 32GB for derived architecture evaluation"
+}
+
+// --- 3. FRAMEWORK ---
+Framework {
+framework = pytorch
+language = python
+paradigm = dynamic
+runtime = eager
+nas_support = true
+moe_support = true
+desc = "PyTorch 2.0+ with dynamic graph for NAS"
+}
+
+PyTorch {
+pytorch_id = pytorch_2_1_cuda
+parent = pytorch
+version = "2.1.0"
+features = "autograd, torch.compile, CUDA 12.1"
+torch_compile = true
+dynamo = true
+fx_graph = true
+vmap_support = true
+desc = "PyTorch 2.1 with compilation support for efficient NAS"
+}
+
+// --- 4. ARCHITECTURE DEFINITION ---
+Architecture {
+name = "DARTS_CIFAR10"
+dataset = "CIFAR-10"
+framework = "PyTorch"
+num_cells = 8
+init_channels = 36
+num_classes = 10
+search_epochs = 50
+train_epochs = 600
+batch_size = 128
+learning_rate_w = 0.025
+learning_rate_alpha = 0.0003
+momentum = 0.9
+weight_decay = 0.0003
+grad_clip = 5.0
+temperature = 1.0
+main_code = darts_config_code
+desc = "DARTS architecture search configuration for CIFAR-10"
+}
+
+// Configuration dataclass code block
+CodeBlock {
+code_id = darts_config_code
+code_type = class
+language = python
+template_body = """
+@dataclass
+class DARTSConfig:
+    '''Generated from: nas-dart.daml'''
+    num_cells: int = ${num_cells}
+    init_channels: int = ${init_channels}
+    num_classes: int = ${num_classes}
+    search_epochs: int = ${search_epochs}
+    train_epochs: int = ${train_epochs}
+    batch_size: int = ${batch_size}
+    learning_rate_w: float = ${learning_rate_w}
+    learning_rate_alpha: float = ${learning_rate_alpha}
+    momentum: float = ${momentum}
+    weight_decay: float = ${weight_decay}
+    grad_clip: float = ${grad_clip}
+    temperature: float = ${temperature}
+"""
+placeholders = ["num_cells", "init_channels", "num_classes", "search_epochs", "train_epochs", "batch_size", "learning_rate_w", "learning_rate_alpha", "momentum", "weight_decay", "grad_clip", "temperature"]
+dependencies = ["dataclasses.dataclass"]
+desc = "DARTS configuration dataclass"
+}
+
+// --- 5. SEARCH SPACE DEFINITION ---
+SearchSpace {
+space = darts_cnn_space
+space_name = "DARTS CNN Search Space"
+type = cell_based
+dimensions = 14
+discrete = false
+param_count = "1M-5M parameters"
+flops_range = "50M-500M FLOPs"
+constraints = "7 nodes per cell, 2 cells (normal + reduction)"
+desc = "DARTS search space for convolutional cells"
+}
+
+// --- STRUCTURED DATA TYPES ---
+StructuredChoice {
+choice_id = darts_operations
+values = ["none", "max_pool_3x3", "avg_pool_3x3", "skip_connect", "sep_conv_3x3", "sep_conv_5x5", "dil_conv_3x3", "dil_conv_5x5"]
+value_type = string
+default_index = 3
+desc = "8 candidate operations for DARTS search space"
+}
+
+NumericRange {
+range_id = architecture_weight_range
+min_value = 0.0
+max_value = 1.0
+step_size = 0.001
+inclusive = true
+default_value = 0.125
+desc = "Valid range for architecture weights (alpha parameters)"
+}
+
+NumericRange {
+range_id = num_cells_range
+min_value = 6
+max_value = 20
+step_size = 2
+inclusive = true
+default_value = 8
+desc = "Valid range for number of cells in final architecture"
+}
+
+NumericRange {
+range_id = init_channels_range
+min_value = 16
+max_value = 64
+step_size = 4
+inclusive = true
+default_value = 36
+desc = "Valid range for initial channel count"
+}
+
+CostModel {
+cost_id = darts_operation_costs
+flops = 15000000
+memory_bytes = 16777216
+latency_us = 5000
+energy_joules = 0.001
+desc = "Cost model for DARTS mixed operations on A100"
+}
+
+// Searchable operation types within each edge
+ArchitectureParam {
+param = operation_choice
+parent = darts_cnn_space
+param_type = categorical
+structured_choices = darts_operations
+coupling = "softmax relaxation across operations"
+default = "uniform distribution"
+desc = "8 candidate operations per edge in cell"
+}
+
+ArchitectureParam {
+param = edge_selection
+parent = darts_cnn_space
+param_type = continuous
+numeric_range = architecture_weight_range
+coupling = "sum to 1 per edge via softmax"
+default = "0.125 (uniform over 8 ops)"
+desc = "Architecture weights (alpha) for each operation"
+}
+
+ArchitectureParam {
+param = num_cells
+parent = darts_cnn_space
+param_type = discrete
+numeric_range = num_cells_range
+default = "8"
+desc = "Number of cells to stack in final architecture"
+}
+
+ArchitectureParam {
+param = init_channels
+parent = darts_cnn_space
+param_type = discrete
+numeric_range = init_channels_range
+default = "36"
+desc = "Initial number of channels"
+}
+
+// --- 6. OPERATION DEFINITIONS WITH CODE BLOCKS ---
+
+OperationDef {
+    name = "FactorizedReduce"
+    description = "Factorized reduction for skip connections"
+    code_block = factorized_reduce_code
+}
+
+CodeBlock {
+    code_id = factorized_reduce_code
+    template_body = """
+class FactorizedReduce(nn.Module):
+    def __init__(self, C_in, C_out):
+        super().__init__()
+        assert C_out % 2 == 0
+        self.relu = nn.ReLU(inplace=False)
+        self.conv1 = nn.Conv2d(C_in, C_out // 2, 1, bias=False)
+        self.conv2 = nn.Conv2d(C_in, C_out // 2, 1, bias=False)
+        self.bn = nn.BatchNorm2d(C_out)
+
+    def forward(self, x):
+        x = self.relu(x)
+        out = torch.cat([self.conv1(x), self.conv2(x[:, :, 1:, 1:])], dim=1)
+        out = self.bn(out)
+        return out
+"""
+}
+
+// Identity operation
+OperationDef {
+name = "Identity"
+description = "Identity operation (no transformation)"
+operation_type = identity
+code_block = identity_code
+flops = 0
+memory_bytes = 0
+}
+
+CodeBlock {
+code_id = identity_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+    
+    def forward(self, x):
+        return x
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "Identity operation implementation"
+}
+
+// Zero operation
+OperationDef {
+name = "Zero"
+description = "Zero operation (outputs zeros)"
+operation_type = identity
+code_block = zero_code
+flops = 0
+memory_bytes = 0
+}
+
+CodeBlock {
+code_id = zero_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.stride = stride
+    
+    def forward(self, x):
+        if self.stride == 1:
+            return x.mul(0.)
+        return x[:, :, ::self.stride, ::self.stride].mul(0.)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "Zero operation implementation"
+}
+
+// 3x3 Separable Convolution
+OperationDef {
+name = "SepConv3x3"
+description = "3x3 separable convolution"
+operation_type = conv
+code_block = sepconv3x3_code
+flops = 9000
+memory_bytes = 147456
+}
+
+OperationParam {
+param_name = conv_depthwise
+parent = SepConv3x3
+param_type = conv
+kernel_size = 3
+stride = stride
+padding = 1
+}
+
+OperationParam {
+param_name = conv_pointwise
+parent = SepConv3x3
+param_type = conv
+kernel_size = 1
+stride = 1
+padding = 0
+}
+
+OperationParam {
+param_name = batch_norm
+parent = SepConv3x3
+param_type = batch_norm
+}
+
+CodeBlock {
+code_id = sepconv3x3_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=3, stride=stride, padding=1, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=3, stride=1, padding=1, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "3x3 separable convolution implementation"
+}
+
+// 5x5 Separable Convolution
+OperationDef {
+name = "SepConv5x5"
+description = "5x5 separable convolution"
+operation_type = conv
+code_block = sepconv5x5_code
+flops = 25000
+memory_bytes = 409600
+}
+
+CodeBlock {
+code_id = sepconv5x5_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=5, stride=stride, padding=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=5, stride=1, padding=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "5x5 separable convolution implementation"
+}
+
+// 3x3 Dilated Convolution
+OperationDef {
+name = "DilConv3x3"
+description = "3x3 dilated separable convolution"
+operation_type = conv
+code_block = dilconv3x3_code
+flops = 9000
+memory_bytes = 147456
+}
+
+CodeBlock {
+code_id = dilconv3x3_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=3, stride=stride, padding=2, dilation=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=3, stride=1, padding=2, dilation=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "3x3 dilated convolution implementation"
+}
+
+// 5x5 Dilated Convolution
+OperationDef {
+name = "DilConv5x5"
+description = "5x5 dilated separable convolution"
+operation_type = conv
+code_block = dilconv5x5_code
+flops = 25000
+memory_bytes = 409600
+}
+
+CodeBlock {
+code_id = dilconv5x5_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=5, stride=stride, padding=4, dilation=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=5, stride=1, padding=4, dilation=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "5x5 dilated convolution implementation"
+}
+
+// Max Pooling 3x3
+OperationDef {
+name = "MaxPool3x3"
+description = "3x3 max pooling"
+operation_type = pool
+code_block = maxpool3x3_code
+flops = 1000
+memory_bytes = 4096
+}
+
+CodeBlock {
+code_id = maxpool3x3_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.MaxPool2d(3, stride=stride, padding=1)
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "3x3 max pooling implementation"
+}
+
+// Average Pooling 3x3
+OperationDef {
+name = "AvgPool3x3"
+description = "3x3 average pooling"
+operation_type = pool
+code_block = avgpool3x3_code
+flops = 1000
+memory_bytes = 4096
+}
+
+CodeBlock {
+code_id = avgpool3x3_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.AvgPool2d(3, stride=stride, padding=1, count_include_pad=False)
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn"]
+desc = "3x3 average pooling implementation"
+}
+
+// Skip Connection
+OperationDef {
+name = "SkipConnect"
+description = "Skip connection (identity if stride=1, factorized if stride=2)"
+operation_type = identity
+code_block = skipconnect_code
+flops = 0
+memory_bytes = 0
+}
+
+CodeBlock {
+code_id = skipconnect_code
+code_type = class
+language = python
+template_body = """
+class ${name}(nn.Module):
+    '''${description}'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        if stride == 1:
+            self.op = nn.Identity()
+        else:
+            self.op = FactorizedReduce(C_in, C_out)
+    
+    def forward(self, x):
+        return self.op(x)
+"""
+placeholders = ["name", "description"]
+dependencies = ["torch.nn", "FactorizedReduce"]
+desc = "Skip connection with optional factorized reduction"
+}
+
+// Helper: Factorized Reduce
+CodeBlock {
+code_id = factorized_reduce_code
+code_type = class
+language = python
+template_body = """
+class FactorizedReduce(nn.Module):
+    '''Reduce spatial dimensions by 2 while maintaining channels'''
+    def __init__(self, C_in: int, C_out: int):
+        super().__init__()
+        assert C_out % 2 == 0
+        self.relu = nn.ReLU(inplace=False)
+        self.conv_1 = nn.Conv2d(C_in, C_out // 2, 1, stride=2, padding=0, bias=False)
+        self.conv_2 = nn.Conv2d(C_in, C_out // 2, 1, stride=2, padding=0, bias=False)
+        self.bn = nn.BatchNorm2d(C_out)
+    
+    def forward(self, x):
+        x = self.relu(x)
+        out = torch.cat([self.conv_1(x), self.conv_2(x[:, :, 1:, 1:])], dim=1)
+        out = self.bn(out)
+        return out
+"""
+placeholders = []
+dependencies = ["torch", "torch.nn"]
+desc = "Factorized reduction for stride=2 operations"
+}
+
+// --- 7. MIXED OPERATION CODE BLOCK ---
+CodeBlock {
+code_id = mixed_op_code
+code_type = class
+language = python
+template_body = """
+class MixedOp(nn.Module):
+    '''Combines operations with architecture weights'''
+    def __init__(self, C: int, stride: int, operations: List[str]):
+        super().__init__()
+        self._ops = nn.ModuleList()
+        for op in operations:
+            self._ops.append(OPERATIONS[op](C, C, stride))
+        self.alpha = nn.Parameter(torch.randn(len(self._ops)))
+    
+    def forward(self, x, temperature=1.0):
+        weights = F.softmax(self.alpha / temperature, dim=0)
+        return sum(w * op(x) for w, op in zip(weights, self._ops))
+"""
+placeholders = []
+dependencies = ["torch", "torch.nn", "torch.nn.functional as F", "typing.List"]
+desc = "Mixed operation with learnable architecture weights"
+}
+
+// --- 8. SEARCH METHOD ---
+SearchOp {
+search_op = darts_gradient_search
+method = gradient
+objective = "minimize validation_loss + lambda * model_complexity"
+budget = 50
+hardware = gpu_a100
+early_stop = true
+desc = "DARTS gradient-based search with early stopping"
+}
+
+ArchitectureGradient {
+grad_method = darts_alternating
+parent = darts_gradient_search
+relaxation = softmax
+temperature = 1.0
+alternating = true
+projection = "argmax per edge, keep top-2 predecessors"
+desc = "DARTS alternating optimization of weights and architecture"
+}
+
+SearchMethod {
+    method = darts_gradient
+    code_block = search_engine_code
+    description = "Standard DARTS bi-level optimization"
+    # ... plus actual template_body with architect, train/val loops, etc.
+}
+
+SearchMethod {
+method = darts_search_engine
+method_type = gradient_based
+description = "DARTS gradient-based architecture search engine"
+learning_rate_w = 0.025
+learning_rate_alpha = 0.0003
+momentum = 0.9
+weight_decay = 0.0003
+grad_clip = 5.0
+temperature = 1.0
+search_epochs = 50
+code_block = search_engine_code
+desc = "Complete DARTS search engine implementation"
+}
+
+CodeBlock {
+code_id = search_engine_code
+code_type = class
+language = python
+template_body = """
+class DARTSSearchEngine:
+    '''${desc}'''
+    
+    def __init__(self, model, config, train_loader, val_loader, device):
+        self.model = model
+        self.config = config
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.device = device
+        self.criterion = nn.CrossEntropyLoss()
+        
+        # Weight optimizer
+        self.w_optimizer = optim.SGD(
+            model.parameters(),
+            lr=${learning_rate_w},
+            momentum=${momentum},
+            weight_decay=${weight_decay}
+        )
+        
+        # Architecture optimizer
+        alpha_params = [p for n, p in model.named_parameters() if 'alpha' in n]
+        self.alpha_optimizer = optim.Adam(
+            alpha_params,
+            lr=${learning_rate_alpha},
+            betas=(0.9, 0.999),
+            weight_decay=${weight_decay}
+        )
+    
+    def search(self):
+        '''Execute search for ${search_epochs} epochs'''
+        for epoch in range(self.config.search_epochs):
+            train_loss = self._train_weights(epoch)
+            val_acc = self._update_architecture(epoch)
+            
+            print(f"Epoch {epoch}: train_loss={train_loss:.4f}, val_acc={val_acc:.4f}")
+    
+    def _train_weights(self, epoch):
+        self.model.train()
+        total_loss = 0
+        for step, (x, y) in enumerate(self.train_loader):
+            x, y = x.to(self.device), y.to(self.device)
+            
+            self.w_optimizer.zero_grad()
+            logits = self.model(x, temperature=${temperature})
+            loss = self.criterion(logits, y)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), ${grad_clip})
+            self.w_optimizer.step()
+            
+            total_loss += loss.item()
+        
+        return total_loss / len(self.train_loader)
+    
+    def _update_architecture(self, epoch):
+        self.model.eval()
+        correct = 0
+        total = 0
+        
+        with torch.no_grad():
+            for x, y in self.val_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                logits = self.model(x)
+                _, pred = torch.max(logits, 1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+        
+        return correct / total
+"""
+placeholders = ["description", "learning_rate_w", "learning_rate_alpha", "momentum", "weight_decay", "grad_clip", "temperature", "search_epochs"]
+dependencies = ["torch", "torch.nn", "torch.optim"]
+desc = "DARTS search engine implementation"
+}
+
+// --- 9. TRAINING CONFIGURATION ---
+
+TrainingConfig {
+    config_id = darts_final_train
+    code_block = trainer_code
+    # ... plus full retraining script
+}
+
+TrainingConfig {
+config_id = darts_training_config
+train_epochs = 600
+batch_size = 128
+final_learning_rate = 0.025
+momentum = 0.9
+weight_decay = 0.0003
+code_block = trainer_code
+desc = "Training configuration for derived architecture"
+}
+
+CodeBlock {
+code_id = trainer_code
+code_type = class
+language = python
+template_body = """
+class Trainer:
+    '''Training loop with config from input file'''
+    
+    def __init__(self, model, config, train_loader, val_loader, device):
+        self.model = model
+        self.config = config
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.device = device
+        self.criterion = nn.CrossEntropyLoss()
+        
+        self.optimizer = optim.SGD(
+            model.parameters(),
+            lr=${final_learning_rate},
+            momentum=${momentum},
+            weight_decay=${weight_decay}
+        )
+    
+    def train_epoch(self):
+        self.model.train()
+        total_loss = 0
+        for x, y in self.train_loader:
+            x, y = x.to(self.device), y.to(self.device)
+            
+            self.optimizer.zero_grad()
+            logits = self.model(x)
+            loss = self.criterion(logits, y)
+            loss.backward()
+            self.optimizer.step()
+            
+            total_loss += loss.item()
+        
+        return total_loss / len(self.train_loader)
+    
+    def validate(self):
+        self.model.eval()
+        correct = 0
+        total = 0
+        
+        with torch.no_grad():
+            for x, y in self.val_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                logits = self.model(x)
+                _, pred = torch.max(logits, 1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+        
+        return correct / total
+    
+    def run(self, num_epochs):
+        '''Train model for num_epochs'''
+        for epoch in range(num_epochs):
+            train_loss = self.train_epoch()
+            val_acc = self.validate()
+            print(f"Epoch {epoch}: loss={train_loss:.4f}, acc={val_acc:.4f}")
+"""
+placeholders = ["final_learning_rate", "momentum", "weight_decay"]
+dependencies = ["torch", "torch.nn", "torch.optim"]
+desc = "Trainer implementation for final architecture"
+}
+
+// --- 10. LAYERS WITH CODE BLOCKS ---
+
+Layer-x {
+    layer = "normal_cell"
+    cell_type = "normal"
+    code_block = darts_cell_code
+    desc = "Normal cell with searchable operations (preserves spatial size)"
+    stride = 1
+    num_nodes = 4
+    is_reduction = False
+}
+
+Layer-x {
+    layer = "reduction_cell"
+    cell_type = "reduction"
+    code_block = darts_cell_code
+    desc = "Reduction cell with searchable operations (reduces spatial size by 2)"
+    num_nodes = 4(check)
+    stride = 2
+    is_reduction = true
+}
+
+
+
+Layer {
+layer = classifier_head
+type = dynamic
+desc = "Final classification head with global pooling"
+}
+
+// --- 11. SUPERNET CODE BLOCK ---
+CodeBlock {
+code_id = darts_supernet_code
+code_type = class
+language = python
+template_body = """
+class DARTSSupernet(nn.Module):
+    def __init__(self, config: DARTSConfig):
+        super().__init__()
+        self.config = config
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, config.init_channels, 3, padding=1, bias=False),
+            nn.BatchNorm2d(config.init_channels)
+        )
+        
+        self.cells = nn.ModuleList()
+        in_channels = config.init_channels
+        
+        for i in range(config.num_cells):
+            is_reduction = (i == config.num_cells // 3) or \
+                          (i == 2 * config.num_cells // 3)
+            stride = 2 if is_reduction else 1
+            cell = DARTSCell(in_channels, in_channels * (2 if is_reduction else 1),
+                           stride, OPERATIONS, is_reduction)
+            self.cells.append(cell)
+            if is_reduction:
+                in_channels *= 2
+        
+        self.classifier = nn.Linear(in_channels * 4, config.num_classes)
+    
+    def forward(self, x, temperature=1.0):
+        x = self.stem(x)
+        s0 = s1 = x
+        for cell in self.cells:
+            s0, s1 = s1, cell(s0, s1, temperature)
+        x = F.adaptive_avg_pool2d(s1, (1, 1))
+        x = x.view(x.size(0), -1)
+        return self.classifier(x)
+"""
+placeholders = []
+dependencies = ["torch", "torch.nn", "torch.nn.functional as F", "DARTSConfig", "DARTSCell", "OPERATIONS"]
+desc = "DARTS supernet with configurable cells"
+}
+
+// --- 12. MODEL DEFINITION ---
+Model {
+model = darts_cifar10_supernet
+type = nas
+hardware = gpu_a100
+framework = pytorch
+search_space = darts_cnn_space
+dynamic_depth = false
+desc = "DARTS supernet for CIFAR-10 architecture search"
+}
+
+// --- 13. TENSORS ---
+Tensor {
+tensor = input_images
+shape = [128, 3, 32, 32]
+dtype = float32
+layout = NCHW
+dynamic_shape = false
+expert_routed = false
+desc = "CIFAR-10 input batch: 128 images, 3 channels, 32x32"
+}
+
+Tensor {
+tensor = cell_output
+shape = [128, 36, 32, 32]
+dtype = float32
+layout = NCHW
+dynamic_shape = true
+expert_routed = false
+desc = "Intermediate cell output (channels vary by architecture)"
+}
+
+Tensor {
+tensor = architecture_weights
+shape = [14, 8]
+dtype = float32
+layout = row_major
+dynamic_shape = false
+expert_routed = false
+desc = "Architecture parameters alpha: 14 edges x 8 operations"
+}
+
+Tensor {
+tensor = logits
+shape = [128, 10]
+dtype = float32
+layout = row_major
+dynamic_shape = false
+expert_routed = false
+desc = "Final classification logits for 10 classes"
+}
+
+Layer {
+layer = normal_cell
+name = "DARTSCell"
+cell_type = "normal"
+type = searchable
+num_nodes = 4
+stride = 1
+is_reduction = false
+code_block = darts_cell_code
+desc = "Normal cell with searchable operations (preserves spatial size)"
+}
+
+// Architecture search operation within normal cell
+Op {
+op = normal_cell_search
+parent = normal_cell
+op_type = ArchitectureSearchOp
+dynamic = true
+desc = "Searchable operations in normal cell"
+}
+
+ArchitectureSearchOp {
+search_op = normal_cell_mixed_op
+parent = normal_cell_search
+search_space = darts_cnn_space
+search_method = darts_gradient_search
+candidate_ops = "none, max_pool_3x3, avg_pool_3x3, skip_connect, sep_conv_3x3, sep_conv_5x5, dil_conv_3x3, dil_conv_5x5"
+selection = "learned via architecture_weights"
+desc = "Mixed operation with softmax over candidates"
+}
+
+Arg {
+arg = cell_input_0
+parent = normal_cell_search
+role = input
+tensor = cell_output
+dynamic = true
+desc = "First input to cell (from previous cell)"
+}
+
+Arg {
+arg = cell_input_1
+parent = normal_cell_search
+role = input
+tensor = cell_output
+dynamic = true
+desc = "Second input to cell (from cell before previous)"
+}
+
+Arg {
+arg = arch_weights
+parent = normal_cell_search
+role = param
+tensor = architecture_weights
+dynamic = false
+desc = "Architecture weights for operation selection"
+}
+
+Arg {
+arg = cell_output
+parent = normal_cell_search
+role = output
+tensor = cell_output
+dynamic = true
+desc = "Cell output tensor"
+}
+
+// Search space operation definition
+Op {
+op = mixed_operation
+parent = normal_cell
+op_type = SearchSpaceOp
+dynamic = true
+code_block = mixed_op_code
+desc = "Mixed operation combining all candidates"
+}
+
+SearchSpaceOp {
+space_op = edge_mixed_op
+parent = mixed_operation
+op_choices = "none, max_pool_3x3, avg_pool_3x3, skip_connect, sep_conv_3x3, sep_conv_5x5, dil_conv_3x3, dil_conv_5x5"
+param_choices = operation_choice
+cost_model = "FLOPs: sep_conv_3x3=9K, sep_conv_5x5=25K, dil_conv_3x3=9K, dil_conv_5x5=25K, pool=1K, skip=0, none=0"
+desc = "Single edge operation with learnable mixing"
+}
+
+
+Layer {
+layer = reduction_cell
+name = "DARTSCell"
+cell_type = "reduction"
+type = searchable
+num_nodes = 4
+stride = 2
+is_reduction = true
+code_block = darts_cell_code
+desc = "Reduction cell with searchable operations (reduces spatial size by 2)"
+}
+
+CodeBlock {
+code_id = darts_cell_code
+code_type = class
+language = python
+template_body = """
+class ${cell_type}_${layer}(nn.Module):
+    '''Cell: ${desc}'''
+    def __init__(self, C_in: int, C_out: int, stride: int, operations: List[str], is_reduction: bool):
+        super().__init__()
+        self.num_nodes = ${num_nodes}
+        self.stride = ${stride}
+        self.is_reduction = ${is_reduction}
+        
+        # Preprocessing layers
+        if stride == 2:
+            self.preprocess0 = FactorizedReduce(C_in, C_out)
+            self.preprocess1 = FactorizedReduce(C_in, C_out)
+        else:
+            self.preprocess0 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+            self.preprocess1 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+        
+        # Mixed operations
+        self.mixed_ops = nn.ModuleList()
+        for i in range(self.num_nodes):
+            for j in range(2 + i):
+                op = MixedOp(C_out, stride if (i == 0 and j < 2) else 1, operations)
+                self.mixed_ops.append(op)
+    
+    def forward(self, s0, s1, temperature=1.0):
+        s0 = self.preprocess0(s0)
+        s1 = self.preprocess1(s1)
+        
+        states = [s0, s1]
+        op_idx = 0
+        
+        for i in range(self.num_nodes):
+            s_new = torch.zeros_like(s1)
+            for j in range(2 + i):
+                op = self.mixed_ops[op_idx]
+                h = op(states[j], temperature)
+                s_new = s_new + h
+                op_idx += 1
+            states.append(s_new)
+        
+        return torch.cat(states[2:], dim=1)
+"""
+placeholders = ["cell_type", "name", "desc", "num_nodes", "stride", "is_reduction"]
+dependencies = ["torch", "torch.nn", "typing.List", "MixedOp", "FactorizedReduce"]
+desc = "DARTS cell implementation with searchable operations"
+}
+
+// Reduction cell (similar structure)
+Op {
+op = reduction_cell_search
+parent = reduction_cell
+op_type = ArchitectureSearchOp
+dynamic = true
+desc = "Searchable operations in reduction cell"
+}
+
+ArchitectureSearchOp {
+search_op = reduction_cell_mixed_op
+parent = reduction_cell_search
+search_space = darts_cnn_space
+search_method = darts_gradient_search
+candidate_ops = "none, max_pool_3x3, avg_pool_3x3, skip_connect, sep_conv_3x3, sep_conv_5x5, dil_conv_3x3, dil_conv_5x5"
+selection = "learned via architecture_weights"
+desc = "Mixed operation for reduction cell"
+}
+
+// --- 15. KERNELS ---
+Kernel {
+kernel = softmax_mixed_op
+hardware = gpu_a100
+desc = "Softmax-weighted sum of candidate operations"
+signature = "Tensor forward(Tensor x, Tensor alpha, List[Operation] ops)"
+body = "output = sum(softmax(alpha)[i] * ops[i](x) for i in range(len(ops)))"
+dynamic = true
+routing_aware = false
+}
+
+DynamicKernel {
+dynamic_kernel = darts_cell_forward
+copy_kernel = softmax_mixed_op
+hardware = gpu_a100
+gpu_target = a100_80gb
+config_params = "num_nodes=4, num_ops=8, temperature=1.0"
+branching = false
+shape_dependent = true
+dispatch_cost = "~5us per mixed op"
+desc = "Forward pass through DARTS cell with mixed operations"
+}
+
+Kernel {
+kernel = architecture_gradient
+hardware = gpu_a100
+desc = "Gradient computation for architecture parameters"
+signature = "Tensor backward(Tensor val_loss, Tensor alpha)"
+body = "grad_alpha = autograd.grad(val_loss, alpha, retain_graph=True)"
+dynamic = false
+routing_aware = false
+}
+
+// --- 16. EXECUTION CONTEXT ---
+ExecutionContext {
+context_id = darts_search_context
+memory_strategy = dynamic
+parallel_strategy = data
+gradient_accumulation = false
+precision = mixed
+desc = "Execution context for DARTS architecture search"
+}
+
+MemoryBudget {
+budget_id = darts_memory_budget
+max_memory_gb = 40
+per_expert_memory = 0
+buffer_memory = 2
+emergency_threshold = 2
+desc = "Memory budget for DARTS search on A100"
+}
+
+KernelExecutionContext {
+kernel_context_id = darts_cell_kernel_context
+block_size_calc = "min(1024, num_features)"
+grid_size_calc = "ceil_div(batch_size * num_nodes, block_size)"
+shared_memory_req = 49152
+register_pressure = medium
+occupancy_goal = 0.7
+desc = "Kernel execution context for DARTS cell operations"
+}
+
+// --- 17. EXECUTION CONFIGURATION ---
+Config {
+config = darts_search_config
+target = gpu_a100
+batch = 128
+dynamic_shapes = true
+expert_parallel = 1
+desc = "Configuration for DARTS search phase"
+}
+
+Schedule {
+seq = 1
+parent = darts_search_config
+layer = normal_cell
+op = normal_cell_search
+dynamic = true
+desc = "Execute normal cells with architecture search"
+}
+
+Schedule {
+seq = 2
+parent = darts_search_config
+layer = reduction_cell
+op = reduction_cell_search
+dynamic = true
+desc = "Execute reduction cells with architecture search"
+}
+
+Schedule {
+seq = 3
+parent = darts_search_config
+layer = classifier_head
+dynamic = false
+desc = "Execute classification head"
+}
+
+// --- 18. VALIDATION ---
+Validation {
+rule = darts_consistency_check
+target = darts_cifar10_supernet
+condition = "architecture_weights.sum(dim=1).allclose(1.0) and architecture_weights.min() >= 0"
+desc = "Ensure architecture weights are valid probability distributions"
+}
+
+DynamicConstraint {
+constraint = memory_budget
+parent = darts_consistency_check
+target = "supernet"
+condition = "peak_memory_usage < 40GB during search"
+severity = error
+runtime_check = true
+desc = "Enforce memory budget during architecture search"
+}
+
+DynamicConstraint {
+constraint = search_convergence
+parent = darts_consistency_check
+target = "architecture_weights"
+condition = "max(architecture_weights, dim=1) > 0.6 after 40 epochs"
+severity = warning
+runtime_check = true
+desc = "Check if architecture is converging (dominant operations emerging)"
+}
+
+// --- 19. ENHANCED VALIDATION ---
+ShapeConstraint {
+constraint_id = darts_tensor_shapes
+min_dims = 4
+max_dims = 4
+fixed_dims = [128, null, 32, 32]
+symbolic_dims = ["batch_size", "channels", "height", "width"]
+desc = "Shape constraints for DARTS tensors"
+}
+
+CompatibilityRule {
+rule_id = darts_hardware_compatibility
+source_type = SearchSpace
+target_type = Hardware
+validation_condition = "search_space.flops_range <= hardware.memory_bandwidth * 1000"
+error_message = "Search space FLOPs exceed hardware capabilities"
+severity = error
+desc = "Ensure DARTS search space is compatible with target hardware"
+}
+
+// --- 20. ENUMERATION RULES ---
+SearchMethodRule {
+method = gradient_based_darts
+gradient_based = true
+requires_training = true
+desc = "DARTS-style differentiable architecture search"
+}
+
+SearchMethodRule {
+method = evolutionary
+gradient_based = false
+requires_training = false
+desc = "Evolutionary search (not used in this config)"
+}
+
+SearchMethodRule {
+method = reinforcement_learning
+gradient_based = false
+requires_training = true
+desc = "RL-based search (not used in this config)"
+}
+
+// --- 21. PROJECT AND BUILD TARGETS ---
+Project {
+project = DARTSMultiTarget
+domain = daml_nas
+model = darts_cifar10_supernet
+desc = "Generate DARTS search code for GPU training and derived architecture evaluation"
+}
+
+// Search phase target
+TargetConfig {
+target_id = darts_search_a100
+parent = DARTSMultiTarget
+hardware = gpu_a100
+mode = search
+config = darts_search_config
+codegen = true
+priority = primary
+desc = "Architecture search phase on A100"
+}
+
+// Derived architecture training target
+TargetConfig {
+target_id = derived_arch_v100
+parent = DARTSMultiTarget
+hardware = gpu_v100
+mode = production
+config = darts_search_config
+codegen = true
+priority = primary
+desc = "Train discovered architecture from scratch on V100"
+}
+
+// Validation target
+TargetConfig {
+target_id = architecture_validation
+parent = DARTSMultiTarget
+hardware = gpu_v100
+mode = validation
+config = darts_search_config
+codegen = true
+priority = validation
+desc = "Validate discovered architecture on held-out test set"
+}
+
+// Build rule: Generate all targets
+BuildRule {
+build_id = generate_darts_pipeline
+parent = DARTSMultiTarget
+targets = "darts_search_a100,derived_arch_v100,architecture_validation"
+output_dir = "./build/darts_cifar10"
+template = pytorch_nas
+validate_against = architecture_validation
+desc = "Generate complete DARTS pipeline: search -> derive -> train -> validate"
+}
+
+// --- 22. PROJECT VALIDATION ---
+ProjectValidation {
+validation_id = darts_project_validation
+target_configs = ["darts_search_a100", "derived_arch_v100", "architecture_validation"]
+hardware_compatibility = true
+memory_budget_check = true
+capability_check = true
+desc = "Comprehensive validation for DARTS project targets"
+}
+
+// --- 23. CODE GENERATION TEMPLATES ---
+
+CodegenTemplate {
+    template_id = darts_mixed_op_template
+    template_body = python
+    template_body = """
+_PRIMITIVES = ['Identity', 'Zero', 'SepConv3x3', 'SepConv5x5',
+                'DilConv3x3', 'DilConv5x5', 'MaxPool3x3', 'AvgPool3x3', 'SkipConnect', 'SkipConnect']
+
+class MixedOp(nn.Module):
+    def __init__(self, C: int, stride: int):
+        super().__init__()
+        self.ops = nn.ModuleList()
+        for prim_name in _PRIMITIVES:
+            op = OPS[prim_name](C, C, stride)
+            self.ops.append(op)
+        self.alpha = nn.Parameter(torch.randn(len(_PRIMITIVES)) * 1e-3)
+
+    def forward(self, x, temperature: float = 1.0):
+        weights = F.softmax(self.alpha / temperature, dim=0)
+        return sum(w * op(x) for w, op in zip(weights, self.ops))
+"""
+}
+
+CodegenTemplate-x {
+template_id = darts_mixed_op_template
+template_type = operation
+language = python
+template_body = """
+class MixedOp(nn.Module):
+    def __init__(self, C, stride):
+        super().__init__()
+        self._ops = nn.ModuleList()
+        for primitive in ${operations}:
+            op = OPERATIONS[primitive](C, C, stride)
+            self._ops.append(op)
+        self.alpha = nn.Parameter(torch.randn(len(self._ops)))
+    
+    def forward(self, x, temperature=1.0):
+        weights = F.softmax(self.alpha / temperature, dim=0)
+        return sum(w * op(x) for w, op in zip(weights, self._ops))
+"""
+placeholders = ["operations"]
+validation_rules = "operations must be non-empty list"
+desc = "Template for DARTS mixed operation code generation"
+}
+
+CodegenTemplate {
+template_id = operations_dict_template
+template_type = model
+language = python
+template_body = """
+OPERATIONS = {
+${operation_entries}
+}
+"""
+placeholders = ["operation_entries"]
+validation_rules = "operation_entries must be valid Python dict entries"
+desc = "Template for operations dictionary"
+}
+
+// --- 24. TEMPLATE PLACEHOLDERS ---
+TemplatePlaceholder {
+placeholder_id = num_cells_placeholder
+variable_name = "num_cells"
+source_field = "num_cells"
+source_component = "Architecture"
+default_value = "8"
+desc = "Number of cells in architecture"
+}
+
+TemplatePlaceholder {
+placeholder_id = init_channels_placeholder
+variable_name = "init_channels"
+source_field = "init_channels"
+source_component = "Architecture"
+default_value = "36"
+desc = "Initial channel count"
+}
+
+TemplatePlaceholder {
+placeholder_id = learning_rate_w_placeholder
+variable_name = "learning_rate_w"
+source_field = "learning_rate_w"
+source_component = "Architecture"
+default_value = "0.025"
+desc = "Weight optimizer learning rate"
+}
+
+TemplatePlaceholder {
+placeholder_id = operation_name_placeholder
+variable_name = "name"
+source_field = "name"
+source_component = "OperationDef"
+desc = "Operation class name"
+}
+
+TemplatePlaceholder {
+placeholder_id = operation_description_placeholder
+variable_name = "description"
+source_field = "description"
+source_component = "OperationDef"
+desc = "Operation description for docstring"
+}
+
+// --- 25. CODE DEPENDENCIES ---
+CodeDependency {
+dependency_id = mixed_op_depends_operations
+code_block = mixed_op_code
+requires = ["identity_code", "zero_code", "sepconv3x3_code", "sepconv5x5_code", "dilconv3x3_code", "dilconv5x5_code", "maxpool3x3_code", "avgpool3x3_code", "skipconnect_code"]
+import_order = 2
+desc = "MixedOp depends on all operation definitions"
+}
+
+CodeDependency {
+dependency_id = cell_depends_mixed_op
+code_block = darts_cell_code
+requires = ["mixed_op_code", "factorized_reduce_code"]
+import_order = 3
+desc = "DARTSCell depends on MixedOp and FactorizedReduce"
+}
+
+CodeDependency {
+dependency_id = supernet_depends_cell
+code_block = darts_supernet_code
+requires = ["darts_cell_code", "darts_config_code"]
+import_order = 4
+desc = "Supernet depends on cell and config"
+}
+
+CodeDependency {
+dependency_id = search_engine_depends_supernet
+code_block = search_engine_code
+requires = ["darts_supernet_code"]
+import_order = 5
+desc = "Search engine depends on supernet"
+}
+
+// --- 26. OPTIMIZATION ---
+Optimization {
+target = gpu_a100
+type = nas_cache
+params = "cache_architecture_gradients=true, mixed_precision=fp16"
+desc = "Cache architecture gradient computations to speed up search"
+}
+
+Fusion {
+fusion = cell_operation_fusion
+pattern = "consecutive_conv_ops"
+fused_kernel = softmax_mixed_op
+hardware = gpu_a100
+desc = "Fuse consecutive convolution operations within cells"
+}
+
+// --- 27. ACTOR TEMPLATE MAPPINGS ---
+ActorTemplate {
+actor_name = "generate_operation_class"
+triggers_on = "OperationDef"
+code_block = "OperationDef.code_block"
+template_vars = ["name", "description"]
+iteration_mode = "foreach"
+desc = "Generate operation class for each OperationDef"
+}
+
+ActorTemplate {
+actor_name = "generate_cell_from_config"
+triggers_on = "Layer"
+code_block = "Layer.code_block"
+template_vars = ["cell_type", "name", "desc", "num_nodes", "stride", "is_reduction"]
+iteration_mode = "foreach"
+desc = "Generate cell class for each Layer"
+}
+
+ActorTemplate {
+actor_name = "generate_search_engine"
+triggers_on = "SearchMethod"
+code_block = "SearchMethod.code_block"
+template_vars = ["description", "learning_rate_w", "learning_rate_alpha", "momentum", "weight_decay", "grad_clip", "temperature", "search_epochs"]
+iteration_mode = "single"
+desc = "Generate search engine implementation"
+}
+
+ActorTemplate {
+actor_name = "generate_training_loop"
+triggers_on = "TrainingConfig"
+code_block = "TrainingConfig.code_block"
+template_vars = ["final_learning_rate", "momentum", "weight_decay"]
+iteration_mode = "single"
+desc = "Generate trainer implementation"
+}
+
+// --- 28. CODE BLOCK REFERENCES ---
+CodeBlockReference-x {
+ref_id = operations_to_code
+component_type = "OperationDef"
+component_id = "*"
+code_block = "OperationDef.code_block"
+inject_context = true
+desc = "Map all OperationDef components to their code blocks"
+}
+
+CodeBlockReference-x {
+ref_id = layers_to_code
+component_type = "Layer"
+component_id = "*"
+code_block = "Layer.code_block"
+inject_context = true
+desc = "Map all Layer components to their code blocks"
+}
+
+CodeBlockReference {
+ref_id = search_method_to_code
+component_type = "SearchMethod"
+component_id = "darts_search_engine"
+code_block = search_engine_code
+inject_context = true
+desc = "Map search method to its implementation"
+}
+
+CodeBlockReference {
+ref_id = training_config_to_code
+component_type = "TrainingConfig"
+component_id = "darts_training_config"
+code_block = trainer_code
+inject_context = true
+desc = "Map training config to trainer implementation"
+}

@@ -1,0 +1,1114 @@
+// ================================================================
+// daml.unit — DAML DOMAIN SCHEMA
+// Dynamic and Adaptive Machine Learning Domain
+// Architecture search, MoE, continuous depth, meta-learning
+// ================================================================
+
+// ================================================================
+// DOMAIN KNOWLEDGE COMPONENTS (Expert-defined HOW)
+// ================================================================
+
+Comp Domain parent . Find
+----------------------------------------------------------------
+* Domain knowledge for dynamic and adaptive ML systems
+----------------------------------------------------------------
+    Element name          key   . + Domain name
+    Element desc          text  . * Description
+    Element version       word  . + Schema version
+
+Comp Hardware parent . Find
+----------------------------------------------------------------
+* Hardware targets for adaptive ML workloads
+----------------------------------------------------------------
+    Element hardware      key   . + Identifier (e.g., gpu_a100, tpu_v5)
+    Element backend       word  . + cuda, rocm, tpu, cpu
+    Element dynamic_dispatch word . + true/false for runtime routing
+    Element constraints   text  . * Hardware limits
+    Element memory_model  text  . * Memory hierarchy characteristics
+    Element routing_latency text . * Expert routing overhead
+    Element desc          text  . * Description
+
+Comp GPU parent Hardware FindIn
+----------------------------------------------------------------
+* GPU configuration for adaptive workloads
+----------------------------------------------------------------
+    Element gpu_id        key  . + GPU identifier
+    Element arch          word . + Architecture (ampere, hopper, rdna3)
+    Element sm_count      word . + Streaming multiprocessor count
+    Element memory_gb     word . + Memory capacity
+    Element bandwidth     word . + Memory bandwidth GB/s
+    Element sparse_support word . + true/false for sparse tensor cores
+    Element moe_optimized word . + true/false for MoE acceleration
+    Element dynamic_shapes word . + true/false for dynamic shape support
+    Element desc          text . * Description
+
+
+Comp Kernel parent . Find
+----------------------------------------------------------------
+* Kernel implementation for adaptive ML operations
+----------------------------------------------------------------
+	Element kernel        key  .        + Unique kernel name
+	Element hardware      ref  Hardware + Target hardware
+	Element desc          text .        * Description
+	Element signature     text .        + Function signature
+	Element body          text .        + Implementation template
+	Element dynamic       word .        * true/false for runtime configuration
+	Element routing_aware word .        * true/false for expert routing
+
+Comp DynamicKernel parent Kernel FindIn
+----------------------------------------------------------------
+* Kernel with runtime-configurable behavior
+----------------------------------------------------------------
+	Element dynamic_kernel  key       .        + Dynamic kernel name
+	Element copy_kernel     up_copy   Kernel   + Base kernel reference
+	Element hardware        ref_copy  Hardware + Target hardware
+	Element gpu_target      ref_child GPU      * Target GPU device
+	Element config_params   text      .        + Runtime configuration parameters
+	Element branching       word      .        + true/false for conditional paths
+	Element shape_dependent word      .        + true/false for shape polymorphism
+	Element dispatch_cost   text      .        * Overhead for dynamic dispatch
+	Element desc            text      .        * Description
+
+Comp KernelParam parent Kernel FindIn
+----------------------------------------------------------------
+* Kernel parameter specification
+----------------------------------------------------------------
+	Element param          key   . + Parameter name
+	Element type           word  . + C data type
+	Element calculation    text  . + How to calculate from inputs
+	Element dynamic        word  . * true/false for runtime calculation
+
+Comp KernelOp parent Kernel FindIn
+----------------------------------------------------------------
+* Operation dispatch knowledge for adaptive ops
+----------------------------------------------------------------
+	Element op                     key   . + Operation primitive name
+	Element desc                   text  . * Operation description
+	Element input_rank             word  . * Expected input rank
+	Element output_rank            word  . * Expected output rank
+	Element dimension_calc         text  . + Code to calculate dimensions
+	Element block_size             word  . + Threads per block
+	Element grid_calc              text  . + Grid size calculation formula
+	Element dynamic_launch         word  . * true/false for runtime config
+
+Comp Optimization parent . Find
+----------------------------------------------------------------
+* Optimizations for adaptive models
+----------------------------------------------------------------
+	Element target    ref  Hardware + Target device
+	Element type      word .        + expert_fusion, nas_cache, meta_opt
+	Element params    text .        * Optimization parameters
+	Element desc      text .        * Description
+
+Comp Fusion parent . Find
+----------------------------------------------------------------
+* Fuse operations in adaptive models
+----------------------------------------------------------------
+	Element fusion        key   . + Fusion pattern name
+	Element pattern       text  . + Operations to fuse
+	Element fused_kernel  ref   Kernel * Fused kernel
+	Element hardware      ref   Hardware * Target hardware
+	Element desc          text  . * Description
+
+// ================================================================
+// FRAMEWORK SUPPORT
+// ================================================================
+
+Comp Framework parent . Find
+----------------------------------------------------------------
+* ML framework with adaptive model support
+----------------------------------------------------------------
+    Element framework     key   . + Framework name (pytorch, jax, tensorflow)
+    Element language      word  . + python, c++
+    Element paradigm      word  . + dynamic, static, jit
+    Element runtime       word  . + eager, graph, xla
+    Element nas_support   word  . + true/false
+    Element moe_support   word  . + true/false
+    Element desc          text  . * Description
+
+Comp PyTorch parent Framework FindIn
+----------------------------------------------------------------
+* PyTorch with dynamic computation graphs
+----------------------------------------------------------------
+    Element pytorch_id    key   . + Identifier
+    Element version       word  . + Version string
+    Element features      text  . * Features list
+    Element torch_compile word  . + true/false for torch.compile
+    Element dynamo        word  . + true/false for TorchDynamo
+    Element fx_graph      word  . + true/false for FX graph tracing
+    Element vmap_support  word  . + true/false for vectorization
+    Element desc          text  . * Description
+
+
+// ================================================================
+// ARCHITECTURE SEARCH (NAS)
+// ================================================================
+
+Comp SearchSpace parent . Find
+----------------------------------------------------------------
+* Neural Architecture Search space definition
+----------------------------------------------------------------
+    Element space         key   . + Search space name
+    Element space_name    word  . + Display name
+    Element type          word  . + cell_based, global, hierarchical
+    Element dimensions    word  . + Number of searchable dimensions
+    Element discrete      word  . + true/false for discrete choices
+    Element param_count   text  . + Parameter count range
+    Element flops_range   text  . + FLOPS range
+    Element constraints   text  . * Architectural constraints
+    Element desc          text  . * Description
+
+Comp SearchSpaceCode parent SearchSpace FindIn
+----------------------------------------------------------------
+* Code implementation for search space
+----------------------------------------------------------------
+    Element space_code_id key   . + Code block identifier
+    Element operations_dict ref CodeBlock * Code for OPERATIONS dictionary
+    Element cell_code      ref  CodeBlock * Code for cell structure
+    Element desc          text  . * Description
+
+Comp ArchitectureParam parent SearchSpace FindIn
+----------------------------------------------------------------
+* Searchable architecture parameter
+----------------------------------------------------------------
+	Element param         key   . + Parameter name
+	Element param_type    word  . + categorical, continuous, discrete
+	Element choices       text  . * Categorical choices
+	Element range         text  . * Continuous/discrete range
+	Element coupling      text  . * Dependencies on other params
+	Element default       word  . * Default value
+	Element desc          text  . * Description
+
+Comp SearchOp parent . Find
+----------------------------------------------------------------
+* Architecture search operation
+----------------------------------------------------------------
+	Element search_op     key   . + Search operation name
+	Element method        word  . + random, rl, gradient, evolution
+	Element objective     text  . + Optimization objective
+	Element budget        word  . + Search budget (trials/steps)
+	Element hardware      ref   Hardware * Target hardware
+	Element early_stop    word  . + true/false
+	Element desc          text  . * Description
+
+Comp ArchitectureGradient parent SearchOp FindIn
+----------------------------------------------------------------
+* Gradient-based architecture search (DARTS-style)
+----------------------------------------------------------------
+	Element grad_method   key   . + Method name
+	Element relaxation    word  . + softmax, gumbel, concrete
+	Element temperature   word  . + Temperature schedule
+	Element alternating   word  . + true/false for alternating optimization
+	Element projection    word  . + Method to project continuous to discrete
+	Element desc          text  . * Description
+
+// ================================================================
+// MIXTURE OF EXPERTS (MOE)
+// ================================================================
+
+Comp ExpertSystem parent . Find
+----------------------------------------------------------------
+* Mixture of Experts system definition
+----------------------------------------------------------------
+	Element system        key   . + System name
+	Element num_experts   word  . + Number of experts
+	Element expert_type   word  . + ffn, attention, conv, custom
+	Element capacity      word  . + Expert capacity factor
+	Element sparse        word  . + true/false
+	Element load_balance  word  . + true/false
+	Element desc          text  . * Description
+
+Comp Expert parent ExpertSystem FindIn
+----------------------------------------------------------------
+* Individual expert in MoE system
+----------------------------------------------------------------
+	Element expert        key   . + Expert identifier
+	Element specialization text  . * Domain/task specialization
+	Element params        word  . + Parameter count
+	Element active_ratio  word  . * Expected activation frequency
+	Element desc          text  . * Description
+
+Comp RouterNetwork parent . Find
+----------------------------------------------------------------
+* Router/gating network for expert selection
+----------------------------------------------------------------
+	Element router        key   . + Router name
+	Element type          word  . + learned, hash, fixed, load_balanced
+	Element top_k         word  . + Number of experts per token
+	Element capacity_factor word . + Expert capacity multiplier
+	Element aux_loss      word  . + true/false for load balancing loss
+	Element jitter        word  . + true/false for noise during training
+	Element desc          text  . * Description
+
+Comp ExpertRoutingOp parent . Find
+----------------------------------------------------------------
+* Expert routing operation
+----------------------------------------------------------------
+	Element routing_op    key   . + Routing operation name
+	Element router        ref   RouterNetwork + Router network
+	Element hardware      ref   Hardware * Target hardware
+	Element dispatch_mode word  . + static, dynamic, batched
+	Element desc          text  . * Description
+
+Comp CapacityAwareRoutingOp parent ExpertRoutingOp FindIn
+----------------------------------------------------------------
+* Capacity-aware expert routing (Switch Transformer style)
+----------------------------------------------------------------
+	Element capacity_op   key       .      + Operation name
+	Element overflow      word      .      + drop, route_to_default, queue
+	Element buffer_size   word      .      + Buffer tokens per expert
+	Element load_metric   word      .      + tokens, flops, balanced
+	Element dynamic_cap   word      .      + true/false for dynamic capacity
+	Element desc          text      .      * Description
+
+Comp SparseExpertSystem parent ExpertSystem FindIn
+----------------------------------------------------------------
+* Sparse MoE with conditional computation
+----------------------------------------------------------------
+	Element sparse_system key       .      + System name
+	Element sparsity      word      .      + Target sparsity ratio
+	Element top_k         word      .      + Experts per input
+	Element granularity   word      .      + token, sequence, batch
+	Element memory_opt    word      .      + true/false for memory optimization
+	Element desc          text      .      * Description
+
+// ================================================================
+// CONTINUOUS DEPTH & DIFFERENTIAL EQUATIONS
+// ================================================================
+
+Comp ContinuousModel parent . Find
+----------------------------------------------------------------
+* Continuous-depth model definition
+----------------------------------------------------------------
+	Element model         key   . + Model name
+	Element type          word  . + ode, sde, pde, continuous_layer
+	Element depth_range   text  . + Effective depth range
+	Element solver        word  . + euler, rk4, dopri5, adaptive
+	Element adjoint       word  . + true/false for adjoint method
+	Element tol           word  . * Integration tolerance
+	Element desc          text  . * Description
+
+Comp ODEOp parent . Find
+----------------------------------------------------------------
+* Ordinary Differential Equation operation
+----------------------------------------------------------------
+	Element ode_op        key   . + ODE operation name
+	Element dynamics      text  . + dx/dt = f(x, t) specification
+	Element solver        word  . + Integration method
+	Element adaptive_step word  . + true/false
+	Element time_horizon  text  . + Integration time
+	Element desc          text  . * Description
+
+Comp NeuralODE parent ODEOp FindIn
+----------------------------------------------------------------
+* Neural ODE (learnable dynamics)
+----------------------------------------------------------------
+	Element neural_ode    key       .      + Neural ODE name
+	Element dynamics_net  word      .      + Network architecture for f
+	Element time_dependent word     .      + true/false
+	Element augmented_dim word      .      * Augmented state dimensions
+	Element reg_type      word      .      * jacobian, kinetic, none
+	Element desc          text      .      * Description
+
+Comp SDEOp parent . Find
+----------------------------------------------------------------
+* Stochastic Differential Equation operation
+----------------------------------------------------------------
+	Element sde_op        key   . + SDE operation name
+	Element drift         text  . + Drift term μ(x,t)
+	Element diffusion     text  . + Diffusion term σ(x,t)
+	Element solver        word  . + euler_maruyama, milstein, sde_int
+	Element noise_type    word  . + scalar, diagonal, general
+	Element desc          text  . * Description
+
+Comp NeuralSDE parent SDEOp FindIn
+----------------------------------------------------------------
+* Neural SDE with learnable drift and diffusion
+----------------------------------------------------------------
+	Element neural_sde    key       .      + Neural SDE name
+	Element drift_net     word      .      + Network for drift
+	Element diffusion_net word      .      + Network for diffusion
+	Element latent_sde    word      .      + true/false
+	Element prior         word      .      * Prior SDE specification
+	Element desc          text      .      * Description
+
+Comp PDEOp parent . Find
+----------------------------------------------------------------
+* Partial Differential Equation operation
+----------------------------------------------------------------
+	Element pde_op        key   . + PDE operation name
+	Element equation      text  . + PDE specification
+	Element spatial_dim   word  . + Spatial dimensions
+	Element boundary      text  . + Boundary conditions
+	Element solver        word  . + finite_diff, spectral, neural
+	Element desc          text  . * Description
+
+Comp NeuralPDE parent PDEOp FindIn
+----------------------------------------------------------------
+* Neural PDE solver (PINN-style)
+----------------------------------------------------------------
+	Element neural_pde    key       .      + Neural PDE name
+	Element architecture  word      .      + Network architecture
+	Element physics_loss  word      .      + true/false for physics constraint
+	Element collocation   word      .      + Collocation point strategy
+	Element adaptive_points word    .      + true/false
+	Element desc          text      .      * Description
+
+Comp ContinuousDepthOp parent . Find
+----------------------------------------------------------------
+* Continuous depth layer operation
+----------------------------------------------------------------
+	Element depth_op      key   . + Operation name
+	Element parameterization word . + implicit, explicit, residual
+	Element depth_weight  word  . + learned, fixed, adaptive
+	Element depth_schedule text  . * Depth scheduling strategy
+	Element desc          text  . * Description
+
+// ================================================================
+// META-LEARNING & HYPERNETWORKS
+// ================================================================
+
+Comp MetaLearner parent . Find
+----------------------------------------------------------------
+* Meta-learning system definition
+----------------------------------------------------------------
+	Element meta_learner  key   . + Meta-learner name
+	Element type          word  . + maml, reptile, meta_sgd, hypernetwork
+	Element inner_steps   word  . + Inner loop optimization steps
+	Element outer_lr      word  . + Outer loop learning rate
+	Element task_batch    word  . + Tasks per meta-batch
+	Element desc          text  . * Description
+
+Comp Hypernetwork parent . Find
+----------------------------------------------------------------
+* Hypernetwork for weight generation
+----------------------------------------------------------------
+	Element hypernetwork  key   . + Hypernetwork name
+	Element target_net    text  . + Target network to generate weights for
+	Element conditioning  word  . + task, input, context, none
+	Element param_dim     word  . + Generated parameter dimensions
+	Element compression   word  . * Compression ratio
+	Element desc          text  . * Description
+
+Comp WeightGenerationOp parent . Find
+----------------------------------------------------------------
+* Weight generation operation
+----------------------------------------------------------------
+	Element weight_gen_op key   . + Operation name
+	Element hypernetwork  ref   Hypernetwork + Hypernetwork reference
+	Element target_layer  text  . + Target layer specification
+	Element mode          word  . + full, delta, factored
+	Element desc          text  . * Description
+
+Comp DifferentiableProgram parent . Find
+----------------------------------------------------------------
+* Differentiable program with learnable structure
+----------------------------------------------------------------
+	Element program       key   . + Program name
+	Element language      word  . + dsl, neural_module, graph
+	Element learnable_ops word  . + true/false
+	Element structure_learning word . + true/false
+	Element program_length word  . * Max program length
+	Element desc          text  . * Description
+
+// ================================================================
+// CONTROL FLOW & DYNAMIC EXECUTION
+// ================================================================
+
+Comp ControlFlow parent . Find
+----------------------------------------------------------------
+* Control flow structure in model
+----------------------------------------------------------------
+	Element control       key   . + Control flow name
+	Element type          word  . + conditional, loop, recursive, switch
+	Element static        word  . + true/false for static unrolling
+	Element max_depth     word  . * Maximum recursion/loop depth
+	Element desc          text  . * Description
+
+Comp Condition parent ControlFlow FindIn
+----------------------------------------------------------------
+* Conditional execution path
+----------------------------------------------------------------
+	Element condition     key   . + Condition name
+	Element predicate     text  . + Condition expression
+	Element eval_mode     word  . + runtime, compile_time, learned
+	Element desc          text  . * Description
+
+Comp Branch parent ControlFlow FindIn
+----------------------------------------------------------------
+* Execution branch in control flow
+----------------------------------------------------------------
+	Element branch        key   . + Branch identifier
+	Element condition     link   Condition * Triggering condition
+	Element operations    text  . + Operations in this branch
+	Element probability   word  . * Expected execution probability
+	Element desc          text  . * Description
+
+// ================================================================
+// USER ML SPECIFICATION (User-defined WHAT)
+// ================================================================
+
+Comp Model parent . Find
+----------------------------------------------------------------
+* Adaptive/dynamic model specification
+----------------------------------------------------------------
+	Element model         key   . + Model name
+	Element type          word  . + nas, moe, continuous, meta, hybrid
+	Element hardware      ref   Hardware * Target hardware
+	Element framework     ref   Framework * Framework
+	Element search_space  ref   SearchSpace * NAS search space
+	Element dynamic_depth word  . * true/false
+	Element desc          text  . * Description
+
+Comp Tensor parent . Find
+----------------------------------------------------------------
+* Tensor with dynamic properties
+----------------------------------------------------------------
+	Element tensor        key   .      + Tensor identifier
+	Element shape         word  .      + Shape (may be symbolic)
+	Element dtype         word  .      + Data type
+	Element layout        word  .      + Memory layout
+	Element dynamic_shape word  .      * true/false
+	Element expert_routed word  .      * true/false for MoE routing
+	Element desc          text  .      * Description
+
+Comp Layer parent . Find
+----------------------------------------------------------------
+* Layer in adaptive model with code implementation
+----------------------------------------------------------------
+    Element layer         key   . + Layer identifier
+    Element name          word  . + Layer name
+    Element class_name    word  . * Class name
+    Element cell_type     word  . + normal, reduction, classifier
+    Element type          word  . + dynamic, searchable, expert, continuous
+    Element num_nodes     word  . * Number of nodes in cell
+    Element stride        word  . * Stride value
+    Element is_reduction  word  . * true/false
+    Element code_block    ref   CodeBlock * Complete layer code
+    Element desc          text  . * Description
+
+// ================================================================
+// OPERATIONS
+// ================================================================
+
+Comp Op parent Layer FindIn
+----------------------------------------------------------------
+* Base operation with optional code implementation
+----------------------------------------------------------------
+    Element op            key       .        + Operation name
+    Element op_type       type_of   Op       * Type of Op
+    Element desc          text      .        * Description
+    Element dynamic       word      .        * true/false for runtime behavior
+    Element kernel        ref       Kernel   * Kernel reference
+    Element kernel_op     ref_child KernelOp * KernelOp reference
+    Element code_block    ref       CodeBlock * Complete operation code
+
+Comp Arg parent Op FindIn
+----------------------------------------------------------------
+* Operation argument
+----------------------------------------------------------------
+	Element arg       key  .      + Argument name
+	Element role      word .      + input, output, param, control
+	Element tensor    ref  Tensor + Tensor reference
+	Element dtype     word .      * Data type override
+	Element dynamic   word .      * true/false for dynamic shape
+	Element desc      text .      * Description
+
+Comp ArchitectureSearchOp parent Op FindIn
+----------------------------------------------------------------
+* Architecture search operation within layer
+----------------------------------------------------------------
+	Element search_op     key  .            + Search op name
+	Element search_space  ref  SearchSpace  + Search space
+	Element search_method ref  SearchOp     + Search method
+	Element candidate_ops text .            + Candidate operation types
+	Element selection     word .            * Current selected operation
+	Element desc          text .            * Description
+
+Comp SearchSpaceOp parent Op FindIn
+----------------------------------------------------------------
+* Operation that exists in search space
+----------------------------------------------------------------
+	Element space_op      key  .           + Operation name in space
+	Element op_choices    text .           + Available operation choices
+	Element search_space  ref  SearchSpace * Search space
+	Element param_choices ref_child ArchitectureParam * Searchable parameters
+	Element cost_model    text .           * FLOPs/memory cost model
+	Element desc          text .           * Description
+
+// ================================================================
+// COMPILATION & EXECUTION
+// ================================================================
+
+Comp Config parent . Find
+----------------------------------------------------------------
+* Execution configuration for adaptive models
+----------------------------------------------------------------
+	Element config        key   .        + Config name
+	Element target        ref   Hardware + Target device
+	Element batch         word  .        + Batch size
+	Element dynamic_shapes word .        * true/false
+	Element expert_parallel word .       * Expert parallelism degree
+	Element desc          text  .        * Description
+
+Comp Schedule parent Config FindIn
+----------------------------------------------------------------
+* Execution schedule with dynamic routing
+----------------------------------------------------------------
+	Element seq       word      .     + Sequence number
+	Element layer     ref       Layer + Layer to execute
+	Element op        ref_child Op    * Operation
+	Element dynamic   word      .     * true/false for runtime decision
+	Element desc      text      .     * Description
+
+// ================================================================
+// VALIDATION & CONSTRAINTS
+// ================================================================
+
+Comp Validation parent . Find
+----------------------------------------------------------------
+* Validation rule for adaptive models
+----------------------------------------------------------------
+	Element rule       key  .     + Rule name
+	Element target     ref  Model * Target model
+	Element condition  text .     + Validation condition
+	Element desc       text .     * Description
+
+Comp DynamicConstraint parent Validation FindIn
+----------------------------------------------------------------
+* Constraint on dynamic behavior
+----------------------------------------------------------------
+	Element constraint    key   . + Constraint ID
+	Element target        word  . + Target component
+	Element condition     text  . + Constraint condition
+	Element severity      word  . + warning, error, halt
+	Element runtime_check word  . + true/false
+	Element desc          text  . * Description
+
+// ================================================================
+// ENUMERATION RULES
+// ================================================================
+
+Comp SearchMethodRule parent . Find
+----------------------------------------------------------------
+* Valid search methods
+----------------------------------------------------------------
+	Element method        key   . + Method name
+	Element gradient_based word  . + true/false
+	Element requires_training word . + true/false
+	Element desc          text  . * Description
+
+Comp RoutingStrategyRule parent . Find
+----------------------------------------------------------------
+* Valid routing strategies
+----------------------------------------------------------------
+	Element strategy      key   . + Strategy name
+	Element load_balanced word  . + true/false
+	Element learnable     word  . + true/false
+	Element desc          text  . * Description
+
+Comp SolverRule parent . Find
+----------------------------------------------------------------
+* Valid ODE/SDE solvers
+----------------------------------------------------------------
+	Element solver        key   . + Solver name
+	Element adaptive      word  . + true/false
+	Element stochastic    word  . + true/false
+	Element desc          text  . * Description
+
+// ================================================================
+// PROJECT GROUPING FOR MULTI-TARGET GENERATION
+// ================================================================
+
+Comp Project parent . Find
+----------------------------------------------------------------
+* Project for multi-target adaptive model deployment
+----------------------------------------------------------------
+	Element project   key  .      + Project name
+	Element domain    ref  Domain * Primary domain knowledge
+	Element model     ref  Model  + Target model to deploy
+	Element desc      text .      * Description
+
+Comp TargetConfig parent Project FindIn
+----------------------------------------------------------------
+* Hardware target configuration
+----------------------------------------------------------------
+	Element target_id key  .        + Target identifier
+	Element hardware  ref  Hardware + Hardware to target
+	Element mode      word .        + production, search, validation
+	Element config    ref  Config   * Model config
+	Element codegen   word .        + true/false
+	Element priority  word .        + primary, fallback, validation
+	Element desc      text .        * Description
+
+Comp BuildRule parent Project FindIn
+----------------------------------------------------------------
+* Code generation rules
+----------------------------------------------------------------
+	Element build_id         key       .            + Build rule name
+	Element targets          text      .            + Target identifiers
+	Element output_dir       text      .            + Output directory
+	Element template         word      .            + Template set
+	Element project          up_copy   Project      * Project reference
+	Element validate_against ref_child TargetConfig * Validation baseline
+	Element output_format    word  . * Output format for codegen
+	Element desc             text  . * Description (e.g., "Generate CUDA kernels")
+
+Comp CodegenRule parent Project FindIn
+----------------------------------------------------------------
+* Overarching codegen rules (e.g., includes, dialects for project-wide gen)
+----------------------------------------------------------------
+	Element gen_id      key   . + Gen rule name
+	Element dialect     word  . + triton, mlir, llvm (for IR targeting)
+	Element includes    text  . * Header includes (e.g., "<cuda.h>")
+	Element debug_mode  word  . * true/false (add asserts/logs)
+	Element desc        text  . * Description
+
+# daml_schema_improvements.txt
+// ================================================================
+// DAML SCHEMA IMPROVEMENTS
+// Structured data types, validation, and execution context
+// ================================================================
+
+// ================================================================
+// STRUCTURED DATA TYPES
+// ================================================================
+
+Comp StructuredChoice parent . Find
+----------------------------------------------------------------
+* Structured alternative to free-text choices
+----------------------------------------------------------------
+    Element choice_id     key   . + Choice identifier
+    Element values        list  . + List of available choices
+    Element value_type    word  . + string, number, boolean
+    Element default_index word  . * Default choice index
+    Element desc          text  . * Description
+
+Comp NumericRange parent . Find
+----------------------------------------------------------------
+* Structured numeric range specification
+----------------------------------------------------------------
+    Element range_id      key   . + Range identifier
+    Element min_value     number . + Minimum value
+    Element max_value     number . + Maximum value
+    Element step_size     number . * Step size for discrete
+    Element inclusive     word  . + true/false for endpoint inclusion
+    Element default_value number . * Default value
+    Element desc          text  . * Description
+
+Comp ParameterMap parent . Find
+----------------------------------------------------------------
+* Structured key-value parameters
+----------------------------------------------------------------
+    Element map_id        key   . + Map identifier
+    Element parameters    list  . + List of parameter objects
+    Element param_type    word  . + string, number, boolean
+    Element required_keys text  . * Required parameter keys
+    Element desc          text  . * Description
+
+Comp CostModel parent . Find
+----------------------------------------------------------------
+* Structured cost model for operations
+----------------------------------------------------------------
+    Element cost_id       key   . + Cost model identifier
+    Element flops         number . * FLOPs estimate
+    Element memory_bytes  number . * Memory usage in bytes
+    Element latency_us    number . * Latency in microseconds
+    Element energy_joules number . * Energy consumption
+    Element desc          text  . * Description
+
+// ================================================================
+// EXECUTION CONTEXT
+// ================================================================
+
+Comp ExecutionContext parent . Find
+----------------------------------------------------------------
+* Execution context for adaptive models
+----------------------------------------------------------------
+    Element context_id    key   . + Context identifier
+    Element memory_strategy word . + static, dynamic, pooled
+    Element parallel_strategy word . + data, expert, model, pipeline
+    Element gradient_accumulation word . + true/false
+    Element precision     word  . + fp32, fp16, bfloat16, mixed
+    Element desc          text  . * Description
+
+Comp MemoryBudget parent . Find
+----------------------------------------------------------------
+* Memory budget constraints
+----------------------------------------------------------------
+    Element budget_id     key   . + Budget identifier
+    Element max_memory_gb number . + Maximum memory in GB
+    Element per_expert_memory number . * Memory per expert
+    Element buffer_memory number . * Buffer memory allocation
+    Element emergency_threshold number . * Low memory threshold
+    Element desc          text  . * Description
+
+// ================================================================
+// VALIDATION & CONSTRAINTS
+// ================================================================
+
+Comp DataType parent . Find
+----------------------------------------------------------------
+* Supported data types with validation
+----------------------------------------------------------------
+    Element dtype         key   . + Data type name
+    Element valid_values  list  . + Supported values
+    Element default_value word  . + Default value
+    Element framework_mapping text . * Framework-specific mapping
+    Element desc          text  . * Description
+
+Comp ShapeConstraint parent . Find
+----------------------------------------------------------------
+* Tensor shape constraints and validation
+----------------------------------------------------------------
+    Element constraint_id key   . + Constraint identifier
+    Element min_dims      number . + Minimum dimensions
+    Element max_dims      number . + Maximum dimensions
+    Element fixed_dims    list  . * Fixed dimension sizes
+    Element symbolic_dims list  . * Symbolic dimension names
+    Element desc          text  . * Description
+
+Comp CompatibilityRule parent . Find
+----------------------------------------------------------------
+* Cross-component compatibility rules
+----------------------------------------------------------------
+    Element rule_id       key   . + Rule identifier
+    Element source_type   word  . + Source component type
+    Element target_type   word  . + Target component type
+    Element validation_condition text . + Compatibility condition
+    Element error_message text  . * Error message on failure
+    Element severity      word  . + error, warning, info
+    Element desc          text  . * Description
+
+// ================================================================
+// ENHANCED REFERENCES
+// ================================================================
+
+Comp ValidatedReference parent . Find
+----------------------------------------------------------------
+* Reference with validation rules
+----------------------------------------------------------------
+    Element ref_id        key   . + Reference identifier
+    Element source_component word . + Source component type
+    Element target_component word . + Target component type
+    Element validation_rule word . + exists, type_match, capability_match
+    Element fallback_ref   word  . * Fallback reference
+    Element desc          text  . * Description
+
+// ================================================================
+// MATHEMATICAL EXPRESSIONS
+// ================================================================
+
+Comp MathExpression parent . Find
+----------------------------------------------------------------
+* Structured mathematical expressions
+----------------------------------------------------------------
+    Element expression_id key   . + Expression identifier
+    Element expression_type word . + equation, inequality, condition
+    Element variables      list  . + List of variables
+    Expression lhs         text  . * Left-hand side
+    Expression rhs         text  . * Right-hand side
+    Expression operator    word  . * Mathematical operator
+    Element code_template  text  . * Code generation template
+    Element desc          text  . * Description
+
+// ================================================================
+// ENHANCED ARCHITECTURE PARAMETERS
+// ================================================================
+
+Comp EnhancedArchitectureParam parent ArchitectureParam FindIn
+----------------------------------------------------------------
+* Enhanced architecture parameters with structured data
+----------------------------------------------------------------
+    Element structured_choices ref StructuredChoice * Structured choices
+    Element numeric_range      ref NumericRange * Numeric range
+    Element constraints        list  . * Validation constraints
+    Element depends_on         list  . * Dependent parameters
+    Element derivation_rule    word  . * top_k, threshold, learned
+    Element desc          text  . * Description
+
+// ================================================================
+// KERNEL EXECUTION CONTEXT
+// ================================================================
+
+Comp KernelExecutionContext parent . Find
+----------------------------------------------------------------
+* Execution context for kernel generation
+----------------------------------------------------------------
+    Element kernel_context_id key . + Context identifier
+    Element block_size_calc   text . + Block size calculation
+    Element grid_size_calc    text . + Grid size calculation
+    Element shared_memory_req number . * Shared memory requirement
+    Element register_pressure word . * low, medium, high
+    Element occupancy_goal    number . * Target occupancy ratio
+    Element desc          text  . * Description
+
+// ================================================================
+// PROJECT VALIDATION RULES
+// ================================================================
+
+Comp ProjectValidation parent Project FindIn
+----------------------------------------------------------------
+* Project-level validation rules
+----------------------------------------------------------------
+    Element validation_id key   . + Validation rule identifier
+    Element target_configs list . + Target configurations to validate
+    Element hardware_compatibility word . + true/false check
+    Element memory_budget_check word . + true/false check
+    Element capability_check word . + true/false check
+    Element desc          text  . * Description
+
+
+// ================================================================
+// ENUMERATED TYPES CATALOG
+// ================================================================
+
+Comp EnumerationCatalog parent . Find
+----------------------------------------------------------------
+* Catalog of supported enumerated types
+----------------------------------------------------------------
+    Element enum_id       key   . + Enumeration identifier
+    Element enum_type     word  . + dtype, backend, precision, etc.
+    Element valid_values  list  . + Supported values
+    Element default_value word  . + Default value
+    Element framework_specific text . * Framework-specific variations
+    Element desc          text  . * Description
+
+// ================================================================
+// daml.unit — ENHANCED DAML DOMAIN SCHEMA
+// Added support for complete code blocks in .net files
+// ================================================================
+
+// ================================================================
+// CODE BLOCK COMPONENTS (NEW)
+// ================================================================
+
+Comp CodeBlock parent . Find
+----------------------------------------------------------------
+* Complete function/class code block with template variables
+----------------------------------------------------------------
+    Element code_id       key   . + Code block identifier
+    Element code_type     word  . + class, function, method, module
+    Element language      word  . + python, cpp, cuda, opencl
+    Element template_body text  . + Complete code with ${variable} placeholders
+    Element placeholders  list  . + List of template variable names
+    Element dependencies  list  . * Required imports/includes
+    Element base_class    word  . * Parent class for inheritance
+    Element desc          text  . * Description
+
+Comp ClassCode parent CodeBlock FindIn
+----------------------------------------------------------------
+* Complete class definition
+----------------------------------------------------------------
+    Element class_name    key   . + Class name (can use ${name} template)
+    Element inherits_from list  . * Parent classes
+    Element init_params   list  . + Constructor parameters
+    Element methods       list  . + Method names defined in class
+    Element attributes    list  . * Class attributes
+    Element docstring     text  . * Class documentation
+    Element framework_specific word . * pytorch, jax, tensorflow
+    Element desc          text  . * Description
+
+Comp FunctionCode parent CodeBlock FindIn
+----------------------------------------------------------------
+* Complete function definition
+----------------------------------------------------------------
+    Element function_name key   . + Function name (can use ${name} template)
+    Element parameters    list  . + Function parameters
+    Element return_type   word  . * Return type annotation
+    Element signature     text  . + Full function signature
+    Element decorators    list  . * Decorators (@staticmethod, etc.)
+    Element desc          text  . * Description
+
+Comp MethodCode parent CodeBlock FindIn
+----------------------------------------------------------------
+* Method within a class
+----------------------------------------------------------------
+    Element method_name   key   . + Method name
+    Element parent_class  link   ClassCode + Parent class reference
+    Element parameters    list  . + Method parameters (excluding self)
+    Element return_type   word  . * Return type annotation
+    Element is_static     word  . + true/false
+    Element is_classmethod word  . + true/false
+    Element desc          text  . * Description
+
+// ================================================================
+// OPERATION DEFINITION WITH CODE BLOCKS
+// ================================================================
+
+Comp OperationDef parent . Find
+----------------------------------------------------------------
+* Operation definition with embedded code
+----------------------------------------------------------------
+    Element name          key   . + Operation name (e.g., Conv3x3, MaxPool3x3)
+    Element description   text  . * Operation description
+    Element operation_type word  . + conv, pool, activation, identity, composite
+    Element code_block    ref   CodeBlock + Complete code implementation
+    Element flops         number . * FLOPs estimate
+    Element memory_bytes  number . * Memory usage
+    Element desc          text  . * Description
+
+Comp OperationParam parent OperationDef FindIn
+----------------------------------------------------------------
+* Parameters for operation implementation
+----------------------------------------------------------------
+    Element param_name    key   . + Parameter name
+    Element param_type    word  . + conv, pool, batch_norm, activation
+    Element kernel_size   word  . * Kernel size (3, 5, 7)
+    Element stride        word  . * Stride value
+    Element padding       word  . * Padding value
+    Element pool_type     word  . * Max, Avg, AdaptiveAvg
+    Element activation_type word . * ReLU, GELU, Swish
+    Element desc          text  . * Description
+
+// ================================================================
+// SEARCH SPACE WITH CODE BLOCKS
+// ================================================================
+
+
+// ================================================================
+// LAYER WITH CODE BLOCKS
+// ================================================================
+
+
+// ================================================================
+// SEARCH METHOD WITH CODE BLOCKS
+// ================================================================
+
+Comp SearchMethod parent . Find
+----------------------------------------------------------------
+* Search method with implementation
+----------------------------------------------------------------
+    Element method        key   . + Method identifier
+    Element method_type   word  . + gradient_based, evolutionary, rl
+    Element description   text  . * Method description
+    Element learning_rate_w number . * Weight optimizer learning rate
+    Element learning_rate_alpha number . * Architecture optimizer learning rate
+    Element momentum      number . * Momentum value
+    Element weight_decay  number . * Weight decay value
+    Element grad_clip     number . * Gradient clipping value
+    Element temperature   number . * Temperature for softmax
+    Element search_epochs word  . * Number of search epochs
+    Element code_block    ref   CodeBlock * Complete search engine code
+    Element desc          text  . * Description
+
+// ================================================================
+// TRAINING CONFIGURATION WITH CODE BLOCKS
+// ================================================================
+
+Comp TrainingConfig parent . Find
+----------------------------------------------------------------
+* Training configuration with trainer code
+----------------------------------------------------------------
+    Element config_id     key   . + Config identifier
+    Element train_epochs  word  . + Number of training epochs
+    Element batch_size    word  . + Batch size
+    Element final_learning_rate number . + Final model learning rate
+    Element momentum      number . + Momentum value
+    Element weight_decay  number . + Weight decay
+    Element code_block    ref   CodeBlock * Complete trainer code
+    Element desc          text  . * Description
+
+// ================================================================
+// ARCHITECTURE DEFINITION WITH CODE BLOCKS
+// ================================================================
+
+Comp Architecture parent . Find
+----------------------------------------------------------------
+* Complete architecture specification with generated code
+----------------------------------------------------------------
+    Element name          key   . + Architecture name
+    Element dataset       word  . + Target dataset (CIFAR-10, ImageNet)
+    Element framework     word  . + pytorch, jax, tensorflow
+    Element num_cells     word  . + Number of cells
+    Element init_channels word  . + Initial channel count
+    Element num_classes   word  . + Number of output classes
+    Element search_epochs word  . + Search phase epochs
+    Element train_epochs  word  . + Training phase epochs
+    Element batch_size    word  . + Batch size
+    Element learning_rate_w number . + Weight learning rate
+    Element learning_rate_alpha number . + Architecture learning rate
+    Element momentum      number . + Momentum
+    Element weight_decay  number . + Weight decay
+    Element grad_clip     number . + Gradient clipping
+    Element temperature   number . + Softmax temperature
+    Element main_code     ref   CodeBlock * Main program code
+    Element config_code   ref   CodeBlock * Configuration dataclass code
+    Element desc          text  . * Description
+
+// ================================================================
+// ENHANCED OPERATION WITH CODE
+// ================================================================
+
+
+// ================================================================
+// CODE TEMPLATE PLACEHOLDERS
+// ================================================================
+
+Comp TemplatePlaceholder parent . Find
+----------------------------------------------------------------
+* Template variable definition for code generation
+----------------------------------------------------------------
+    Element placeholder_id key   . + Placeholder identifier
+    Element variable_name word  . + Template variable name (without ${})
+    Element source_field  word  . + Source component field
+    Element source_component word . + Source component type
+    Element default_value word  . * Default value if source missing
+    Element transformation word . * upper, lower, camel_case, snake_case
+    Element desc          text  . * Description
+
+Comp CodeDependency parent . Find
+----------------------------------------------------------------
+* Code block dependency specification
+----------------------------------------------------------------
+    Element dependency_id key   . + Dependency identifier
+    Element code_block    ref   CodeBlock + Dependent code block
+    Element requires      list  . + List of required code_block IDs
+    Element import_order  word  . * Execution order (1, 2, 3...)
+    Element conditional   word  . * Condition for including dependency
+    Element desc          text  . * Description
+
+// ================================================================
+// CODE GENERATION RULES FOR .NET FILES
+// ================================================================
+
+Comp CodegenTemplate parent . Find
+----------------------------------------------------------------
+* Code generation templates with placeholders
+----------------------------------------------------------------
+    Element template_id   key   . + Template identifier
+    Element template_type word  . + kernel, model, training, validation, operation
+    Element language      word  . + python, cpp, cuda, opencl
+    Element template_body text  . + Template with placeholders
+    Element placeholders  list  . + List of placeholder variables
+    Element validation_rules text . * Template validation rules
+    Element output_target word  . * File path template
+    Element desc          text  . * Description
+
+Comp CodeBlockReference parent . Find
+----------------------------------------------------------------
+* Reference from .net component to code block
+----------------------------------------------------------------
+    Element ref_id        key   . + Reference identifier
+    Element component_type word . + OperationDef, Layer, SearchMethod, etc.
+    Element component_id  word  . + Specific component identifier
+    Element code_block    ref   CodeBlock + Referenced code block
+    Element inject_context word . + true/false for context injection
+    Element desc          text  . * Description
+
+// ================================================================
+// ACTOR TEMPLATE MAPPING (FOR .ACT FILES)
+// ================================================================
+
+Comp ActorTemplate parent . Find
+----------------------------------------------------------------
+* Maps .net components to .act actor templates
+----------------------------------------------------------------
+    Element actor_name    key   . + Actor identifier
+    Element triggers_on   word  . + Component type that triggers this actor
+    Element code_block    ref   CodeBlock * Code to generate
+    Element template_vars list  . + Template variables to substitute
+    Element iteration_mode word . + single, foreach, nested
+    Element desc          text  . * Description
+
+

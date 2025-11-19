@@ -1,4 +1,4 @@
-run="/home/theo/Downloads/go1.24.5.linux-amd64/go/bin/go run main.go gen.go run.go structs.go  collect.go hcon4.go"
+run="go run main.go gen.go run.go structs.go  collect.go hcon4.go"
 
 $run  doc.act unit.unit,artifact.unit,act.unit > gen_doc.txt
 if [ $? != 0 ]; then echo doc.act unit.unit,artifact.unit,act.unit has errors; fi

@@ -1,0 +1,3143 @@
+
+// ================================================================
+// DAML.UNIT SCHEMA CONSTRUCTION GUIDE
+// Auto-generated documentation from schema definitions
+// ================================================================
+
+Artifact table-of-contents navigation guide
+O Quick navigation to all components in the schema.
+
+Section components 2 Component Index
+D
+D - [Domain](#domain-component) - 
+D - [Hardware](#hardware-component) - 
+D   - [Gpu](#gpu-component) - 
+D - [Kernel](#kernel-component) - 
+D   - [Dynamickernel](#dynamickernel-component) - 
+D   - [Kernelparam](#kernelparam-component) - 
+D   - [Kernelop](#kernelop-component) - 
+D - [Optimization](#optimization-component) - 
+D - [Fusion](#fusion-component) - 
+D - [Framework](#framework-component) - 
+D   - [Pytorch](#pytorch-component) - 
+D - [Searchspace](#searchspace-component) - 
+D   - [Searchspacecode](#searchspacecode-component) - 
+D   - [Architectureparam](#architectureparam-component) - 
+D     - [Enhancedarchitectureparam](#enhancedarchitectureparam-component) - 
+D - [Searchop](#searchop-component) - 
+D   - [Architecturegradient](#architecturegradient-component) - 
+D - [Expertsystem](#expertsystem-component) - 
+D   - [Expert](#expert-component) - 
+D   - [Sparseexpertsystem](#sparseexpertsystem-component) - 
+D - [Routernetwork](#routernetwork-component) - 
+D - [Expertroutingop](#expertroutingop-component) - 
+D   - [Capacityawareroutingop](#capacityawareroutingop-component) - 
+D - [Continuousmodel](#continuousmodel-component) - 
+D - [Odeop](#odeop-component) - 
+D   - [Neuralode](#neuralode-component) - 
+D - [Sdeop](#sdeop-component) - 
+D   - [Neuralsde](#neuralsde-component) - 
+D - [Pdeop](#pdeop-component) - 
+D   - [Neuralpde](#neuralpde-component) - 
+D - [Continuousdepthop](#continuousdepthop-component) - 
+D - [Metalearner](#metalearner-component) - 
+D - [Hypernetwork](#hypernetwork-component) - 
+D - [Weightgenerationop](#weightgenerationop-component) - 
+D - [Differentiableprogram](#differentiableprogram-component) - 
+D - [Controlflow](#controlflow-component) - 
+D   - [Condition](#condition-component) - 
+D   - [Branch](#branch-component) - 
+D - [Model](#model-component) - 
+D - [Tensor](#tensor-component) - 
+D - [Layer](#layer-component) - 
+D   - [Op](#op-component) - 
+D     - [Arg](#arg-component) - 
+D     - [Architecturesearchop](#architecturesearchop-component) - 
+D     - [Searchspaceop](#searchspaceop-component) - 
+D - [Config](#config-component) - 
+D   - [Schedule](#schedule-component) - 
+D - [Validation](#validation-component) - 
+D   - [Dynamicconstraint](#dynamicconstraint-component) - 
+D - [Searchmethodrule](#searchmethodrule-component) - 
+D - [Routingstrategyrule](#routingstrategyrule-component) - 
+D - [Solverrule](#solverrule-component) - 
+D - [Project](#project-component) - 
+D   - [Targetconfig](#targetconfig-component) - 
+D   - [Buildrule](#buildrule-component) - 
+D   - [Codegenrule](#codegenrule-component) - 
+D   - [Projectvalidation](#projectvalidation-component) - 
+D - [Structuredchoice](#structuredchoice-component) - 
+D - [Numericrange](#numericrange-component) - 
+D - [Parametermap](#parametermap-component) - 
+D - [Costmodel](#costmodel-component) - 
+D - [Executioncontext](#executioncontext-component) - 
+D - [Memorybudget](#memorybudget-component) - 
+D - [Datatype](#datatype-component) - 
+D - [Shapeconstraint](#shapeconstraint-component) - 
+D - [Compatibilityrule](#compatibilityrule-component) - 
+D - [Validatedreference](#validatedreference-component) - 
+D - [Mathexpression](#mathexpression-component) - 
+D - [Kernelexecutioncontext](#kernelexecutioncontext-component) - 
+D - [Enumerationcatalog](#enumerationcatalog-component) - 
+D - [Codeblock](#codeblock-component) - 
+D   - [Classcode](#classcode-component) - 
+D   - [Functioncode](#functioncode-component) - 
+D   - [Methodcode](#methodcode-component) - 
+D - [Operationdef](#operationdef-component) - 
+D   - [Operationparam](#operationparam-component) - 
+D - [Searchmethod](#searchmethod-component) - 
+D - [Trainingconfig](#trainingconfig-component) - 
+D - [Architecture](#architecture-component) - 
+D - [Templateplaceholder](#templateplaceholder-component) - 
+D - [Codedependency](#codedependency-component) - 
+D - [Codegentemplate](#codegentemplate-component) - 
+D - [Codeblockreference](#codeblockreference-component) - 
+D - [Actortemplate](#actortemplate-component) - 
+
+Artifact element-types-reference quick reference
+O Complete reference for all element type keywords and their behaviors.
+
+Section type_summary 2 Element Type Summary
+D
+D | Type | Scope | Resolution | Navigation |
+D |------|-------|------------|------------|
+D | `key` | Local | Immediate | Field access only |
+D | `word` | Local | Immediate | Field access only |
+D | `text` | Local | Immediate | Field access only |
+D | `number` | Local | Immediate | Field access only |
+D | `ref` | Global | Pass 1 | `Its field actor` |
+D | `link` | Sibling | Pass 1 | `Its field actor` |
+D | `ref_copy` | Previous | Pass 2+ | `Its field actor` |
+D | `ref_child` | Parent→Child | Pass 2+ | `Its field actor` |
+D | `up_copy` | Ancestor | Pass 2+ | `Its field actor` |
+D | `type_of` | Child by type | Pass 2+ | `Its field actor` |
+D | `tree` | Local | Immediate | `Its field.up/down/left/right actor` |
+D
+Section type_resolution_passes 2 Multi-Pass Resolution Details
+D
+D **Pass 1: Direct References**
+D - `ref`: Global lookup by key in Find index
+D - `link`: Parent-scoped lookup by key in FindIn index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copy pointer from previous resolved field
+D - `ref_child`: Look up child in previously resolved parent
+D - `up_copy`: Walk parent chain to ancestor type
+D - `type_of`: Match child by component type name
+D
+D The loader continues passes until all references resolve or error count stabilizes.
+
+Artifact domain-component structure overview
+
+O Comp Domain parent . Find
+
+O Defines a top-level Domain component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + | Domain name |
+D | desc | text | . | * | Description |
+D | version | word | . | + | Schema version |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${desc}
+D ${version}
+D ${Project_domain.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Project_domain actor  [Reverse link to Project](#project-component)
+D ```
+
+Artifact hardware-component structure overview
+
+O Comp Hardware parent . Find
+
+O Defines a top-level Hardware component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | hardware | key | . | + | Identifier (e.g., gpu_a100, tpu_v5) |
+D | backend | word | . | + | cuda, rocm, tpu, cpu |
+D | dynamic_dispatch | word | . | + | true/false for runtime routing |
+D | constraints | text | . | * | Hardware limits |
+D | memory_model | text | . | * | Memory hierarchy characteristics |
+D | routing_latency | text | . | * | Expert routing overhead |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${hardware}
+D ${backend}
+D ${dynamic_dispatch}
+D ${constraints}
+D ${memory_model}
+D ${routing_latency}
+D ${desc}
+D ${Kernel_hardware.kernel}
+D ${Dynamickernel_hardware.dynamic_kernel}
+D ${Optimization_target.target}
+D ${Fusion_hardware.fusion}
+D ${Searchop_hardware.search_op}
+D ${Expertroutingop_hardware.routing_op}
+D ${Model_hardware.model}
+D ${Config_target.config}
+D ${Targetconfig_hardware.target_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Gpu actor  [Link to Gpu](#gpu-component)
+D Its Kernel_hardware actor  [Reverse link to Kernel](#kernel-component)
+D Its Dynamickernel_hardware actor  [Reverse link to Dynamickernel](#dynamickernel-component)
+D Its Optimization_target actor  [Reverse link to Optimization](#optimization-component)
+D Its Fusion_hardware actor  [Reverse link to Fusion](#fusion-component)
+D Its Searchop_hardware actor  [Reverse link to Searchop](#searchop-component)
+D Its Expertroutingop_hardware actor  [Reverse link to Expertroutingop](#expertroutingop-component)
+D Its Model_hardware actor  [Reverse link to Model](#model-component)
+D Its Config_target actor  [Reverse link to Config](#config-component)
+D Its Targetconfig_hardware actor  [Reverse link to Targetconfig](#targetconfig-component)
+D ```
+
+Artifact gpu-component structure detail
+
+O Comp Gpu parent Hardware FindIn
+
+O Defines a Gpu component with FindIn searchability under parent Hardware, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | gpu_id | key | . | + | GPU identifier |
+D | arch | word | . | + | Architecture (ampere, hopper, rdna3) |
+D | sm_count | word | . | + | Streaming multiprocessor count |
+D | memory_gb | word | . | + | Memory capacity |
+D | bandwidth | word | . | + | Memory bandwidth GB/s |
+D | sparse_support | word | . | + | true/false for sparse tensor cores |
+D | moe_optimized | word | . | + | true/false for MoE acceleration |
+D | dynamic_shapes | word | . | + | true/false for dynamic shape support |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${gpu_id}
+D ${arch}
+D ${sm_count}
+D ${memory_gb}
+D ${bandwidth}
+D ${sparse_support}
+D ${moe_optimized}
+D ${dynamic_shapes}
+D ${desc}
+D ${parent.hardware}
+D ${Dynamickernel_gpu_target.dynamic_kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Hardware](#hardware-component)
+D Its Dynamickernel_gpu_target actor  [Reverse link to Dynamickernel](#dynamickernel-component)
+D ```
+
+Artifact kernel-component structure overview
+
+O Comp Kernel parent . Find
+
+O Defines a top-level Kernel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | kernel | key | . | + | Unique kernel name |
+D | hardware | ref | Hardware | + | Target hardware |
+D | desc | text | . | * | Description |
+D | signature | text | . | + | Function signature |
+D | body | text | . | + | Implementation template |
+D | dynamic | word | . | * | true/false for runtime configuration |
+D | routing_aware | word | . | * | true/false for expert routing |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${kernel}
+D ${hardware}
+D ${desc}
+D ${signature}
+D ${body}
+D ${dynamic}
+D ${routing_aware}
+D ${hardware.hardware}
+D ${Dynamickernel_copy_kernel.dynamic_kernel}
+D ${Fusion_fused_kernel.fusion}
+D ${Op_kernel.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Dynamickernel actor  [Link to Dynamickernel](#dynamickernel-component)
+D Its Kernelparam actor  [Link to Kernelparam](#kernelparam-component)
+D Its Kernelop actor  [Link to Kernelop](#kernelop-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its Dynamickernel_copy_kernel actor  [Reverse link to Dynamickernel](#dynamickernel-component)
+D Its Fusion_fused_kernel actor  [Reverse link to Fusion](#fusion-component)
+D Its Op_kernel actor  [Reverse link to Op](#op-component)
+D ```
+
+Artifact dynamickernel-component structure detail
+
+O Comp Dynamickernel parent Kernel FindIn
+
+O Defines a Dynamickernel component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dynamic_kernel | key | . | + | Dynamic kernel name |
+D | copy_kernel | up_copy | Kernel | + | Base kernel reference |
+D | hardware | ref_copy | Hardware | + | Target hardware |
+D | gpu_target | ref_child | GPU | * | Target GPU device |
+D | config_params | text | . | + | Runtime configuration parameters |
+D | branching | word | . | + | true/false for conditional paths |
+D | shape_dependent | word | . | + | true/false for shape polymorphism |
+D | dispatch_cost | text | . | * | Overhead for dynamic dispatch |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${dynamic_kernel}
+D ${copy_kernel}
+D ${hardware}
+D ${gpu_target}
+D ${config_params}
+D ${branching}
+D ${shape_dependent}
+D ${dispatch_cost}
+D ${desc}
+D ${parent.kernel}
+D ${copy_kernel.kernel}
+D ${hardware.hardware}
+D ${gpu_target.gpu_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Kernel](#kernel-component)
+D Its copy_kernel actor  [Link to Kernel](#kernel-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its gpu_target actor  [Link to Gpu](#gpu-component)
+D ```
+
+Artifact kernelparam-component structure detail
+
+O Comp Kernelparam parent Kernel FindIn
+
+O Defines a Kernelparam component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param | key | . | + | Parameter name |
+D | type | word | . | + | C data type |
+D | calculation | text | . | + | How to calculate from inputs |
+D | dynamic | word | . | * | true/false for runtime calculation |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${param}
+D ${type}
+D ${calculation}
+D ${dynamic}
+D ${parent.kernel}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Kernel](#kernel-component)
+D ```
+
+Artifact kernelop-component structure detail
+
+O Comp Kernelop parent Kernel FindIn
+
+O Defines a Kernelop component with FindIn searchability under parent Kernel, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op | key | . | + | Operation primitive name |
+D | desc | text | . | * | Operation description |
+D | input_rank | word | . | * | Expected input rank |
+D | output_rank | word | . | * | Expected output rank |
+D | dimension_calc | text | . | + | Code to calculate dimensions |
+D | block_size | word | . | + | Threads per block |
+D | grid_calc | text | . | + | Grid size calculation formula |
+D | dynamic_launch | word | . | * | true/false for runtime config |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${desc}
+D ${input_rank}
+D ${output_rank}
+D ${dimension_calc}
+D ${block_size}
+D ${grid_calc}
+D ${dynamic_launch}
+D ${parent.kernel}
+D ${Op_kernel_op.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Kernel](#kernel-component)
+D Its Op_kernel_op actor  [Reverse link to Op](#op-component)
+D ```
+
+Artifact optimization-component structure overview
+
+O Comp Optimization parent . Find
+
+O Defines a top-level Optimization component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | target | ref | Hardware | + | Target device |
+D | type | word | . | + | expert_fusion, nas_cache, meta_opt |
+D | params | text | . | * | Optimization parameters |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${target}
+D ${type}
+D ${params}
+D ${desc}
+D ${target.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its target actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact fusion-component structure overview
+
+O Comp Fusion parent . Find
+
+O Defines a top-level Fusion component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | fusion | key | . | + | Fusion pattern name |
+D | pattern | text | . | + | Operations to fuse |
+D | fused_kernel | ref | Kernel | * | Fused kernel |
+D | hardware | ref | Hardware | * | Target hardware |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${fusion}
+D ${pattern}
+D ${fused_kernel}
+D ${hardware}
+D ${desc}
+D ${fused_kernel.kernel}
+D ${hardware.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its fused_kernel actor  [Link to Kernel](#kernel-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact framework-component structure overview
+
+O Comp Framework parent . Find
+
+O Defines a top-level Framework component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | framework | key | . | + | Framework name (pytorch, jax, tensorflow) |
+D | language | word | . | + | python, c++ |
+D | paradigm | word | . | + | dynamic, static, jit |
+D | runtime | word | . | + | eager, graph, xla |
+D | nas_support | word | . | + | true/false |
+D | moe_support | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${framework}
+D ${language}
+D ${paradigm}
+D ${runtime}
+D ${nas_support}
+D ${moe_support}
+D ${desc}
+D ${Model_framework.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Pytorch actor  [Link to Pytorch](#pytorch-component)
+D Its Model_framework actor  [Reverse link to Model](#model-component)
+D ```
+
+Artifact pytorch-component structure detail
+
+O Comp Pytorch parent Framework FindIn
+
+O Defines a Pytorch component with FindIn searchability under parent Framework, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | pytorch_id | key | . | + | Identifier |
+D | version | word | . | + | Version string |
+D | features | text | . | * | Features list |
+D | torch_compile | word | . | + | true/false for torch.compile |
+D | dynamo | word | . | + | true/false for TorchDynamo |
+D | fx_graph | word | . | + | true/false for FX graph tracing |
+D | vmap_support | word | . | + | true/false for vectorization |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${pytorch_id}
+D ${version}
+D ${features}
+D ${torch_compile}
+D ${dynamo}
+D ${fx_graph}
+D ${vmap_support}
+D ${desc}
+D ${parent.framework}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Framework](#framework-component)
+D ```
+
+Artifact searchspace-component structure overview
+
+O Comp Searchspace parent . Find
+
+O Defines a top-level Searchspace component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | space | key | . | + | Search space name |
+D | space_name | word | . | + | Display name |
+D | type | word | . | + | cell_based, global, hierarchical |
+D | dimensions | word | . | + | Number of searchable dimensions |
+D | discrete | word | . | + | true/false for discrete choices |
+D | param_count | text | . | + | Parameter count range |
+D | flops_range | text | . | + | FLOPS range |
+D | constraints | text | . | * | Architectural constraints |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${space}
+D ${space_name}
+D ${type}
+D ${dimensions}
+D ${discrete}
+D ${param_count}
+D ${flops_range}
+D ${constraints}
+D ${desc}
+D ${Model_search_space.model}
+D ${Architecturesearchop_search_space.search_op}
+D ${Searchspaceop_search_space.space_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Searchspacecode actor  [Link to Searchspacecode](#searchspacecode-component)
+D Its Architectureparam actor  [Link to Architectureparam](#architectureparam-component)
+D Its Model_search_space actor  [Reverse link to Model](#model-component)
+D Its Architecturesearchop_search_space actor  [Reverse link to Architecturesearchop](#architecturesearchop-component)
+D Its Searchspaceop_search_space actor  [Reverse link to Searchspaceop](#searchspaceop-component)
+D ```
+
+Artifact searchspacecode-component structure detail
+
+O Comp Searchspacecode parent SearchSpace FindIn
+
+O Defines a Searchspacecode component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | space_code_id | key | . | + | Code block identifier |
+D | operations_dict | ref | CodeBlock | * | Code for OPERATIONS dictionary |
+D | cell_code | ref | CodeBlock | * | Code for cell structure |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${space_code_id}
+D ${operations_dict}
+D ${cell_code}
+D ${desc}
+D ${parent.space}
+D ${operations_dict.code_id}
+D ${cell_code.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Searchspace](#searchspace-component)
+D Its operations_dict actor  [Link to Codeblock](#codeblock-component)
+D Its cell_code actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact architectureparam-component structure detail
+
+O Comp Architectureparam parent SearchSpace FindIn
+
+O Defines a Architectureparam component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param | key | . | + | Parameter name |
+D | param_type | word | . | + | categorical, continuous, discrete |
+D | choices | text | . | * | Categorical choices |
+D | range | text | . | * | Continuous/discrete range |
+D | coupling | text | . | * | Dependencies on other params |
+D | default | word | . | * | Default value |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${param}
+D ${param_type}
+D ${choices}
+D ${range}
+D ${coupling}
+D ${default}
+D ${desc}
+D ${parent.space}
+D ${Searchspaceop_param_choices.space_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Searchspace](#searchspace-component)
+D Its Enhancedarchitectureparam actor  [Link to Enhancedarchitectureparam](#enhancedarchitectureparam-component)
+D Its Searchspaceop_param_choices actor  [Reverse link to Searchspaceop](#searchspaceop-component)
+D ```
+
+Artifact searchop-component structure overview
+
+O Comp Searchop parent . Find
+
+O Defines a top-level Searchop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | search_op | key | . | + | Search operation name |
+D | method | word | . | + | random, rl, gradient, evolution |
+D | objective | text | . | + | Optimization objective |
+D | budget | word | . | + | Search budget (trials/steps) |
+D | hardware | ref | Hardware | * | Target hardware |
+D | early_stop | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${search_op}
+D ${method}
+D ${objective}
+D ${budget}
+D ${hardware}
+D ${early_stop}
+D ${desc}
+D ${hardware.hardware}
+D ${Architecturesearchop_search_method.search_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Architecturegradient actor  [Link to Architecturegradient](#architecturegradient-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its Architecturesearchop_search_method actor  [Reverse link to Architecturesearchop](#architecturesearchop-component)
+D ```
+
+Artifact architecturegradient-component structure detail
+
+O Comp Architecturegradient parent SearchOp FindIn
+
+O Defines a Architecturegradient component with FindIn searchability under parent Searchop, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | grad_method | key | . | + | Method name |
+D | relaxation | word | . | + | softmax, gumbel, concrete |
+D | temperature | word | . | + | Temperature schedule |
+D | alternating | word | . | + | true/false for alternating optimization |
+D | projection | word | . | + | Method to project continuous to discrete |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${grad_method}
+D ${relaxation}
+D ${temperature}
+D ${alternating}
+D ${projection}
+D ${desc}
+D ${parent.search_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Searchop](#searchop-component)
+D ```
+
+Artifact expertsystem-component structure overview
+
+O Comp Expertsystem parent . Find
+
+O Defines a top-level Expertsystem component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | system | key | . | + | System name |
+D | num_experts | word | . | + | Number of experts |
+D | expert_type | word | . | + | ffn, attention, conv, custom |
+D | capacity | word | . | + | Expert capacity factor |
+D | sparse | word | . | + | true/false |
+D | load_balance | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${system}
+D ${num_experts}
+D ${expert_type}
+D ${capacity}
+D ${sparse}
+D ${load_balance}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Expert actor  [Link to Expert](#expert-component)
+D Its Sparseexpertsystem actor  [Link to Sparseexpertsystem](#sparseexpertsystem-component)
+D ```
+
+Artifact expert-component structure detail
+
+O Comp Expert parent ExpertSystem FindIn
+
+O Defines a Expert component with FindIn searchability under parent Expertsystem, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | expert | key | . | + | Expert identifier |
+D | specialization | text | . | * | Domain/task specialization |
+D | params | word | . | + | Parameter count |
+D | active_ratio | word | . | * | Expected activation frequency |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${expert}
+D ${specialization}
+D ${params}
+D ${active_ratio}
+D ${desc}
+D ${parent.system}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Expertsystem](#expertsystem-component)
+D ```
+
+Artifact routernetwork-component structure overview
+
+O Comp Routernetwork parent . Find
+
+O Defines a top-level Routernetwork component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | router | key | . | + | Router name |
+D | type | word | . | + | learned, hash, fixed, load_balanced |
+D | top_k | word | . | + | Number of experts per token |
+D | capacity_factor | word | . | + | Expert capacity multiplier |
+D | aux_loss | word | . | + | true/false for load balancing loss |
+D | jitter | word | . | + | true/false for noise during training |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${router}
+D ${type}
+D ${top_k}
+D ${capacity_factor}
+D ${aux_loss}
+D ${jitter}
+D ${desc}
+D ${Expertroutingop_router.routing_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Expertroutingop_router actor  [Reverse link to Expertroutingop](#expertroutingop-component)
+D ```
+
+Artifact expertroutingop-component structure overview
+
+O Comp Expertroutingop parent . Find
+
+O Defines a top-level Expertroutingop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | routing_op | key | . | + | Routing operation name |
+D | router | ref | RouterNetwork | + | Router network |
+D | hardware | ref | Hardware | * | Target hardware |
+D | dispatch_mode | word | . | + | static, dynamic, batched |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${routing_op}
+D ${router}
+D ${hardware}
+D ${dispatch_mode}
+D ${desc}
+D ${router.router}
+D ${hardware.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Capacityawareroutingop actor  [Link to Capacityawareroutingop](#capacityawareroutingop-component)
+D Its router actor  [Link to Routernetwork](#routernetwork-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact capacityawareroutingop-component structure detail
+
+O Comp Capacityawareroutingop parent ExpertRoutingOp FindIn
+
+O Defines a Capacityawareroutingop component with FindIn searchability under parent Expertroutingop, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | capacity_op | key | . | + | Operation name |
+D | overflow | word | . | + | drop, route_to_default, queue |
+D | buffer_size | word | . | + | Buffer tokens per expert |
+D | load_metric | word | . | + | tokens, flops, balanced |
+D | dynamic_cap | word | . | + | true/false for dynamic capacity |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${capacity_op}
+D ${overflow}
+D ${buffer_size}
+D ${load_metric}
+D ${dynamic_cap}
+D ${desc}
+D ${parent.routing_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Expertroutingop](#expertroutingop-component)
+D ```
+
+Artifact sparseexpertsystem-component structure detail
+
+O Comp Sparseexpertsystem parent ExpertSystem FindIn
+
+O Defines a Sparseexpertsystem component with FindIn searchability under parent Expertsystem, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | sparse_system | key | . | + | System name |
+D | sparsity | word | . | + | Target sparsity ratio |
+D | top_k | word | . | + | Experts per input |
+D | granularity | word | . | + | token, sequence, batch |
+D | memory_opt | word | . | + | true/false for memory optimization |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${sparse_system}
+D ${sparsity}
+D ${top_k}
+D ${granularity}
+D ${memory_opt}
+D ${desc}
+D ${parent.system}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Expertsystem](#expertsystem-component)
+D ```
+
+Artifact continuousmodel-component structure overview
+
+O Comp Continuousmodel parent . Find
+
+O Defines a top-level Continuousmodel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | model | key | . | + | Model name |
+D | type | word | . | + | ode, sde, pde, continuous_layer |
+D | depth_range | text | . | + | Effective depth range |
+D | solver | word | . | + | euler, rk4, dopri5, adaptive |
+D | adjoint | word | . | + | true/false for adjoint method |
+D | tol | word | . | * | Integration tolerance |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${model}
+D ${type}
+D ${depth_range}
+D ${solver}
+D ${adjoint}
+D ${tol}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact odeop-component structure overview
+
+O Comp Odeop parent . Find
+
+O Defines a top-level Odeop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ode_op | key | . | + | ODE operation name |
+D | dynamics | text | . | + | dx/dt = f(x, t) specification |
+D | solver | word | . | + | Integration method |
+D | adaptive_step | word | . | + | true/false |
+D | time_horizon | text | . | + | Integration time |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${ode_op}
+D ${dynamics}
+D ${solver}
+D ${adaptive_step}
+D ${time_horizon}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Neuralode actor  [Link to Neuralode](#neuralode-component)
+D ```
+
+Artifact neuralode-component structure detail
+
+O Comp Neuralode parent ODEOp FindIn
+
+O Defines a Neuralode component with FindIn searchability under parent Odeop, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_ode | key | . | + | Neural ODE name |
+D | dynamics_net | word | . | + | Network architecture for f |
+D | time_dependent | word | . | + | true/false |
+D | augmented_dim | word | . | * | Augmented state dimensions |
+D | reg_type | word | . | * | jacobian, kinetic, none |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${neural_ode}
+D ${dynamics_net}
+D ${time_dependent}
+D ${augmented_dim}
+D ${reg_type}
+D ${desc}
+D ${parent.ode_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Odeop](#odeop-component)
+D ```
+
+Artifact sdeop-component structure overview
+
+O Comp Sdeop parent . Find
+
+O Defines a top-level Sdeop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | sde_op | key | . | + | SDE operation name |
+D | drift | text | . | + | Drift term μ(x,t) |
+D | diffusion | text | . | + | Diffusion term σ(x,t) |
+D | solver | word | . | + | euler_maruyama, milstein, sde_int |
+D | noise_type | word | . | + | scalar, diagonal, general |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${sde_op}
+D ${drift}
+D ${diffusion}
+D ${solver}
+D ${noise_type}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Neuralsde actor  [Link to Neuralsde](#neuralsde-component)
+D ```
+
+Artifact neuralsde-component structure detail
+
+O Comp Neuralsde parent SDEOp FindIn
+
+O Defines a Neuralsde component with FindIn searchability under parent Sdeop, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_sde | key | . | + | Neural SDE name |
+D | drift_net | word | . | + | Network for drift |
+D | diffusion_net | word | . | + | Network for diffusion |
+D | latent_sde | word | . | + | true/false |
+D | prior | word | . | * | Prior SDE specification |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${neural_sde}
+D ${drift_net}
+D ${diffusion_net}
+D ${latent_sde}
+D ${prior}
+D ${desc}
+D ${parent.sde_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Sdeop](#sdeop-component)
+D ```
+
+Artifact pdeop-component structure overview
+
+O Comp Pdeop parent . Find
+
+O Defines a top-level Pdeop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | pde_op | key | . | + | PDE operation name |
+D | equation | text | . | + | PDE specification |
+D | spatial_dim | word | . | + | Spatial dimensions |
+D | boundary | text | . | + | Boundary conditions |
+D | solver | word | . | + | finite_diff, spectral, neural |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${pde_op}
+D ${equation}
+D ${spatial_dim}
+D ${boundary}
+D ${solver}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Neuralpde actor  [Link to Neuralpde](#neuralpde-component)
+D ```
+
+Artifact neuralpde-component structure detail
+
+O Comp Neuralpde parent PDEOp FindIn
+
+O Defines a Neuralpde component with FindIn searchability under parent Pdeop, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | neural_pde | key | . | + | Neural PDE name |
+D | architecture | word | . | + | Network architecture |
+D | physics_loss | word | . | + | true/false for physics constraint |
+D | collocation | word | . | + | Collocation point strategy |
+D | adaptive_points | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${neural_pde}
+D ${architecture}
+D ${physics_loss}
+D ${collocation}
+D ${adaptive_points}
+D ${desc}
+D ${parent.pde_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Pdeop](#pdeop-component)
+D ```
+
+Artifact continuousdepthop-component structure overview
+
+O Comp Continuousdepthop parent . Find
+
+O Defines a top-level Continuousdepthop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | depth_op | key | . | + | Operation name |
+D | parameterization | word | . | + | implicit, explicit, residual |
+D | depth_weight | word | . | + | learned, fixed, adaptive |
+D | depth_schedule | text | . | * | Depth scheduling strategy |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${depth_op}
+D ${parameterization}
+D ${depth_weight}
+D ${depth_schedule}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact metalearner-component structure overview
+
+O Comp Metalearner parent . Find
+
+O Defines a top-level Metalearner component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | meta_learner | key | . | + | Meta-learner name |
+D | type | word | . | + | maml, reptile, meta_sgd, hypernetwork |
+D | inner_steps | word | . | + | Inner loop optimization steps |
+D | outer_lr | word | . | + | Outer loop learning rate |
+D | task_batch | word | . | + | Tasks per meta-batch |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${meta_learner}
+D ${type}
+D ${inner_steps}
+D ${outer_lr}
+D ${task_batch}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact hypernetwork-component structure overview
+
+O Comp Hypernetwork parent . Find
+
+O Defines a top-level Hypernetwork component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | hypernetwork | key | . | + | Hypernetwork name |
+D | target_net | text | . | + | Target network to generate weights for |
+D | conditioning | word | . | + | task, input, context, none |
+D | param_dim | word | . | + | Generated parameter dimensions |
+D | compression | word | . | * | Compression ratio |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${hypernetwork}
+D ${target_net}
+D ${conditioning}
+D ${param_dim}
+D ${compression}
+D ${desc}
+D ${Weightgenerationop_hypernetwork.weight_gen_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Weightgenerationop_hypernetwork actor  [Reverse link to Weightgenerationop](#weightgenerationop-component)
+D ```
+
+Artifact weightgenerationop-component structure overview
+
+O Comp Weightgenerationop parent . Find
+
+O Defines a top-level Weightgenerationop component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | weight_gen_op | key | . | + | Operation name |
+D | hypernetwork | ref | Hypernetwork | + | Hypernetwork reference |
+D | target_layer | text | . | + | Target layer specification |
+D | mode | word | . | + | full, delta, factored |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${weight_gen_op}
+D ${hypernetwork}
+D ${target_layer}
+D ${mode}
+D ${desc}
+D ${hypernetwork.hypernetwork}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its hypernetwork actor  [Link to Hypernetwork](#hypernetwork-component)
+D ```
+
+Artifact differentiableprogram-component structure overview
+
+O Comp Differentiableprogram parent . Find
+
+O Defines a top-level Differentiableprogram component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | program | key | . | + | Program name |
+D | language | word | . | + | dsl, neural_module, graph |
+D | learnable_ops | word | . | + | true/false |
+D | structure_learning | word | . | + | true/false |
+D | program_length | word | . | * | Max program length |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${program}
+D ${language}
+D ${learnable_ops}
+D ${structure_learning}
+D ${program_length}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact controlflow-component structure overview
+
+O Comp Controlflow parent . Find
+
+O Defines a top-level Controlflow component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | control | key | . | + | Control flow name |
+D | type | word | . | + | conditional, loop, recursive, switch |
+D | static | word | . | + | true/false for static unrolling |
+D | max_depth | word | . | * | Maximum recursion/loop depth |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${control}
+D ${type}
+D ${static}
+D ${max_depth}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Condition actor  [Link to Condition](#condition-component)
+D Its Branch actor  [Link to Branch](#branch-component)
+D ```
+
+Artifact condition-component structure detail
+
+O Comp Condition parent ControlFlow FindIn
+
+O Defines a Condition component with FindIn searchability under parent Controlflow, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | condition | key | . | + | Condition name |
+D | predicate | text | . | + | Condition expression |
+D | eval_mode | word | . | + | runtime, compile_time, learned |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${condition}
+D ${predicate}
+D ${eval_mode}
+D ${desc}
+D ${parent.control}
+D ${Branch_condition.branch}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Controlflow](#controlflow-component)
+D Its Branch_condition actor  [Reverse link to Branch](#branch-component)
+D ```
+
+Artifact branch-component structure detail
+
+O Comp Branch parent ControlFlow FindIn
+
+O Defines a Branch component with FindIn searchability under parent Controlflow, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | branch | key | . | + | Branch identifier |
+D | condition | link | Condition | * | Triggering condition |
+D | operations | text | . | + | Operations in this branch |
+D | probability | word | . | * | Expected execution probability |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${branch}
+D ${condition}
+D ${operations}
+D ${probability}
+D ${desc}
+D ${parent.control}
+D ${condition.condition}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Controlflow](#controlflow-component)
+D Its condition actor  [Link to Condition](#condition-component)
+D ```
+
+Artifact model-component structure overview
+
+O Comp Model parent . Find
+
+O Defines a top-level Model component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | model | key | . | + | Model name |
+D | type | word | . | + | nas, moe, continuous, meta, hybrid |
+D | hardware | ref | Hardware | * | Target hardware |
+D | framework | ref | Framework | * | Framework |
+D | search_space | ref | SearchSpace | * | NAS search space |
+D | dynamic_depth | word | . | * | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${model}
+D ${type}
+D ${hardware}
+D ${framework}
+D ${search_space}
+D ${dynamic_depth}
+D ${desc}
+D ${hardware.hardware}
+D ${framework.framework}
+D ${search_space.space}
+D ${Validation_target.rule}
+D ${Project_model.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its framework actor  [Link to Framework](#framework-component)
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its Validation_target actor  [Reverse link to Validation](#validation-component)
+D Its Project_model actor  [Reverse link to Project](#project-component)
+D ```
+
+Artifact tensor-component structure overview
+
+O Comp Tensor parent . Find
+
+O Defines a top-level Tensor component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | tensor | key | . | + | Tensor identifier |
+D | shape | word | . | + | Shape (may be symbolic) |
+D | dtype | word | . | + | Data type |
+D | layout | word | . | + | Memory layout |
+D | dynamic_shape | word | . | * | true/false |
+D | expert_routed | word | . | * | true/false for MoE routing |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${tensor}
+D ${shape}
+D ${dtype}
+D ${layout}
+D ${dynamic_shape}
+D ${expert_routed}
+D ${desc}
+D ${Arg_tensor.arg}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Arg_tensor actor  [Reverse link to Arg](#arg-component)
+D ```
+
+Artifact layer-component structure overview
+
+O Comp Layer parent . Find
+
+O Defines a top-level Layer component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | layer | key | . | + | Layer identifier |
+D | name | word | . | + | Layer name |
+D | class_name | word | . | * | Class name |
+D | cell_type | word | . | + | normal, reduction, classifier |
+D | type | word | . | + | dynamic, searchable, expert, continuous |
+D | num_nodes | word | . | * | Number of nodes in cell |
+D | stride | word | . | * | Stride value |
+D | is_reduction | word | . | * | true/false |
+D | code_block | ref | CodeBlock | * | Complete layer code |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${layer}
+D ${name}
+D ${class_name}
+D ${cell_type}
+D ${type}
+D ${num_nodes}
+D ${stride}
+D ${is_reduction}
+D ${code_block}
+D ${desc}
+D ${code_block.code_id}
+D ${Schedule_layer.seq}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Op actor  [Link to Op](#op-component)
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D Its Schedule_layer actor  [Reverse link to Schedule](#schedule-component)
+D ```
+
+Artifact op-component structure detail
+
+O Comp Op parent Layer FindIn
+
+O Defines a Op component with FindIn searchability under parent Layer, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op | key | . | + | Operation name |
+D | op_type | type_of | Op | * | Type of Op |
+D | desc | text | . | * | Description |
+D | dynamic | word | . | * | true/false for runtime behavior |
+D | kernel | ref | Kernel | * | Kernel reference |
+D | kernel_op | ref_child | KernelOp | * | KernelOp reference |
+D | code_block | ref | CodeBlock | * | Complete operation code |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${op_type}
+D ${desc}
+D ${dynamic}
+D ${kernel}
+D ${kernel_op}
+D ${code_block}
+D ${parent.layer}
+D ${kernel.kernel}
+D ${kernel_op.op}
+D ${code_block.code_id}
+D ${Schedule_op.seq}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Layer](#layer-component)
+D Its Arg actor  [Link to Arg](#arg-component)
+D Its Architecturesearchop actor  [Link to Architecturesearchop](#architecturesearchop-component)
+D Its Searchspaceop actor  [Link to Searchspaceop](#searchspaceop-component)
+D Its kernel actor  [Link to Kernel](#kernel-component)
+D Its kernel_op actor  [Link to Kernelop](#kernelop-component)
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D Its Schedule_op actor  [Reverse link to Schedule](#schedule-component)
+D ```
+
+Artifact arg-component structure detail
+
+O Comp Arg parent Op FindIn
+
+O Defines a Arg component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | arg | key | . | + | Argument name |
+D | role | word | . | + | input, output, param, control |
+D | tensor | ref | Tensor | + | Tensor reference |
+D | dtype | word | . | * | Data type override |
+D | dynamic | word | . | * | true/false for dynamic shape |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${arg}
+D ${role}
+D ${tensor}
+D ${dtype}
+D ${dynamic}
+D ${desc}
+D ${parent.op}
+D ${tensor.tensor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Op](#op-component)
+D Its tensor actor  [Link to Tensor](#tensor-component)
+D ```
+
+Artifact architecturesearchop-component structure detail
+
+O Comp Architecturesearchop parent Op FindIn
+
+O Defines a Architecturesearchop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | search_op | key | . | + | Search op name |
+D | search_space | ref | SearchSpace | + | Search space |
+D | search_method | ref | SearchOp | + | Search method |
+D | candidate_ops | text | . | + | Candidate operation types |
+D | selection | word | . | * | Current selected operation |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${search_op}
+D ${search_space}
+D ${search_method}
+D ${candidate_ops}
+D ${selection}
+D ${desc}
+D ${parent.op}
+D ${search_space.space}
+D ${search_method.search_op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Op](#op-component)
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its search_method actor  [Link to Searchop](#searchop-component)
+D ```
+
+Artifact searchspaceop-component structure detail
+
+O Comp Searchspaceop parent Op FindIn
+
+O Defines a Searchspaceop component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | space_op | key | . | + | Operation name in space |
+D | op_choices | text | . | + | Available operation choices |
+D | search_space | ref | SearchSpace | * | Search space |
+D | param_choices | ref_child | ArchitectureParam | * | Searchable parameters |
+D | cost_model | text | . | * | FLOPs/memory cost model |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${space_op}
+D ${op_choices}
+D ${search_space}
+D ${param_choices}
+D ${cost_model}
+D ${desc}
+D ${parent.op}
+D ${search_space.space}
+D ${param_choices.param}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Op](#op-component)
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its param_choices actor  [Link to Architectureparam](#architectureparam-component)
+D ```
+
+Artifact config-component structure overview
+
+O Comp Config parent . Find
+
+O Defines a top-level Config component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | config | key | . | + | Config name |
+D | target | ref | Hardware | + | Target device |
+D | batch | word | . | + | Batch size |
+D | dynamic_shapes | word | . | * | true/false |
+D | expert_parallel | word | . | * | Expert parallelism degree |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${config}
+D ${target}
+D ${batch}
+D ${dynamic_shapes}
+D ${expert_parallel}
+D ${desc}
+D ${target.hardware}
+D ${Targetconfig_config.target_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Schedule actor  [Link to Schedule](#schedule-component)
+D Its target actor  [Link to Hardware](#hardware-component)
+D Its Targetconfig_config actor  [Reverse link to Targetconfig](#targetconfig-component)
+D ```
+
+Artifact schedule-component structure detail
+
+O Comp Schedule parent Config FindIn
+
+O Defines a Schedule component with FindIn searchability under parent Config, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | seq | word | . | + | Sequence number |
+D | layer | ref | Layer | + | Layer to execute |
+D | op | ref_child | Op | * | Operation |
+D | dynamic | word | . | * | true/false for runtime decision |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${seq}
+D ${layer}
+D ${op}
+D ${dynamic}
+D ${desc}
+D ${parent.config}
+D ${layer.layer}
+D ${op.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Config](#config-component)
+D Its layer actor  [Link to Layer](#layer-component)
+D Its op actor  [Link to Op](#op-component)
+D ```
+
+Artifact validation-component structure overview
+
+O Comp Validation parent . Find
+
+O Defines a top-level Validation component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | rule | key | . | + | Rule name |
+D | target | ref | Model | * | Target model |
+D | condition | text | . | + | Validation condition |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${rule}
+D ${target}
+D ${condition}
+D ${desc}
+D ${target.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Dynamicconstraint actor  [Link to Dynamicconstraint](#dynamicconstraint-component)
+D Its target actor  [Link to Model](#model-component)
+D ```
+
+Artifact dynamicconstraint-component structure detail
+
+O Comp Dynamicconstraint parent Validation FindIn
+
+O Defines a Dynamicconstraint component with FindIn searchability under parent Validation, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | constraint | key | . | + | Constraint ID |
+D | target | word | . | + | Target component |
+D | condition | text | . | + | Constraint condition |
+D | severity | word | . | + | warning, error, halt |
+D | runtime_check | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${constraint}
+D ${target}
+D ${condition}
+D ${severity}
+D ${runtime_check}
+D ${desc}
+D ${parent.rule}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Validation](#validation-component)
+D ```
+
+Artifact searchmethodrule-component structure overview
+
+O Comp Searchmethodrule parent . Find
+
+O Defines a top-level Searchmethodrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | method | key | . | + | Method name |
+D | gradient_based | word | . | + | true/false |
+D | requires_training | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${method}
+D ${gradient_based}
+D ${requires_training}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact routingstrategyrule-component structure overview
+
+O Comp Routingstrategyrule parent . Find
+
+O Defines a top-level Routingstrategyrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | strategy | key | . | + | Strategy name |
+D | load_balanced | word | . | + | true/false |
+D | learnable | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${strategy}
+D ${load_balanced}
+D ${learnable}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact solverrule-component structure overview
+
+O Comp Solverrule parent . Find
+
+O Defines a top-level Solverrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | solver | key | . | + | Solver name |
+D | adaptive | word | . | + | true/false |
+D | stochastic | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${solver}
+D ${adaptive}
+D ${stochastic}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact project-component structure overview
+
+O Comp Project parent . Find
+
+O Defines a top-level Project component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | project | key | . | + | Project name |
+D | domain | ref | Domain | * | Primary domain knowledge |
+D | model | ref | Model | + | Target model to deploy |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${project}
+D ${domain}
+D ${model}
+D ${desc}
+D ${domain.name}
+D ${model.model}
+D ${Buildrule_project.build_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Targetconfig actor  [Link to Targetconfig](#targetconfig-component)
+D Its Buildrule actor  [Link to Buildrule](#buildrule-component)
+D Its Codegenrule actor  [Link to Codegenrule](#codegenrule-component)
+D Its Projectvalidation actor  [Link to Projectvalidation](#projectvalidation-component)
+D Its domain actor  [Link to Domain](#domain-component)
+D Its model actor  [Link to Model](#model-component)
+D Its Buildrule_project actor  [Reverse link to Buildrule](#buildrule-component)
+D ```
+
+Artifact targetconfig-component structure detail
+
+O Comp Targetconfig parent Project FindIn
+
+O Defines a Targetconfig component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | target_id | key | . | + | Target identifier |
+D | hardware | ref | Hardware | + | Hardware to target |
+D | mode | word | . | + | production, search, validation |
+D | config | ref | Config | * | Model config |
+D | codegen | word | . | + | true/false |
+D | priority | word | . | + | primary, fallback, validation |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${target_id}
+D ${hardware}
+D ${mode}
+D ${config}
+D ${codegen}
+D ${priority}
+D ${desc}
+D ${parent.project}
+D ${hardware.hardware}
+D ${config.config}
+D ${Buildrule_validate_against.build_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Project](#project-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its config actor  [Link to Config](#config-component)
+D Its Buildrule_validate_against actor  [Reverse link to Buildrule](#buildrule-component)
+D ```
+
+Artifact buildrule-component structure detail
+
+O Comp Buildrule parent Project FindIn
+
+O Defines a Buildrule component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | build_id | key | . | + | Build rule name |
+D | targets | text | . | + | Target identifiers |
+D | output_dir | text | . | + | Output directory |
+D | template | word | . | + | Template set |
+D | project | up_copy | Project | * | Project reference |
+D | validate_against | ref_child | TargetConfig | * | Validation baseline |
+D | output_format | word | . | * | Output format for codegen |
+D | desc | text | . | * | Description (e.g., "Generate CUDA kernels") |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${build_id}
+D ${targets}
+D ${output_dir}
+D ${template}
+D ${project}
+D ${validate_against}
+D ${output_format}
+D ${desc}
+D ${parent.project}
+D ${project.project}
+D ${validate_against.target_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Project](#project-component)
+D Its project actor  [Link to Project](#project-component)
+D Its validate_against actor  [Link to Targetconfig](#targetconfig-component)
+D ```
+
+Artifact codegenrule-component structure detail
+
+O Comp Codegenrule parent Project FindIn
+
+O Defines a Codegenrule component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | gen_id | key | . | + | Gen rule name |
+D | dialect | word | . | + | triton, mlir, llvm (for IR targeting) |
+D | includes | text | . | * | Header includes (e.g., "<cuda.h>") |
+D | debug_mode | word | . | * | true/false (add asserts/logs) |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${gen_id}
+D ${dialect}
+D ${includes}
+D ${debug_mode}
+D ${desc}
+D ${parent.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Project](#project-component)
+D ```
+
+Artifact structuredchoice-component structure overview
+
+O Comp Structuredchoice parent . Find
+
+O Defines a top-level Structuredchoice component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | choice_id | key | . | + | Choice identifier |
+D | values | list | . | + | List of available choices |
+D | value_type | word | . | + | string, number, boolean |
+D | default_index | word | . | * | Default choice index |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${choice_id}
+D ${values}
+D ${value_type}
+D ${default_index}
+D ${desc}
+D ${Enhancedarchitectureparam_structured_choices.structured_choices}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Enhancedarchitectureparam_structured_choices actor  [Reverse link to Enhancedarchitectureparam](#enhancedarchitectureparam-component)
+D ```
+
+Artifact numericrange-component structure overview
+
+O Comp Numericrange parent . Find
+
+O Defines a top-level Numericrange component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | range_id | key | . | + | Range identifier |
+D | min_value | number | . | + | Minimum value |
+D | max_value | number | . | + | Maximum value |
+D | step_size | number | . | * | Step size for discrete |
+D | inclusive | word | . | + | true/false for endpoint inclusion |
+D | default_value | number | . | * | Default value |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${range_id}
+D ${min_value}
+D ${max_value}
+D ${step_size}
+D ${inclusive}
+D ${default_value}
+D ${desc}
+D ${Enhancedarchitectureparam_numeric_range.structured_choices}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Enhancedarchitectureparam_numeric_range actor  [Reverse link to Enhancedarchitectureparam](#enhancedarchitectureparam-component)
+D ```
+
+Artifact parametermap-component structure overview
+
+O Comp Parametermap parent . Find
+
+O Defines a top-level Parametermap component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | map_id | key | . | + | Map identifier |
+D | parameters | list | . | + | List of parameter objects |
+D | param_type | word | . | + | string, number, boolean |
+D | required_keys | text | . | * | Required parameter keys |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${map_id}
+D ${parameters}
+D ${param_type}
+D ${required_keys}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact costmodel-component structure overview
+
+O Comp Costmodel parent . Find
+
+O Defines a top-level Costmodel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | cost_id | key | . | + | Cost model identifier |
+D | flops | number | . | * | FLOPs estimate |
+D | memory_bytes | number | . | * | Memory usage in bytes |
+D | latency_us | number | . | * | Latency in microseconds |
+D | energy_joules | number | . | * | Energy consumption |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${cost_id}
+D ${flops}
+D ${memory_bytes}
+D ${latency_us}
+D ${energy_joules}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact executioncontext-component structure overview
+
+O Comp Executioncontext parent . Find
+
+O Defines a top-level Executioncontext component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | context_id | key | . | + | Context identifier |
+D | memory_strategy | word | . | + | static, dynamic, pooled |
+D | parallel_strategy | word | . | + | data, expert, model, pipeline |
+D | gradient_accumulation | word | . | + | true/false |
+D | precision | word | . | + | fp32, fp16, bfloat16, mixed |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${context_id}
+D ${memory_strategy}
+D ${parallel_strategy}
+D ${gradient_accumulation}
+D ${precision}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact memorybudget-component structure overview
+
+O Comp Memorybudget parent . Find
+
+O Defines a top-level Memorybudget component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | budget_id | key | . | + | Budget identifier |
+D | max_memory_gb | number | . | + | Maximum memory in GB |
+D | per_expert_memory | number | . | * | Memory per expert |
+D | buffer_memory | number | . | * | Buffer memory allocation |
+D | emergency_threshold | number | . | * | Low memory threshold |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${budget_id}
+D ${max_memory_gb}
+D ${per_expert_memory}
+D ${buffer_memory}
+D ${emergency_threshold}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact datatype-component structure overview
+
+O Comp Datatype parent . Find
+
+O Defines a top-level Datatype component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dtype | key | . | + | Data type name |
+D | valid_values | list | . | + | Supported values |
+D | default_value | word | . | + | Default value |
+D | framework_mapping | text | . | * | Framework-specific mapping |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${dtype}
+D ${valid_values}
+D ${default_value}
+D ${framework_mapping}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact shapeconstraint-component structure overview
+
+O Comp Shapeconstraint parent . Find
+
+O Defines a top-level Shapeconstraint component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | constraint_id | key | . | + | Constraint identifier |
+D | min_dims | number | . | + | Minimum dimensions |
+D | max_dims | number | . | + | Maximum dimensions |
+D | fixed_dims | list | . | * | Fixed dimension sizes |
+D | symbolic_dims | list | . | * | Symbolic dimension names |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${constraint_id}
+D ${min_dims}
+D ${max_dims}
+D ${fixed_dims}
+D ${symbolic_dims}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact compatibilityrule-component structure overview
+
+O Comp Compatibilityrule parent . Find
+
+O Defines a top-level Compatibilityrule component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | rule_id | key | . | + | Rule identifier |
+D | source_type | word | . | + | Source component type |
+D | target_type | word | . | + | Target component type |
+D | validation_condition | text | . | + | Compatibility condition |
+D | error_message | text | . | * | Error message on failure |
+D | severity | word | . | + | error, warning, info |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${rule_id}
+D ${source_type}
+D ${target_type}
+D ${validation_condition}
+D ${error_message}
+D ${severity}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact validatedreference-component structure overview
+
+O Comp Validatedreference parent . Find
+
+O Defines a top-level Validatedreference component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ref_id | key | . | + | Reference identifier |
+D | source_component | word | . | + | Source component type |
+D | target_component | word | . | + | Target component type |
+D | validation_rule | word | . | + | exists, type_match, capability_match |
+D | fallback_ref | word | . | * | Fallback reference |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${ref_id}
+D ${source_component}
+D ${target_component}
+D ${validation_rule}
+D ${fallback_ref}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact mathexpression-component structure overview
+
+O Comp Mathexpression parent . Find
+
+O Defines a top-level Mathexpression component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | expression_id | key | . | + | Expression identifier |
+D | expression_type | word | . | + | equation, inequality, condition |
+D | variables | list | . | + | List of variables |
+D | code_template | text | . | * | Code generation template |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${expression_id}
+D ${expression_type}
+D ${variables}
+D ${code_template}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact enhancedarchitectureparam-component structure detail
+
+O Comp Enhancedarchitectureparam parent ArchitectureParam FindIn
+
+O Defines a Enhancedarchitectureparam component with FindIn searchability under parent Architectureparam, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | structured_choices | ref | StructuredChoice | * | Structured choices |
+D | numeric_range | ref | NumericRange | * | Numeric range |
+D | constraints | list | . | * | Validation constraints |
+D | depends_on | list | . | * | Dependent parameters |
+D | derivation_rule | word | . | * | top_k, threshold, learned |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${structured_choices}
+D ${numeric_range}
+D ${constraints}
+D ${depends_on}
+D ${derivation_rule}
+D ${desc}
+D ${parent.param}
+D ${structured_choices.choice_id}
+D ${numeric_range.range_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Architectureparam](#architectureparam-component)
+D Its structured_choices actor  [Link to Structuredchoice](#structuredchoice-component)
+D Its numeric_range actor  [Link to Numericrange](#numericrange-component)
+D ```
+
+Artifact kernelexecutioncontext-component structure overview
+
+O Comp Kernelexecutioncontext parent . Find
+
+O Defines a top-level Kernelexecutioncontext component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | kernel_context_id | key | . | + | Context identifier |
+D | block_size_calc | text | . | + | Block size calculation |
+D | grid_size_calc | text | . | + | Grid size calculation |
+D | shared_memory_req | number | . | * | Shared memory requirement |
+D | register_pressure | word | . | * | low, medium, high |
+D | occupancy_goal | number | . | * | Target occupancy ratio |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${kernel_context_id}
+D ${block_size_calc}
+D ${grid_size_calc}
+D ${shared_memory_req}
+D ${register_pressure}
+D ${occupancy_goal}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact projectvalidation-component structure detail
+
+O Comp Projectvalidation parent Project FindIn
+
+O Defines a Projectvalidation component with FindIn searchability under parent Project, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | validation_id | key | . | + | Validation rule identifier |
+D | target_configs | list | . | + | Target configurations to validate |
+D | hardware_compatibility | word | . | + | true/false check |
+D | memory_budget_check | word | . | + | true/false check |
+D | capability_check | word | . | + | true/false check |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${validation_id}
+D ${target_configs}
+D ${hardware_compatibility}
+D ${memory_budget_check}
+D ${capability_check}
+D ${desc}
+D ${parent.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Project](#project-component)
+D ```
+
+Artifact enumerationcatalog-component structure overview
+
+O Comp Enumerationcatalog parent . Find
+
+O Defines a top-level Enumerationcatalog component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | enum_id | key | . | + | Enumeration identifier |
+D | enum_type | word | . | + | dtype, backend, precision, etc. |
+D | valid_values | list | . | + | Supported values |
+D | default_value | word | . | + | Default value |
+D | framework_specific | text | . | * | Framework-specific variations |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${enum_id}
+D ${enum_type}
+D ${valid_values}
+D ${default_value}
+D ${framework_specific}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact codeblock-component structure overview
+
+O Comp Codeblock parent . Find
+
+O Defines a top-level Codeblock component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | code_id | key | . | + | Code block identifier |
+D | code_type | word | . | + | class, function, method, module |
+D | language | word | . | + | python, cpp, cuda, opencl |
+D | template_body | text | . | + | Complete code with ${variable} placeholders |
+D | placeholders | list | . | + | List of template variable names |
+D | dependencies | list | . | * | Required imports/includes |
+D | base_class | word | . | * | Parent class for inheritance |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${code_id}
+D ${code_type}
+D ${language}
+D ${template_body}
+D ${placeholders}
+D ${dependencies}
+D ${base_class}
+D ${desc}
+D ${Searchspacecode_operations_dict.space_code_id}
+D ${Searchspacecode_cell_code.space_code_id}
+D ${Layer_code_block.layer}
+D ${Op_code_block.op}
+D ${Operationdef_code_block.name}
+D ${Searchmethod_code_block.method}
+D ${Trainingconfig_code_block.config_id}
+D ${Architecture_main_code.name}
+D ${Architecture_config_code.name}
+D ${Codedependency_code_block.dependency_id}
+D ${Codeblockreference_code_block.ref_id}
+D ${Actortemplate_code_block.actor_name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Classcode actor  [Link to Classcode](#classcode-component)
+D Its Functioncode actor  [Link to Functioncode](#functioncode-component)
+D Its Methodcode actor  [Link to Methodcode](#methodcode-component)
+D Its Searchspacecode_operations_dict actor  [Reverse link to Searchspacecode](#searchspacecode-component)
+D Its Searchspacecode_cell_code actor  [Reverse link to Searchspacecode](#searchspacecode-component)
+D Its Layer_code_block actor  [Reverse link to Layer](#layer-component)
+D Its Op_code_block actor  [Reverse link to Op](#op-component)
+D Its Operationdef_code_block actor  [Reverse link to Operationdef](#operationdef-component)
+D Its Searchmethod_code_block actor  [Reverse link to Searchmethod](#searchmethod-component)
+D Its Trainingconfig_code_block actor  [Reverse link to Trainingconfig](#trainingconfig-component)
+D Its Architecture_main_code actor  [Reverse link to Architecture](#architecture-component)
+D Its Architecture_config_code actor  [Reverse link to Architecture](#architecture-component)
+D Its Codedependency_code_block actor  [Reverse link to Codedependency](#codedependency-component)
+D Its Codeblockreference_code_block actor  [Reverse link to Codeblockreference](#codeblockreference-component)
+D Its Actortemplate_code_block actor  [Reverse link to Actortemplate](#actortemplate-component)
+D ```
+
+Artifact classcode-component structure detail
+
+O Comp Classcode parent CodeBlock FindIn
+
+O Defines a Classcode component with FindIn searchability under parent Codeblock, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | class_name | key | . | + | Class name (can use ${name} template) |
+D | inherits_from | list | . | * | Parent classes |
+D | init_params | list | . | + | Constructor parameters |
+D | methods | list | . | + | Method names defined in class |
+D | attributes | list | . | * | Class attributes |
+D | docstring | text | . | * | Class documentation |
+D | framework_specific | word | . | * | pytorch, jax, tensorflow |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${class_name}
+D ${inherits_from}
+D ${init_params}
+D ${methods}
+D ${attributes}
+D ${docstring}
+D ${framework_specific}
+D ${desc}
+D ${parent.code_id}
+D ${Methodcode_parent_class.method_name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Codeblock](#codeblock-component)
+D Its Methodcode_parent_class actor  [Reverse link to Methodcode](#methodcode-component)
+D ```
+
+Artifact functioncode-component structure detail
+
+O Comp Functioncode parent CodeBlock FindIn
+
+O Defines a Functioncode component with FindIn searchability under parent Codeblock, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | function_name | key | . | + | Function name (can use ${name} template) |
+D | parameters | list | . | + | Function parameters |
+D | return_type | word | . | * | Return type annotation |
+D | signature | text | . | + | Full function signature |
+D | decorators | list | . | * | Decorators (@staticmethod, etc.) |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${function_name}
+D ${parameters}
+D ${return_type}
+D ${signature}
+D ${decorators}
+D ${desc}
+D ${parent.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact methodcode-component structure detail
+
+O Comp Methodcode parent CodeBlock FindIn
+
+O Defines a Methodcode component with FindIn searchability under parent Codeblock, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | method_name | key | . | + | Method name |
+D | parent_class | link | ClassCode | + | Parent class reference |
+D | parameters | list | . | + | Method parameters (excluding self) |
+D | return_type | word | . | * | Return type annotation |
+D | is_static | word | . | + | true/false |
+D | is_classmethod | word | . | + | true/false |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${method_name}
+D ${parent_class}
+D ${parameters}
+D ${return_type}
+D ${is_static}
+D ${is_classmethod}
+D ${desc}
+D ${parent.code_id}
+D ${parent_class.class_name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Codeblock](#codeblock-component)
+D Its parent_class actor  [Link to Classcode](#classcode-component)
+D ```
+
+Artifact operationdef-component structure overview
+
+O Comp Operationdef parent . Find
+
+O Defines a top-level Operationdef component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + | Operation name (e.g., Conv3x3, MaxPool3x3) |
+D | description | text | . | * | Operation description |
+D | operation_type | word | . | + | conv, pool, activation, identity, composite |
+D | code_block | ref | CodeBlock | + | Complete code implementation |
+D | flops | number | . | * | FLOPs estimate |
+D | memory_bytes | number | . | * | Memory usage |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${description}
+D ${operation_type}
+D ${code_block}
+D ${flops}
+D ${memory_bytes}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Operationparam actor  [Link to Operationparam](#operationparam-component)
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact operationparam-component structure detail
+
+O Comp Operationparam parent OperationDef FindIn
+
+O Defines a Operationparam component with FindIn searchability under parent Operationdef, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | param_name | key | . | + | Parameter name |
+D | param_type | word | . | + | conv, pool, batch_norm, activation |
+D | kernel_size | word | . | * | Kernel size (3, 5, 7) |
+D | stride | word | . | * | Stride value |
+D | padding | word | . | * | Padding value |
+D | pool_type | word | . | * | Max, Avg, AdaptiveAvg |
+D | activation_type | word | . | * | ReLU, GELU, Swish |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${param_name}
+D ${param_type}
+D ${kernel_size}
+D ${stride}
+D ${padding}
+D ${pool_type}
+D ${activation_type}
+D ${desc}
+D ${parent.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Operationdef](#operationdef-component)
+D ```
+
+Artifact searchmethod-component structure overview
+
+O Comp Searchmethod parent . Find
+
+O Defines a top-level Searchmethod component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | method | key | . | + | Method identifier |
+D | method_type | word | . | + | gradient_based, evolutionary, rl |
+D | description | text | . | * | Method description |
+D | learning_rate_w | number | . | * | Weight optimizer learning rate |
+D | learning_rate_alpha | number | . | * | Architecture optimizer learning rate |
+D | momentum | number | . | * | Momentum value |
+D | weight_decay | number | . | * | Weight decay value |
+D | grad_clip | number | . | * | Gradient clipping value |
+D | temperature | number | . | * | Temperature for softmax |
+D | search_epochs | word | . | * | Number of search epochs |
+D | code_block | ref | CodeBlock | * | Complete search engine code |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${method}
+D ${method_type}
+D ${description}
+D ${learning_rate_w}
+D ${learning_rate_alpha}
+D ${momentum}
+D ${weight_decay}
+D ${grad_clip}
+D ${temperature}
+D ${search_epochs}
+D ${code_block}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact trainingconfig-component structure overview
+
+O Comp Trainingconfig parent . Find
+
+O Defines a top-level Trainingconfig component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | config_id | key | . | + | Config identifier |
+D | train_epochs | word | . | + | Number of training epochs |
+D | batch_size | word | . | + | Batch size |
+D | final_learning_rate | number | . | + | Final model learning rate |
+D | momentum | number | . | + | Momentum value |
+D | weight_decay | number | . | + | Weight decay |
+D | code_block | ref | CodeBlock | * | Complete trainer code |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${config_id}
+D ${train_epochs}
+D ${batch_size}
+D ${final_learning_rate}
+D ${momentum}
+D ${weight_decay}
+D ${code_block}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact architecture-component structure overview
+
+O Comp Architecture parent . Find
+
+O Defines a top-level Architecture component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + | Architecture name |
+D | dataset | word | . | + | Target dataset (CIFAR-10, ImageNet) |
+D | framework | word | . | + | pytorch, jax, tensorflow |
+D | num_cells | word | . | + | Number of cells |
+D | init_channels | word | . | + | Initial channel count |
+D | num_classes | word | . | + | Number of output classes |
+D | search_epochs | word | . | + | Search phase epochs |
+D | train_epochs | word | . | + | Training phase epochs |
+D | batch_size | word | . | + | Batch size |
+D | learning_rate_w | number | . | + | Weight learning rate |
+D | learning_rate_alpha | number | . | + | Architecture learning rate |
+D | momentum | number | . | + | Momentum |
+D | weight_decay | number | . | + | Weight decay |
+D | grad_clip | number | . | + | Gradient clipping |
+D | temperature | number | . | + | Softmax temperature |
+D | main_code | ref | CodeBlock | * | Main program code |
+D | config_code | ref | CodeBlock | * | Configuration dataclass code |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${dataset}
+D ${framework}
+D ${num_cells}
+D ${init_channels}
+D ${num_classes}
+D ${search_epochs}
+D ${train_epochs}
+D ${batch_size}
+D ${learning_rate_w}
+D ${learning_rate_alpha}
+D ${momentum}
+D ${weight_decay}
+D ${grad_clip}
+D ${temperature}
+D ${main_code}
+D ${config_code}
+D ${desc}
+D ${main_code.code_id}
+D ${config_code.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its main_code actor  [Link to Codeblock](#codeblock-component)
+D Its config_code actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact templateplaceholder-component structure overview
+
+O Comp Templateplaceholder parent . Find
+
+O Defines a top-level Templateplaceholder component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | placeholder_id | key | . | + | Placeholder identifier |
+D | variable_name | word | . | + | Template variable name (without ${}) |
+D | source_field | word | . | + | Source component field |
+D | source_component | word | . | + | Source component type |
+D | default_value | word | . | * | Default value if source missing |
+D | transformation | word | . | * | upper, lower, camel_case, snake_case |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${placeholder_id}
+D ${variable_name}
+D ${source_field}
+D ${source_component}
+D ${default_value}
+D ${transformation}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact codedependency-component structure overview
+
+O Comp Codedependency parent . Find
+
+O Defines a top-level Codedependency component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dependency_id | key | . | + | Dependency identifier |
+D | code_block | ref | CodeBlock | + | Dependent code block |
+D | requires | list | . | + | List of required code_block IDs |
+D | import_order | word | . | * | Execution order (1, 2, 3...) |
+D | conditional | word | . | * | Condition for including dependency |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${dependency_id}
+D ${code_block}
+D ${requires}
+D ${import_order}
+D ${conditional}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact codegentemplate-component structure overview
+
+O Comp Codegentemplate parent . Find
+
+O Defines a top-level Codegentemplate component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | template_id | key | . | + | Template identifier |
+D | template_type | word | . | + | kernel, model, training, validation, operation |
+D | language | word | . | + | python, cpp, cuda, opencl |
+D | template_body | text | . | + | Template with placeholders |
+D | placeholders | list | . | + | List of placeholder variables |
+D | validation_rules | text | . | * | Template validation rules |
+D | output_target | word | . | * | File path template |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${template_id}
+D ${template_type}
+D ${language}
+D ${template_body}
+D ${placeholders}
+D ${validation_rules}
+D ${output_target}
+D ${desc}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D ```
+
+Artifact codeblockreference-component structure overview
+
+O Comp Codeblockreference parent . Find
+
+O Defines a top-level Codeblockreference component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ref_id | key | . | + | Reference identifier |
+D | component_type | word | . | + | OperationDef, Layer, SearchMethod, etc. |
+D | component_id | word | . | + | Specific component identifier |
+D | code_block | ref | CodeBlock | + | Referenced code block |
+D | inject_context | word | . | + | true/false for context injection |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${ref_id}
+D ${component_type}
+D ${component_id}
+D ${code_block}
+D ${inject_context}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact actortemplate-component structure overview
+
+O Comp Actortemplate parent . Find
+
+O Defines a top-level Actortemplate component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | actor_name | key | . | + | Actor identifier |
+D | triggers_on | word | . | + | Component type that triggers this actor |
+D | code_block | ref | CodeBlock | * | Code to generate |
+D | template_vars | list | . | + | Template variables to substitute |
+D | iteration_mode | word | . | + | single, foreach, nested |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${actor_name}
+D ${triggers_on}
+D ${code_block}
+D ${template_vars}
+D ${iteration_mode}
+D ${desc}
+D ${code_block.code_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its code_block actor  [Link to Codeblock](#codeblock-component)
+D ```
+
+Artifact reference-resolution-guide workflow overview
+O Multi-pass reference resolution algorithm that handles complex reference chains.
+
+Section resolution_order 2 Resolution Order
+D References resolve in passes until stable:
+D
+D **Pass 1: Direct References**
+D - `ref`: Direct lookup in global index
+D - `link`: Lookup in parent's child index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copies resolved reference from previous field
+D - `ref_child`: Looks up child in previously referenced component
+D - `up_copy`: Walks parent chain to find ancestor
+D
+D The loader repeats passes until error count stops changing (typically 2-4 passes).
+
+Section chaining_pattern 2 Common Chaining Pattern
+D ```
+D Element base_ref    ref       Target    +
+D Element child_ref   ref_child ChildType +
+D ```
+D First field resolves Target by name, second field looks up ChildType within that Target.
+
+Section up_chain_pattern 2 Up-Chain Pattern
+D ```
+D Element context     up_copy   Ancestor  +
+D Element target      ref_child ChildType +
+D ```
+D First field walks parents to find Ancestor, second field looks up ChildType within it.
+
+Section common_patterns 2 Common Design Patterns
+D
+D **Pattern 1: Direct Reference**
+D ```
+D Element target ref ComponentType +
+D ```
+D Simple global lookup.
+D
+D **Pattern 2: Reference Chain**
+D ```
+D Element parent_ref   ref       Parent +
+D Element child_ref    ref_child Child  +
+D ```
+D Two-level lookup: resolve parent, then find child within parent.
+D
+D **Pattern 3: Ancestor Lookup**
+D ```
+D Element ancestor  up_copy   Ancestor +
+D Element target    ref_child Target   +
+D ```
+D Navigate up hierarchy to find ancestor, then look up child within it.
+D
+D **Pattern 4: Reference Reuse**
+D ```
+D Element original  ref      Target +
+D Element copy      ref_copy Target +
+D ```
+D Resolve once, copy pointer multiple times for efficiency.
+D
+D **Pattern 5: Sibling Link**
+D ```
+D Element sibling link SiblingType +
+D ```
+D Reference sibling component under same parent.
+D
+

@@ -1,0 +1,194 @@
+// =========================================================================
+// nas-darts.act — Corrected Actor Template for DARTS
+// Fixes: Navigation patterns, field references, variable resolution
+// =========================================================================
+
+Actor main
+Add.map _:generated
+
+All Architecture generate_full_darts_program
+
+// =========================================================================
+// MAIN PROGRAM ENTRY POINT
+// =========================================================================
+
+Actor generate_full_darts_program Architecture
+C #!/usr/bin/env python3
+C # Auto-generated DARTS implementation from nas-dart.daml
+C # Architecture: ${name} | Dataset: ${dataset} | Date: November 19, 2025
+C
+C import torch
+C import torch.nn as nn
+C import torch.nn.functional as F
+C import torch.optim as optim
+C from dataclasses import dataclass
+C from typing import List, Any
+C
+C # -------------------------------------------------------------------------
+C # Configuration dataclass (from embedded CodeBlock) ${._lno}
+C # -------------------------------------------------------------------------
+
+// Navigate to the main_code CodeBlock via ref
+Add.parse _:body ${main_code.template_body}
+
+C ${_.body}
+
+C
+C # -------------------------------------------------------------------------
+C # Primitive Operations — directly instantiated from OperationDef.code_block
+C # -------------------------------------------------------------------------
+C
+C OPS = {}
+
+All OperationDef register_operation_class
+
+C
+C # -------------------------------------------------------------------------
+C # MixedOp using softmax over alpha (template from CodegenTemplate)
+C # -------------------------------------------------------------------------
+
+All CodegenTemplate generate_mixedop_template darts_mixed_op_template
+
+C
+C # -------------------------------------------------------------------------
+C # DARTS Cells (Normal + Reduction)
+C # -------------------------------------------------------------------------
+
+All Layer generate_reduction_cell reduction_cell
+All Layer generate_normal_cell normal_cell
+
+C
+C # -------------------------------------------------------------------------
+C # Supernet
+C # -------------------------------------------------------------------------
+C class DARTSSupernet(nn.Module):
+C     def __init__(self, config: DARTSConfig):
+C         super().__init__()
+C         C_in = 3
+C         C = config.init_channels
+C
+C         self.stem = nn.Sequential(
+C             nn.Conv2d(C_in, C * 3, kernel_size=3, padding=1, bias=False),
+C             nn.BatchNorm2d(C * 3)
+C         )
+C
+C         self.cells = nn.ModuleList()
+C         C_prev_prev = C_prev = C * 3
+C
+C         for i in range(config.num_cells):
+C             if i in [config.num_cells // 3, 2 * config.num_cells // 3]:
+C                 C_curr = 2 * C
+C                 cell = ReductionCell(C_prev_prev, C_prev, C_curr)
+C             else:
+C                 C_curr = C
+C                 cell = NormalCell(C_prev_prev, C_prev, C_curr)
+C             self.cells.append(cell)
+C             C_prev_prev, C_prev = C_prev, C_curr
+C             C *= 2 if i in [config.num_cells // 3 - 1, 2 * config.num_cells // 3 - 1] else 1
+C
+C         self.global_pool = nn.AdaptiveAvgPool2d(1)
+C         self.classifier = nn.Linear(C_prev, config.num_classes)
+C
+C     def forward(self, x, temperature: float = 1.0):
+C         s0 = s1 = self.stem(x)
+C         for cell in self.cells:
+C             s0, s1 = s1, cell(s0, s1, temperature)
+C         out = self.global_pool(s1)
+C         out = out.view(out.size(0), -1)
+C         return self.classifier(out)
+C
+C # -------------------------------------------------------------------------
+C # Search Engine (DARTS gradient-based)
+C # -------------------------------------------------------------------------
+
+All SearchMethod generate_search_method darts_search_engine
+
+C
+C # -------------------------------------------------------------------------
+C # Final Training Loop
+C # -------------------------------------------------------------------------
+
+All TrainingConfig generate_training_config darts_training_config
+
+C
+C # -------------------------------------------------------------------------
+C # Entry Point
+C # -------------------------------------------------------------------------
+C if __name__ == "__main__":
+C     config = DARTSConfig()
+C     model = DARTSSupernet(config)
+C     print(f"Generated DARTS Supernet — Cells: {config.num_cells}, Init Channels: {config.init_channels}")
+C     print(f"Total params: {sum(p.numel() for p in model.parameters()):,}")
+
+// =========================================================================
+// Register each OperationDef → OPS dict + generate class from its CodeBlock
+// =========================================================================
+
+Actor register_operation_class OperationDef
+C OPS['${name}'] = ${name}
+C # --- CodeBlock: ${code_block.code_id} ${._lno} ---
+
+Add.parse _:body ${code_block.template_body}
+
+C ${_.body}
+C
+
+// =========================================================================
+// Generate MixedOp class from CodegenTemplate
+// =========================================================================
+
+Actor generate_mixedop_template CodegenTemplate template_id = ${._arg}
+C # --- CodegenTemplate: ${template_id} ${._lno} ---
+
+Add.parse _:body ${template_body}
+
+C ${_.body}
+C
+
+// =========================================================================
+// Generate Normal Cell from Layer + referenced CodeBlock
+// =========================================================================
+
+Actor generate_normal_cell Layer layer = ${._arg}
+C # --- Normal Cell CodeBlock: ${code_block.code_id} ${._lno} ---
+
+Add.parse _:template_body ${code_block.template_body}
+
+C ${_.template_body}
+C
+
+// =========================================================================
+// Generate Reduction Cell from Layer + referenced CodeBlock
+// =========================================================================
+
+Actor generate_reduction_cell Layer layer = ${._arg}
+C # --- Reduction Cell CodeBlock: ${code_block.code_id} ${._lno} ---
+
+Add.parse _:template_body ${code_block.template_body}
+
+C ${_.template_body}
+C
+
+// =========================================================================
+// Generate Search Engine from SearchMethod + code_block
+// =========================================================================
+
+Actor generate_search_method SearchMethod method = ${._arg}
+C # --- CodeBlock: ${code_block.code_id} ${._lno} ---
+
+Add.parse _:template_body ${code_block.template_body}
+
+C ${_.template_body}
+C
+
+// =========================================================================
+// Generate Final Trainer from TrainingConfig + code_block
+// =========================================================================
+
+Actor generate_training_config TrainingConfig config_id = ${._arg}
+C # --- CodeBlock: ${code_block.code_id} ${._lno} ---
+
+Add.parse _:template_body ${code_block.template_body}
+
+C ${_.template_body}
+C

@@ -1,0 +1,499 @@
+#!/usr/bin/env python3
+# Auto-generated DARTS implementation from nas-dart.daml
+# Architecture: DARTS_CIFAR10 | Dataset: CIFAR-10 | Date: November 19, 2025
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from dataclasses import dataclass
+from typing import List, Any
+
+# -------------------------------------------------------------------------
+# Configuration dataclass (from embedded CodeBlock) ../nets/nas-dart.daml:84, ../actors/nas-darts.act:28
+# -------------------------------------------------------------------------
+@dataclass
+class DARTSConfig:
+    '''Generated from: nas-dart.daml'''
+    num_cells: int = 8
+    init_channels: int = 36
+    num_classes: int = 10
+    search_epochs: int = 50
+    train_epochs: int = 600
+    batch_size: int = 128
+    learning_rate_w: float = 0.025
+    learning_rate_alpha: float = 0.0003
+    momentum: float = 0.9
+    weight_decay: float = 0.0003
+    grad_clip: float = 5.0
+    temperature: float = 1.0
+
+# -------------------------------------------------------------------------
+# Primitive Operations — directly instantiated from OperationDef.code_block
+# -------------------------------------------------------------------------
+
+OPS = {}
+OPS['FactorizedReduce'] = FactorizedReduce
+# --- CodeBlock: factorized_reduce_code ../nets/nas-dart.daml:233, ../actors/nas-darts.act:129 ---
+class FactorizedReduce(nn.Module):
+    '''Reduce spatial dimensions by 2 while maintaining channels'''
+    def __init__(self, C_in: int, C_out: int):
+        super().__init__()
+        assert C_out % 2 == 0
+        self.relu = nn.ReLU(inplace=False)
+        self.conv_1 = nn.Conv2d(C_in, C_out // 2, 1, stride=2, padding=0, bias=False)
+        self.conv_2 = nn.Conv2d(C_in, C_out // 2, 1, stride=2, padding=0, bias=False)
+        self.bn = nn.BatchNorm2d(C_out)
+
+    def forward(self, x):
+        x = self.relu(x)
+        out = torch.cat([self.conv_1(x), self.conv_2(x[:, :, 1:, 1:])], dim=1)
+        out = self.bn(out)
+        return out
+
+OPS['Identity'] = Identity
+# --- CodeBlock: identity_code ../nets/nas-dart.daml:260, ../actors/nas-darts.act:129 ---
+class Identity(nn.Module):
+    '''Identity operation (no transformation)'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+
+    def forward(self, x):
+        return x
+
+OPS['Zero'] = Zero
+# --- CodeBlock: zero_code ../nets/nas-dart.daml:288, ../actors/nas-darts.act:129 ---
+class Zero(nn.Module):
+    '''Zero operation (outputs zeros)'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.stride = stride
+
+    def forward(self, x):
+        if self.stride == 1:
+            return x.mul(0.)
+        return x[:, :, ::self.stride, ::self.stride].mul(0.)
+
+OPS['SepConv3x3'] = SepConv3x3
+# --- CodeBlock: sepconv3x3_code ../nets/nas-dart.daml:319, ../actors/nas-darts.act:129 ---
+class SepConv3x3(nn.Module):
+    '''3x3 separable convolution'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=3, stride=stride, padding=1, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=3, stride=1, padding=1, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['SepConv5x5'] = SepConv5x5
+# --- CodeBlock: sepconv5x5_code ../nets/nas-dart.daml:381, ../actors/nas-darts.act:129 ---
+class SepConv5x5(nn.Module):
+    '''5x5 separable convolution'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=5, stride=stride, padding=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=5, stride=1, padding=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['DilConv3x3'] = DilConv3x3
+# --- CodeBlock: dilconv3x3_code ../nets/nas-dart.daml:419, ../actors/nas-darts.act:129 ---
+class DilConv3x3(nn.Module):
+    '''3x3 dilated separable convolution'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=3, stride=stride, padding=2, dilation=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=3, stride=1, padding=2, dilation=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['DilConv5x5'] = DilConv5x5
+# --- CodeBlock: dilconv5x5_code ../nets/nas-dart.daml:457, ../actors/nas-darts.act:129 ---
+class DilConv5x5(nn.Module):
+    '''5x5 dilated separable convolution'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.Sequential(
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_in, C_in, kernel_size=5, stride=stride, padding=4, dilation=2, groups=C_in, bias=False),
+            nn.Conv2d(C_in, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(C_out, C_out, kernel_size=5, stride=1, padding=4, dilation=2, groups=C_out, bias=False),
+            nn.Conv2d(C_out, C_out, kernel_size=1, padding=0, bias=False),
+            nn.BatchNorm2d(C_out),
+        )
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['MaxPool3x3'] = MaxPool3x3
+# --- CodeBlock: maxpool3x3_code ../nets/nas-dart.daml:495, ../actors/nas-darts.act:129 ---
+class MaxPool3x3(nn.Module):
+    '''3x3 max pooling'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.MaxPool2d(3, stride=stride, padding=1)
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['AvgPool3x3'] = AvgPool3x3
+# --- CodeBlock: avgpool3x3_code ../nets/nas-dart.daml:524, ../actors/nas-darts.act:129 ---
+class AvgPool3x3(nn.Module):
+    '''3x3 average pooling'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        self.op = nn.AvgPool2d(3, stride=stride, padding=1, count_include_pad=False)
+
+    def forward(self, x):
+        return self.op(x)
+
+OPS['SkipConnect'] = SkipConnect
+# --- CodeBlock: skipconnect_code ../nets/nas-dart.daml:553, ../actors/nas-darts.act:129 ---
+class SkipConnect(nn.Module):
+    '''Skip connection (identity if stride=1, factorized if stride=2)'''
+    def __init__(self, C_in: int, C_out: int, stride: int):
+        super().__init__()
+        if stride == 1:
+            self.op = nn.Identity()
+        else:
+            self.op = FactorizedReduce(C_in, C_out)
+
+    def forward(self, x):
+        return self.op(x)
+
+
+# -------------------------------------------------------------------------
+# MixedOp using softmax over alpha (template from CodegenTemplate)
+# -------------------------------------------------------------------------
+# --- CodegenTemplate: darts_mixed_op_template ../nets/nas-dart.daml:1379, ../actors/nas-darts.act:141 ---
+_PRIMITIVES = ['Identity', 'Zero', 'SepConv3x3', 'SepConv5x5',
+                'DilConv3x3', 'DilConv5x5', 'MaxPool3x3', 'AvgPool3x3', 'SkipConnect', 'SkipConnect']
+
+class MixedOp(nn.Module):
+    def __init__(self, C: int, stride: int):
+        super().__init__()
+        self.ops = nn.ModuleList()
+        for prim_name in _PRIMITIVES:
+            op = OPS[prim_name](C, C, stride)
+            self.ops.append(op)
+        self.alpha = nn.Parameter(torch.randn(len(_PRIMITIVES)) * 1e-3)
+
+    def forward(self, x, temperature: float = 1.0):
+        weights = F.softmax(self.alpha / temperature, dim=0)
+        return sum(w * op(x) for w, op in zip(weights, self.ops))
+
+
+# -------------------------------------------------------------------------
+# DARTS Cells (Normal + Reduction)
+# -------------------------------------------------------------------------
+# --- Reduction Cell CodeBlock: darts_cell_code ../nets/nas-dart.daml:1054, ../actors/nas-darts.act:165 ---
+class reduction_reduction_cell(nn.Module):
+    '''Cell: Reduction cell with searchable operations (reduces spatial size by 2)'''
+    def __init__(self, C_in: int, C_out: int, stride: int, operations: List[str], is_reduction: bool):
+        super().__init__()
+        self.num_nodes = 4
+        self.stride = 2
+        self.is_reduction = true
+
+        # Preprocessing layers
+        if stride == 2:
+            self.preprocess0 = FactorizedReduce(C_in, C_out)
+            self.preprocess1 = FactorizedReduce(C_in, C_out)
+        else:
+            self.preprocess0 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+            self.preprocess1 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+
+        # Mixed operations
+        self.mixed_ops = nn.ModuleList()
+        for i in range(self.num_nodes):
+            for j in range(2 + i):
+                op = MixedOp(C_out, stride if (i == 0 and j < 2) else 1, operations)
+                self.mixed_ops.append(op)
+
+    def forward(self, s0, s1, temperature=1.0):
+        s0 = self.preprocess0(s0)
+        s1 = self.preprocess1(s1)
+
+        states = [s0, s1]
+        op_idx = 0
+
+        for i in range(self.num_nodes):
+            s_new = torch.zeros_like(s1)
+            for j in range(2 + i):
+                op = self.mixed_ops[op_idx]
+                h = op(states[j], temperature)
+                s_new = s_new + h
+                op_idx += 1
+            states.append(s_new)
+
+        return torch.cat(states[2:], dim=1)
+
+# --- Normal Cell CodeBlock: darts_cell_code ../nets/nas-dart.daml:967, ../actors/nas-darts.act:153 ---
+class normal_normal_cell(nn.Module):
+    '''Cell: Normal cell with searchable operations (preserves spatial size)'''
+    def __init__(self, C_in: int, C_out: int, stride: int, operations: List[str], is_reduction: bool):
+        super().__init__()
+        self.num_nodes = 4
+        self.stride = 1
+        self.is_reduction = false
+
+        # Preprocessing layers
+        if stride == 2:
+            self.preprocess0 = FactorizedReduce(C_in, C_out)
+            self.preprocess1 = FactorizedReduce(C_in, C_out)
+        else:
+            self.preprocess0 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+            self.preprocess1 = nn.Sequential(
+                nn.ReLU(inplace=False),
+                nn.Conv2d(C_in, C_out, 1, bias=False),
+                nn.BatchNorm2d(C_out)
+            )
+
+        # Mixed operations
+        self.mixed_ops = nn.ModuleList()
+        for i in range(self.num_nodes):
+            for j in range(2 + i):
+                op = MixedOp(C_out, stride if (i == 0 and j < 2) else 1, operations)
+                self.mixed_ops.append(op)
+
+    def forward(self, s0, s1, temperature=1.0):
+        s0 = self.preprocess0(s0)
+        s1 = self.preprocess1(s1)
+
+        states = [s0, s1]
+        op_idx = 0
+
+        for i in range(self.num_nodes):
+            s_new = torch.zeros_like(s1)
+            for j in range(2 + i):
+                op = self.mixed_ops[op_idx]
+                h = op(states[j], temperature)
+                s_new = s_new + h
+                op_idx += 1
+            states.append(s_new)
+
+        return torch.cat(states[2:], dim=1)
+
+
+# -------------------------------------------------------------------------
+# Supernet
+# -------------------------------------------------------------------------
+class DARTSSupernet(nn.Module):
+    def __init__(self, config: DARTSConfig):
+        super().__init__()
+        C_in = 3
+        C = config.init_channels
+
+        self.stem = nn.Sequential(
+            nn.Conv2d(C_in, C * 3, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(C * 3)
+        )
+
+        self.cells = nn.ModuleList()
+        C_prev_prev = C_prev = C * 3
+
+        for i in range(config.num_cells):
+            if i in [config.num_cells // 3, 2 * config.num_cells // 3]:
+                C_curr = 2 * C
+                cell = ReductionCell(C_prev_prev, C_prev, C_curr)
+            else:
+                C_curr = C
+                cell = NormalCell(C_prev_prev, C_prev, C_curr)
+            self.cells.append(cell)
+            C_prev_prev, C_prev = C_prev, C_curr
+            C *= 2 if i in [config.num_cells // 3 - 1, 2 * config.num_cells // 3 - 1] else 1
+
+        self.global_pool = nn.AdaptiveAvgPool2d(1)
+        self.classifier = nn.Linear(C_prev, config.num_classes)
+
+    def forward(self, x, temperature: float = 1.0):
+        s0 = s1 = self.stem(x)
+        for cell in self.cells:
+            s0, s1 = s1, cell(s0, s1, temperature)
+        out = self.global_pool(s1)
+        out = out.view(out.size(0), -1)
+        return self.classifier(out)
+
+# -------------------------------------------------------------------------
+# Search Engine (DARTS gradient-based)
+# -------------------------------------------------------------------------
+# --- CodeBlock: search_engine_code ../nets/nas-dart.daml:663, ../actors/nas-darts.act:177 ---
+class DARTSSearchEngine:
+    '''Complete DARTS search engine implementation'''
+
+    def __init__(self, model, config, train_loader, val_loader, device):
+        self.model = model
+        self.config = config
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.device = device
+        self.criterion = nn.CrossEntropyLoss()
+
+        # Weight optimizer
+        self.w_optimizer = optim.SGD(
+            model.parameters(),
+            lr=0.025,
+            momentum=0.9,
+            weight_decay=0.0003
+        )
+
+        # Architecture optimizer
+        alpha_params = [p for n, p in model.named_parameters() if 'alpha' in n]
+        self.alpha_optimizer = optim.Adam(
+            alpha_params,
+            lr=0.0003,
+            betas=(0.9, 0.999),
+            weight_decay=0.0003
+        )
+
+    def search(self):
+        '''Execute search for 50 epochs'''
+        for epoch in range(self.config.search_epochs):
+            train_loss = self._train_weights(epoch)
+            val_acc = self._update_architecture(epoch)
+
+            print(f"Epoch {epoch}: train_loss={train_loss:.4f}, val_acc={val_acc:.4f}")
+
+    def _train_weights(self, epoch):
+        self.model.train()
+        total_loss = 0
+        for step, (x, y) in enumerate(self.train_loader):
+            x, y = x.to(self.device), y.to(self.device)
+
+            self.w_optimizer.zero_grad()
+            logits = self.model(x, temperature=1.0)
+            loss = self.criterion(logits, y)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
+            self.w_optimizer.step()
+
+            total_loss += loss.item()
+
+        return total_loss / len(self.train_loader)
+
+    def _update_architecture(self, epoch):
+        self.model.eval()
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for x, y in self.val_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                logits = self.model(x)
+                _, pred = torch.max(logits, 1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+
+        return correct / total
+
+
+# -------------------------------------------------------------------------
+# Final Training Loop
+# -------------------------------------------------------------------------
+# --- CodeBlock: trainer_code ../nets/nas-dart.daml:764, ../actors/nas-darts.act:189 ---
+class Trainer:
+    '''Training loop with config from input file'''
+
+    def __init__(self, model, config, train_loader, val_loader, device):
+        self.model = model
+        self.config = config
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.device = device
+        self.criterion = nn.CrossEntropyLoss()
+
+        self.optimizer = optim.SGD(
+            model.parameters(),
+            lr=0.025,
+            momentum=0.9,
+            weight_decay=0.0003
+        )
+
+    def train_epoch(self):
+        self.model.train()
+        total_loss = 0
+        for x, y in self.train_loader:
+            x, y = x.to(self.device), y.to(self.device)
+
+            self.optimizer.zero_grad()
+            logits = self.model(x)
+            loss = self.criterion(logits, y)
+            loss.backward()
+            self.optimizer.step()
+
+            total_loss += loss.item()
+
+        return total_loss / len(self.train_loader)
+
+    def validate(self):
+        self.model.eval()
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for x, y in self.val_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                logits = self.model(x)
+                _, pred = torch.max(logits, 1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+
+        return correct / total
+
+    def run(self, num_epochs):
+        '''Train model for num_epochs'''
+        for epoch in range(num_epochs):
+            train_loss = self.train_epoch()
+            val_acc = self.validate()
+            print(f"Epoch {epoch}: loss={train_loss:.4f}, acc={val_acc:.4f}")
+
+
+# -------------------------------------------------------------------------
+# Entry Point
+# -------------------------------------------------------------------------
+if __name__ == "__main__":
+    config = DARTSConfig()
+    model = DARTSSupernet(config)
+    print(f"Generated DARTS Supernet — Cells: {config.num_cells}, Init Channels: {config.init_channels}")
+    print(f"Total params: {sum(p.numel() for p in model.parameters()):,}")
