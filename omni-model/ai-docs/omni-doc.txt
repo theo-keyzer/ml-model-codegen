@@ -1,0 +1,848 @@
+
+// ================================================================
+// OMNI.UNIT SCHEMA CONSTRUCTION GUIDE
+// Auto-generated documentation from schema definitions
+// ================================================================
+
+Artifact table-of-contents navigation guide
+O Quick navigation to all components in the schema.
+
+Section components 2 Component Index
+D
+D - [Project](#project-component) - 
+D - [Domain](#domain-component) - 
+D - [Hardware](#hardware-component) - 
+D - [Model](#model-component) - 
+D   - [Layer](#layer-component) - 
+D   - [Tensor](#tensor-component) - 
+D   - [Op](#op-component) - 
+D     - [Arg](#arg-component) - 
+D     - [Controlflow](#controlflow-component) - 
+D - [Block](#block-component) - 
+D - [Config](#config-component) - 
+D - [Kernel](#kernel-component) - 
+D - [Energyfunction](#energyfunction-component) - 
+D - [Searchspace](#searchspace-component) - 
+D   - [Dimension](#dimension-component) - 
+D - [Strategy](#strategy-component) - 
+D - [Constraint](#constraint-component) - 
+D - [Metric](#metric-component) - 
+D - [Checkpoint](#checkpoint-component) - 
+D - [Fusion](#fusion-component) - 
+
+Artifact element-types-reference quick reference
+O Complete reference for all element type keywords and their behaviors.
+
+Section type_summary 2 Element Type Summary
+D
+D | Type | Scope | Resolution | Navigation |
+D |------|-------|------------|------------|
+D | `key` | Local | Immediate | Field access only |
+D | `word` | Local | Immediate | Field access only |
+D | `text` | Local | Immediate | Field access only |
+D | `number` | Local | Immediate | Field access only |
+D | `ref` | Global | Pass 1 | `Its field actor` |
+D | `link` | Sibling | Pass 1 | `Its field actor` |
+D | `ref_copy` | Previous | Pass 2+ | `Its field actor` |
+D | `ref_child` | Parent→Child | Pass 2+ | `Its field actor` |
+D | `up_copy` | Ancestor | Pass 2+ | `Its field actor` |
+D | `type_of` | Child by type | Pass 2+ | `Its field actor` |
+D | `tree` | Local | Immediate | `Its field.up/down/left/right actor` |
+D
+Section type_resolution_passes 2 Multi-Pass Resolution Details
+D
+D **Pass 1: Direct References**
+D - `ref`: Global lookup by key in Find index
+D - `link`: Parent-scoped lookup by key in FindIn index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copy pointer from previous resolved field
+D - `ref_child`: Look up child in previously resolved parent
+D - `up_copy`: Walk parent chain to ancestor type
+D - `type_of`: Match child by component type name
+D
+D The loader continues passes until all references resolve or error count stabilizes.
+
+Artifact project-component structure overview
+
+O Comp Project parent . Find
+
+O Defines a top-level Project component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | project | key | . | + | Project name/ID |
+D | domain | ref | Domain | * | Primary domain (optional) |
+D | model | ref | Model | + | Root model/graph |
+D | strategy | ref | Strategy | * | Default optimization strategy |
+D | hardware | ref | Hardware | * | Default target hardware |
+D | desc | text | . | * | Description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${project}
+D ${domain}
+D ${model}
+D ${strategy}
+D ${hardware}
+D ${desc}
+D ${domain.name}
+D ${model.model}
+D ${strategy.strategy}
+D ${hardware.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its domain actor  [Link to Domain](#domain-component)
+D Its model actor  [Link to Model](#model-component)
+D Its strategy actor  [Link to Strategy](#strategy-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact domain-component structure overview
+
+O Comp Domain parent . Find
+
+O Defines a top-level Domain component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + | Domain identifier |
+D | desc | text | . | * | Human name/description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${desc}
+D ${Project_domain.project}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Project_domain actor  [Reverse link to Project](#project-component)
+D ```
+
+Artifact hardware-component structure overview
+
+O Comp Hardware parent . Find
+
+O Defines a top-level Hardware component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | hardware | key | . | + | Unique name (gpu_a100, tsu_v1, ibmq_oslo) |
+D | parent_hw | ref | Hardware | * | Optional hierarchy (rack → node → card) |
+D | emulation | ref | Hardware | * | Reference to emulator hardware |
+D | noise_model | ref | Constraint | * | Stochastic/Quantum noise reference |
+D | payload | text | . | * | JSON/YAML: arch, memory_gb, bandwidth… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${hardware}
+D ${parent_hw}
+D ${emulation}
+D ${noise_model}
+D ${payload}
+D ${parent_hw.hardware}
+D ${emulation.hardware}
+D ${noise_model.constraint_id}
+D ${Project_hardware.project}
+D ${Hardware_parent_hw.hardware}
+D ${Hardware_emulation.hardware}
+D ${Model_hardware.model}
+D ${Op_hardware.op}
+D ${Kernel_hardware.kernel}
+D ${Constraint_target_hw.constraint_id}
+D ${Metric_target_hw.metric}
+D ${Fusion_hardware.fusion}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent_hw actor  [Link to Hardware](#hardware-component)
+D Its emulation actor  [Link to Hardware](#hardware-component)
+D Its noise_model actor  [Link to Constraint](#constraint-component)
+D Its Project_hardware actor  [Reverse link to Project](#project-component)
+D Its Hardware_parent_hw actor  [Reverse link to Hardware](#hardware-component)
+D Its Hardware_emulation actor  [Reverse link to Hardware](#hardware-component)
+D Its Model_hardware actor  [Reverse link to Model](#model-component)
+D Its Op_hardware actor  [Reverse link to Op](#op-component)
+D Its Kernel_hardware actor  [Reverse link to Kernel](#kernel-component)
+D Its Constraint_target_hw actor  [Reverse link to Constraint](#constraint-component)
+D Its Metric_target_hw actor  [Reverse link to Metric](#metric-component)
+D Its Fusion_hardware actor  [Reverse link to Fusion](#fusion-component)
+D ```
+
+Artifact model-component structure overview
+
+O Comp Model parent . Find
+
+O Defines a top-level Model component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | model | key | . | + | Model identifier |
+D | hardware | ref | Hardware | * | Preferred substrate |
+D | search_space | ref | SearchSpace | * | NAS search space (optional) |
+D | config | ref | Config | * | Inference/runtime configuration |
+D | code | text | . | * | Optional: main driver file path |
+D | payload | text | . | * | type, dataset, num_classes, pgm_schema… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${model}
+D ${hardware}
+D ${search_space}
+D ${config}
+D ${code}
+D ${payload}
+D ${hardware.hardware}
+D ${search_space.space}
+D ${config.config}
+D ${Project_model.project}
+D ${Block_model.block}
+D ${Arg_model.arg}
+D ${Searchspace_target_model.space}
+D ${Constraint_model.constraint_id}
+D ${Checkpoint_model.checkpoint_id}
+D ${Controlflow_model1.control}
+D ${Controlflow_model2.control}
+D ${Controlflow_model3.control}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Layer actor  [Link to Layer](#layer-component)
+D Its Tensor actor  [Link to Tensor](#tensor-component)
+D Its Op actor  [Link to Op](#op-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its config actor  [Link to Config](#config-component)
+D Its Project_model actor  [Reverse link to Project](#project-component)
+D Its Block_model actor  [Reverse link to Block](#block-component)
+D Its Arg_model actor  [Reverse link to Arg](#arg-component)
+D Its Searchspace_target_model actor  [Reverse link to Searchspace](#searchspace-component)
+D Its Constraint_model actor  [Reverse link to Constraint](#constraint-component)
+D Its Checkpoint_model actor  [Reverse link to Checkpoint](#checkpoint-component)
+D Its Controlflow_model1 actor  [Reverse link to Controlflow](#controlflow-component)
+D Its Controlflow_model2 actor  [Reverse link to Controlflow](#controlflow-component)
+D Its Controlflow_model3 actor  [Reverse link to Controlflow](#controlflow-component)
+D ```
+
+Artifact layer-component structure detail
+
+O Comp Layer parent Model FindIn
+
+O Defines a Layer component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | layer | key | . | + | Layer name |
+D | parent_layer | link | Layer | * | Nested layer support |
+D | payload | text | . | * | layer_type, repeat, reduction… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${layer}
+D ${parent_layer}
+D ${payload}
+D ${parent.model}
+D ${parent_layer.layer}
+D ${Layer_parent_layer.layer}
+D ${Op_layer.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Model](#model-component)
+D Its parent_layer actor  [Link to Layer](#layer-component)
+D Its Layer_parent_layer actor  [Reverse link to Layer](#layer-component)
+D Its Op_layer actor  [Reverse link to Op](#op-component)
+D ```
+
+Artifact block-component structure overview
+
+O Comp Block parent . Find
+
+O Defines a top-level Block component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | block | key | . | + | Block identifier |
+D | model | ref | Model | * | Reference to sub-model structure |
+D | payload | text | . | * | block_type, params, noise_model, energy… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${block}
+D ${model}
+D ${payload}
+D ${model.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its model actor  [Link to Model](#model-component)
+D ```
+
+Artifact tensor-component structure detail
+
+O Comp Tensor parent Model FindIn
+
+O Defines a Tensor component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | tensor | key | . | + | Tensor name (e.g. input, hidden_3, qubits) |
+D | producer | link | Op | * | Operation producing this tensor |
+D | distribution | ref | EnergyFunction | * | Probabilistic semantics (optional) |
+D | payload | text | . | * | shape, dtype, layout, symbolic, role… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${tensor}
+D ${producer}
+D ${distribution}
+D ${payload}
+D ${parent.model}
+D ${producer.op}
+D ${distribution.energy_fn}
+D ${Op_predicate.op}
+D ${Arg_tensor.arg}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Model](#model-component)
+D Its producer actor  [Link to Op](#op-component)
+D Its distribution actor  [Link to Energyfunction](#energyfunction-component)
+D Its Op_predicate actor  [Reverse link to Op](#op-component)
+D Its Arg_tensor actor  [Reverse link to Arg](#arg-component)
+D ```
+
+Artifact op-component structure detail
+
+O Comp Op parent Model FindIn
+
+O Defines a Op component with FindIn searchability under parent Model, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | op | key | . | + | Unique operation name |
+D | hardware | ref | Hardware | * | Target substrate for this op |
+D | energy_fn | ref | EnergyFunction | * | Physics energy (optional) |
+D | search_space | ref | SearchSpace | * | NAS/tuning context (optional) |
+D | strategy | ref | Strategy | * | Meta-optimisation / simulation strategy |
+D | predicate | link | Tensor | * | Dynamic condition (optional) |
+D | next_op | link | Op | * | Explicit DAG edge (optional) |
+D | layer | link | Layer | * | Containing layer (optional) |
+D | code | text | . | * | Path to implementation: kernels/matmul.cu, etc. |
+D | payload | text | . | * | JSON/YAML blob: op_type, num_heads, gate_type, |
+D | desc | text | . | * | Human description |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${op}
+D ${hardware}
+D ${energy_fn}
+D ${search_space}
+D ${strategy}
+D ${predicate}
+D ${next_op}
+D ${layer}
+D ${code}
+D ${payload}
+D ${desc}
+D ${parent.model}
+D ${hardware.hardware}
+D ${energy_fn.energy_fn}
+D ${search_space.space}
+D ${strategy.strategy}
+D ${predicate.tensor}
+D ${next_op.op}
+D ${layer.layer}
+D ${Tensor_producer.tensor}
+D ${Op_next_op.op}
+D ${Constraint_target_op.constraint_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Model](#model-component)
+D Its Arg actor  [Link to Arg](#arg-component)
+D Its Controlflow actor  [Link to Controlflow](#controlflow-component)
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D Its energy_fn actor  [Link to Energyfunction](#energyfunction-component)
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its strategy actor  [Link to Strategy](#strategy-component)
+D Its predicate actor  [Link to Tensor](#tensor-component)
+D Its next_op actor  [Link to Op](#op-component)
+D Its layer actor  [Link to Layer](#layer-component)
+D Its Tensor_producer actor  [Reverse link to Tensor](#tensor-component)
+D Its Op_next_op actor  [Reverse link to Op](#op-component)
+D Its Constraint_target_op actor  [Reverse link to Constraint](#constraint-component)
+D ```
+
+Artifact arg-component structure detail
+
+O Comp Arg parent Op FindIn
+
+O Defines a Arg component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | arg | key | . | + | Argument name |
+D | role | word | . | + | input | output | parameter |
+D | model | up_copy | Model | * | Context navigation to parent Model |
+D | tensor | ref_child | Tensor | + | Connected tensor (sibling under Model) |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${arg}
+D ${role}
+D ${model}
+D ${tensor}
+D ${parent.op}
+D ${model.model}
+D ${tensor.tensor}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Op](#op-component)
+D Its model actor  [Link to Model](#model-component)
+D Its tensor actor  [Link to Tensor](#tensor-component)
+D ```
+
+Artifact config-component structure overview
+
+O Comp Config parent . Find
+
+O Defines a top-level Config component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | config | key | . | + | Config identifier |
+D | schedule | ref | Strategy | * | Execution schedule |
+D | payload | text | . | * | batch_size, precision, state_transfer… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${config}
+D ${schedule}
+D ${payload}
+D ${schedule.strategy}
+D ${Model_config.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its schedule actor  [Link to Strategy](#strategy-component)
+D Its Model_config actor  [Reverse link to Model](#model-component)
+D ```
+
+Artifact kernel-component structure overview
+
+O Comp Kernel parent . Find
+
+O Defines a top-level Kernel component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | kernel | key | . | + | Kernel name |
+D | hardware | ref | Hardware | * | Target hardware |
+D | code | text | . | * | Path to kernel file |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${kernel}
+D ${hardware}
+D ${code}
+D ${hardware.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact energyfunction-component structure overview
+
+O Comp Energyfunction parent . Find
+
+O Defines a top-level Energyfunction component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | energy_fn | key | . | + | Name |
+D | code | text | . | * | Optional: energy function source path |
+D | payload | text | . | * | expression, variables, temperature… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${energy_fn}
+D ${code}
+D ${payload}
+D ${Tensor_distribution.tensor}
+D ${Op_energy_fn.op}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Tensor_distribution actor  [Reverse link to Tensor](#tensor-component)
+D Its Op_energy_fn actor  [Reverse link to Op](#op-component)
+D ```
+
+Artifact searchspace-component structure overview
+
+O Comp Searchspace parent . Find
+
+O Defines a top-level Searchspace component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | space | key | . | + | Search space ID |
+D | target_model | ref | Model | * | Model being tuned |
+D | payload | text | . | * | algorithm hints, constraints… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${space}
+D ${target_model}
+D ${payload}
+D ${target_model.model}
+D ${Model_search_space.model}
+D ${Op_search_space.op}
+D ${Strategy_search_space.strategy}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Dimension actor  [Link to Dimension](#dimension-component)
+D Its target_model actor  [Link to Model](#model-component)
+D Its Model_search_space actor  [Reverse link to Model](#model-component)
+D Its Op_search_space actor  [Reverse link to Op](#op-component)
+D Its Strategy_search_space actor  [Reverse link to Strategy](#strategy-component)
+D ```
+
+Artifact dimension-component structure detail
+
+O Comp Dimension parent SearchSpace FindIn
+
+O Defines a Dimension component with FindIn searchability under parent Searchspace, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | dimension | key | . | + | Dimension name (e.g. temperature, num_heads) |
+D | payload | text | . | * | type, range, scale, choices… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${dimension}
+D ${payload}
+D ${parent.space}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Searchspace](#searchspace-component)
+D ```
+
+Artifact strategy-component structure overview
+
+O Comp Strategy parent . Find
+
+O Defines a top-level Strategy component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | strategy | key | . | + | Name (darts, evolution, maml, cycle_accurate_sim) |
+D | search_space | ref | SearchSpace | * | Target search space |
+D | fitness | ref | Metric | * | Fitness metric |
+D | code | text | . | * | Strategy implementation file path |
+D | payload | text | . | * | learning rates, budgets, fidelity… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${strategy}
+D ${search_space}
+D ${fitness}
+D ${code}
+D ${payload}
+D ${search_space.space}
+D ${fitness.metric}
+D ${Project_strategy.project}
+D ${Op_strategy.op}
+D ${Config_schedule.config}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its search_space actor  [Link to Searchspace](#searchspace-component)
+D Its fitness actor  [Link to Metric](#metric-component)
+D Its Project_strategy actor  [Reverse link to Project](#project-component)
+D Its Op_strategy actor  [Reverse link to Op](#op-component)
+D Its Config_schedule actor  [Reverse link to Config](#config-component)
+D ```
+
+Artifact constraint-component structure overview
+
+O Comp Constraint parent . Find
+
+O Defines a top-level Constraint component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | constraint_id | key | . | + | ID |
+D | target_hw | ref | Hardware | * | Constrained hardware (optional) |
+D | model | ref | Model | * | Context navigation to parent Model |
+D | target_op | ref_child | Op | * | Constrained operation (optional) |
+D | payload | text | . | * | condition, severity, target, noise_model… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${constraint_id}
+D ${target_hw}
+D ${model}
+D ${target_op}
+D ${payload}
+D ${target_hw.hardware}
+D ${model.model}
+D ${target_op.op}
+D ${Hardware_noise_model.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its target_hw actor  [Link to Hardware](#hardware-component)
+D Its model actor  [Link to Model](#model-component)
+D Its target_op actor  [Link to Op](#op-component)
+D Its Hardware_noise_model actor  [Reverse link to Hardware](#hardware-component)
+D ```
+
+Artifact metric-component structure overview
+
+O Comp Metric parent . Find
+
+O Defines a top-level Metric component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | metric | key | . | + | Name |
+D | target_hw | ref | Hardware | * | Component measured (optional) |
+D | payload | text | . | * | unit, target_value… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${metric}
+D ${target_hw}
+D ${payload}
+D ${target_hw.hardware}
+D ${Strategy_fitness.strategy}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its target_hw actor  [Link to Hardware](#hardware-component)
+D Its Strategy_fitness actor  [Reverse link to Strategy](#strategy-component)
+D ```
+
+Artifact checkpoint-component structure overview
+
+O Comp Checkpoint parent . Find
+
+O Defines a top-level Checkpoint component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | checkpoint_id | key | . | + | ID |
+D | model | ref | Model | * | Model snapshot belongs to |
+D | payload | text | . | * | state path, timestamp |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${checkpoint_id}
+D ${model}
+D ${payload}
+D ${model.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its model actor  [Link to Model](#model-component)
+D ```
+
+Artifact fusion-component structure overview
+
+O Comp Fusion parent . Find
+
+O Defines a top-level Fusion component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | fusion | key | . | + | Pattern identifier |
+D | hardware | ref | Hardware | * | Target hardware |
+D | payload | text | . | * | pattern_type, ops_fused, strategy… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${fusion}
+D ${hardware}
+D ${payload}
+D ${hardware.hardware}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its hardware actor  [Link to Hardware](#hardware-component)
+D ```
+
+Artifact controlflow-component structure detail
+
+O Comp Controlflow parent Op FindIn
+
+O Defines a Controlflow component with FindIn searchability under parent Op, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | control | key | . | + | Control flow identifier |
+D | model1 | up_copy | Model | * | Context navigation to parent Model |
+D | predicate | ref_cild | Tensor | * | Condition tensor |
+D | model2 | up_copy | Model | * | Context navigation to parent Model |
+D | branch_true | ref_cild | Op | * | True branch target |
+D | model3 | up_copy | Model | * | Context navigation to parent Model |
+D | branch_false | ref_cild | Op | * | False branch target |
+D | payload | text | . | * | loop_count, condition_type… |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${control}
+D ${model1}
+D ${predicate}
+D ${model2}
+D ${branch_true}
+D ${model3}
+D ${branch_false}
+D ${payload}
+D ${parent.op}
+D ${model1.model}
+D ${model2.model}
+D ${model3.model}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Op](#op-component)
+D Its model1 actor  [Link to Model](#model-component)
+D Its model2 actor  [Link to Model](#model-component)
+D Its model3 actor  [Link to Model](#model-component)
+D ```
+
+Artifact reference-resolution-guide workflow overview
+O Multi-pass reference resolution algorithm that handles complex reference chains.
+
+Section resolution_order 2 Resolution Order
+D References resolve in passes until stable:
+D
+D **Pass 1: Direct References**
+D - `ref`: Direct lookup in global index
+D - `link`: Lookup in parent's child index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copies resolved reference from previous field
+D - `ref_child`: Looks up child in previously referenced component
+D - `up_copy`: Walks parent chain to find ancestor
+D
+D The loader repeats passes until error count stops changing (typically 2-4 passes).
+
+Section chaining_pattern 2 Common Chaining Pattern
+D ```
+D Element base_ref    ref       Target    +
+D Element child_ref   ref_child ChildType +
+D ```
+D First field resolves Target by name, second field looks up ChildType within that Target.
+
+Section up_chain_pattern 2 Up-Chain Pattern
+D ```
+D Element context     up_copy   Ancestor  +
+D Element target      ref_child ChildType +
+D ```
+D First field walks parents to find Ancestor, second field looks up ChildType within it.
+
+Section common_patterns 2 Common Design Patterns
+D
+D **Pattern 1: Direct Reference**
+D ```
+D Element target ref ComponentType +
+D ```
+D Simple global lookup.
+D
+D **Pattern 2: Reference Chain**
+D ```
+D Element parent_ref   ref       Parent +
+D Element child_ref    ref_child Child  +
+D ```
+D Two-level lookup: resolve parent, then find child within parent.
+D
+D **Pattern 3: Ancestor Lookup**
+D ```
+D Element ancestor  up_copy   Ancestor +
+D Element target    ref_child Target   +
+D ```
+D Navigate up hierarchy to find ancestor, then look up child within it.
+D
+D **Pattern 4: Reference Reuse**
+D ```
+D Element original  ref      Target +
+D Element copy      ref_copy Target +
+D ```
+D Resolve once, copy pointer multiple times for efficiency.
+D
+D **Pattern 5: Sibling Link**
+D ```
+D Element sibling link SiblingType +
+D ```
+D Reference sibling component under same parent.
+D
+
