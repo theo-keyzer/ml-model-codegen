@@ -1,0 +1,187 @@
+----------------------
+Actor main
+----------------------
+Cs {
+C 
+Cs  "Comp": [
+All Comp gen_Comp
+C
+Cs  ]
+C ,
+Cs  "Element": [
+All Element gen_Element
+C
+Cs  ]
+C ,
+Cs  "Opt": [
+All Opt gen_Opt
+C
+Cs  ]
+C ,
+Cs  "Objective": [
+All Objective gen_Objective
+C
+Cs  ]
+C ,
+Cs  "Memory": [
+All Memory gen_Memory
+C
+Cs  ]
+C ,
+Cs  "Thought": [
+All Thought gen_Thought
+C
+Cs  ]
+C ,
+Cs  "Memo": [
+All Memo gen_Memo
+C
+Cs  ]
+C ,
+Cs  "Ops": [
+All Ops gen_Ops
+C
+Cs  ]
+C ,
+Cs  "Canon": [
+All Canon gen_Canon
+C
+Cs  ]
+C ,
+Cs  "Link": [
+All Link gen_Link
+C
+Cs  ]
+C ,
+Cs  "Section": [
+All Section gen_Section
+C
+Cs  ]
+C
+C }
+
+----------------------
+Actor refs .
+C    "${._arg}": { "type": "${kComp}", "id": ${kMe} },
+
+----------------------
+Actor childs
+----------------------
+Cs ${.1., }${kMe}
+----------------------
+Actor gen_Comp
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Cs    "Element": [
+Its Element childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Element
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its comp refs comp
+Cs    "Opt": [
+Its Opt childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Opt
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Objective
+C ${.1.,}
+C   {
+Du refs me
+Its canonical_form refs canonical_form
+Cs    "Memory": [
+Its Memory childs
+C ],
+Cs    "Thought": [
+Its Thought childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Memory
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its invalidated_by refs invalidated_by
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Thought
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its canonical_form refs canonical_form
+Cs    "Memo": [
+Its Memo childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Memo
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its canonical_form refs canonical_form
+Its objective_id refs objective_id
+Its memory_id refs memory_id
+Its computation refs computation
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Ops
+C ${.1.,}
+C   {
+Du refs me
+Its canonical_form refs canonical_form
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Canon
+C ${.1.,}
+C   {
+Du refs me
+Cs    "Link": [
+Its Link childs
+C ],
+Cs    "Section": [
+Its Section childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Link
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its concept refs concept
+Its relation refs relation
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Section
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+C    "payload": ${payload}
+Cs   }

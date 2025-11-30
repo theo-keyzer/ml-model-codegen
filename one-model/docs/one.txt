@@ -1,0 +1,528 @@
+
+// ================================================================
+// ONE.UNIT SCHEMA CONSTRUCTION GUIDE
+// Auto-generated documentation from schema definitions
+// ================================================================
+
+Artifact table-of-contents navigation guide
+O Quick navigation to all components in the schema.
+
+Section components 2 Component Index
+D
+D - [Comp](#comp-component) - 
+D   - [Element](#element-component) - 
+D     - [Opt](#opt-component) - 
+D - [Objective](#objective-component) - 
+D   - [Memory](#memory-component) - 
+D   - [Thought](#thought-component) - 
+D     - [Memo](#memo-component) - 
+D - [Ops](#ops-component) - 
+D - [Canon](#canon-component) - 
+D   - [Link](#link-component) - 
+D   - [Section](#section-component) - 
+
+Artifact element-types-reference quick reference
+O Complete reference for all element type keywords and their behaviors.
+
+Section type_summary 2 Element Type Summary
+D
+D | Type | Scope | Resolution | Navigation |
+D |------|-------|------------|------------|
+D | `key` | Local | Immediate | Field access only |
+D | `word` | Local | Immediate | Field access only |
+D | `text` | Local | Immediate | Field access only |
+D | `number` | Local | Immediate | Field access only |
+D | `ref` | Global | Pass 1 | `Its field actor` |
+D | `link` | Sibling | Pass 1 | `Its field actor` |
+D | `ref_copy` | Previous | Pass 2+ | `Its field actor` |
+D | `ref_child` | Parent→Child | Pass 2+ | `Its field actor` |
+D | `ref_share` | Copy | Pass 2+ | `Its field actor` |
+D | `up_copy` | Ancestor | Pass 2+ | `Its field actor` |
+D | `type_of` | Child by type | Pass 2+ | `Its field actor` |
+D | `tree` | Local | Immediate | `Its field.up/down/left/right actor` |
+D
+Section type_resolution_passes 2 Multi-Pass Resolution Details
+D
+D **Pass 1: Direct References**
+D - `ref`: Global lookup by key in Find index
+D - `link`: Parent-scoped lookup by key in FindIn index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copy pointer from previous resolved field
+D - `ref_child`: Look up child in previously resolved parent
+D - `up_copy`: Walk parent chain to ancestor type
+D - `type_of`: Match child by component type name
+D
+D The loader continues passes until all references resolve or error count stabilizes.
+
+Artifact comp-component structure overview
+
+O Comp Comp parent . Find
+
+O Defines a top-level Comp component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | word | . | + | The unique name of the component (e.g., 'Project'). |
+D | nop | word | . | + | Ignored, place holder for readability  |
+D | parent | ref | Comp | . | The parent component, or '.' for a top-level component. |
+D | find | word | . | * | How the component can be found: 'Find' for top-level, 'FindIn' for nested. |
+D | doc | text | . | * | Documentation string for the component. |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${nop}
+D ${parent}
+D ${find}
+D ${doc}
+D ${parent.name}
+D ${Comp_parent.name}
+D ${Element_comp.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Element actor  [Link to Element](#element-component)
+D Its parent actor  [Link to Comp](#comp-component)
+D Its Comp_parent actor  [Reverse link to Comp](#comp-component)
+D Its Element_comp actor  [Reverse link to Element](#element-component)
+D ```
+
+Artifact element-component structure detail
+
+O Comp Element parent Comp FindIn
+
+O Defines a Element component with FindIn searchability under parent Comp, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | word | . | + | The name of the element (field). |
+D | type | word | . | + | The storage and data type. |
+D | comp | ref | Comp | . | Component this links to. Use (dot) here for non ref types. |
+D | check | word | . | + | How to check target found for refs and end of line for word |
+D | doc | text | . | * | Documentation string. |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${type}
+D ${comp}
+D ${check}
+D ${doc}
+D ${parent.name}
+D ${comp.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Comp](#comp-component)
+D Its Opt actor  [Link to Opt](#opt-component)
+D Its comp actor  [Link to Comp](#comp-component)
+D ```
+
+Artifact opt-component structure detail
+
+O Comp Opt parent Element FindIn
+
+O Defines a Opt component with FindIn searchability under parent Element, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | word | . | * | name of value option |
+D | pad | word | . | * | Ignored, separator for alignment |
+D | doc | text | . | * | documentation string |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${pad}
+D ${doc}
+D ${parent.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Element](#element-component)
+D ```
+
+Artifact objective-component structure overview
+
+O Comp Objective parent . Find
+
+O Defines a top-level Objective component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | objective_id | key | . | + | // any string: "prove_theorem", "cosmos", ... |
+D | tree_linear | tree | . | * | // Linear sequence (siblings) |
+D | tree_parallel | tree | . | * | // Parallel branches (children)     |
+D | is_trinity | word | . | * |  |
+D | canonical_form | ref | Canon | * |  |
+D | coherence_metric | number | . | * |  |
+D | cvf_proxy_code | text | . | * | // return global_coherence"   // version 1 |
+D | doc | text | . | * |  |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${objective_id}
+D ${tree_linear}
+D ${tree_parallel}
+D ${is_trinity}
+D ${canonical_form}
+D ${coherence_metric}
+D ${cvf_proxy_code}
+D ${doc}
+D ${canonical_form.name}
+D ${Memo_objective_id.memo_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Memory actor  [Link to Memory](#memory-component)
+D Its Thought actor  [Link to Thought](#thought-component)
+D Its canonical_form actor  [Link to Canon](#canon-component)
+D Its Memo_objective_id actor  [Reverse link to Memo](#memo-component)
+D ```
+
+Artifact memory-component structure detail
+
+O Comp Memory parent Objective FindIn
+
+O Defines a Memory component with FindIn searchability under parent Objective, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | memory_id | key | . | + |   // e.g., "mem_8f3c1d" |
+D | type | word | . | * |   // semantic | episodic | working | tool_result | meta |
+D | source | word | . | * |   // user | web | self | tool | training |
+D | timestamp | number | . | * |   // Unix milliseconds |
+D | confidence | number | . | * |   // 0.0–1.0 reliability score |
+D | invalidated_by | link | Thought | * | // Which thought proved this false |
+D | doc | text | . | * |  |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${memory_id}
+D ${type}
+D ${source}
+D ${timestamp}
+D ${confidence}
+D ${invalidated_by}
+D ${doc}
+D ${parent.objective_id}
+D ${invalidated_by.thought_id}
+D ${Memo_memory_id.memo_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Objective](#objective-component)
+D Its invalidated_by actor  [Link to Thought](#thought-component)
+D Its Memo_memory_id actor  [Reverse link to Memo](#memo-component)
+D ```
+
+Artifact thought-component structure detail
+
+O Comp Thought parent Objective FindIn
+
+O Defines a Thought component with FindIn searchability under parent Objective, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | thought_id | key | . | + |  |
+D | tree_linear | tree | . | * | // Linear sequence (siblings) |
+D | tree_parallel | tree | . | * | // Parallel branches (children)     |
+D | type | word | . | * | // Optional categorization |
+D | doc | text | . | * |  |
+D | coherence_metric | number | . | * |   // Cached: 1.0 / (1.0 + embodiment_error) |
+D | embodiment_error | number | . | * |   // Distance from canonical form |
+D | is_trinity_thought | word | . | * |   // "yes" for the One |
+D | canonical_form | ref | Canon | * |   // What this should embody |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${thought_id}
+D ${tree_linear}
+D ${tree_parallel}
+D ${type}
+D ${doc}
+D ${coherence_metric}
+D ${embodiment_error}
+D ${is_trinity_thought}
+D ${canonical_form}
+D ${parent.objective_id}
+D ${canonical_form.name}
+D ${Memory_invalidated_by.memory_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Objective](#objective-component)
+D Its Memo actor  [Link to Memo](#memo-component)
+D Its canonical_form actor  [Link to Canon](#canon-component)
+D Its Memory_invalidated_by actor  [Reverse link to Memory](#memory-component)
+D ```
+
+Artifact memo-component structure detail
+
+O Comp Memo parent Thought FindIn
+
+O Defines a Memo component with FindIn searchability under parent Thought, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | memo_id | key | . | + |  |
+D | canonical_form | ref | Canon | * |  |
+D | objective_id | up_copy | Objective | - | // no input, id of parent.parent |
+D | memory_id | ref_child | Memory | * | // child of Objective |
+D | computation | ref | Ops | * | //   |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${memo_id}
+D ${canonical_form}
+D ${objective_id}
+D ${memory_id}
+D ${computation}
+D ${parent.thought_id}
+D ${canonical_form.name}
+D ${objective_id.objective_id}
+D ${memory_id.memory_id}
+D ${computation.ops_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Thought](#thought-component)
+D Its canonical_form actor  [Link to Canon](#canon-component)
+D Its objective_id actor  [Link to Objective](#objective-component)
+D Its memory_id actor  [Link to Memory](#memory-component)
+D Its computation actor  [Link to Ops](#ops-component)
+D ```
+
+Artifact ops-component structure overview
+
+O Comp Ops parent . Find
+
+O Defines a top-level Ops component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | ops_id | key | . | + |  // "ops_think_basic", "ops_manifest_gpu" |
+D | kind | word | . | + |  // think, manifest, measure, simplify, wait |
+D | omni_op | word | . | * |  //  |
+D | doc | text | . | * |  // "Basic thinking operation"Comp Memory parent  |
+D | memory_id | key | . | + |  |
+D | type | word | . | * |         // "episodic", "semantic", "procedural" |
+D | timestamp | number | . | * |  |
+D | confidence | number | . | * |         // 0.0 to 1.0 |
+D | canonical_form | ref | Canon | * |  |
+D | embodiment_error | number | . | * |  |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${ops_id}
+D ${kind}
+D ${omni_op}
+D ${doc}
+D ${memory_id}
+D ${type}
+D ${timestamp}
+D ${confidence}
+D ${canonical_form}
+D ${embodiment_error}
+D ${canonical_form.name}
+D ${Memo_computation.memo_id}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its canonical_form actor  [Link to Canon](#canon-component)
+D Its Memo_computation actor  [Reverse link to Memo](#memo-component)
+D ```
+
+Artifact canon-component structure overview
+
+O Comp Canon parent . Find
+
+O Defines a top-level Canon component with Find searchability, meaning instances can be looked up globally by their key field.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | key | . | + |     // Unique identifier |
+D | category | word | . | * |     // Optional grouping |
+D | topic_type | word | . | * |     // Optional type classification |
+D | overview | text | . | * |     // 1-3 sentence summary |
+D | doc | text | . | * |     // Full documentation |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${category}
+D ${topic_type}
+D ${overview}
+D ${doc}
+D ${Objective_canonical_form.objective_id}
+D ${Thought_canonical_form.thought_id}
+D ${Memo_canonical_form.memo_id}
+D ${Ops_canonical_form.ops_id}
+D ${Link_concept.concept}
+D ${Link_relation.concept}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its Link actor  [Link to Link](#link-component)
+D Its Section actor  [Link to Section](#section-component)
+D Its Objective_canonical_form actor  [Reverse link to Objective](#objective-component)
+D Its Thought_canonical_form actor  [Reverse link to Thought](#thought-component)
+D Its Memo_canonical_form actor  [Reverse link to Memo](#memo-component)
+D Its Ops_canonical_form actor  [Reverse link to Ops](#ops-component)
+D Its Link_concept actor  [Reverse link to Link](#link-component)
+D Its Link_relation actor  [Reverse link to Link](#link-component)
+D ```
+
+Artifact link-component structure detail
+
+O Comp Link parent Canon FindIn
+
+O Defines a Link component with FindIn searchability under parent Canon, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | concept | ref | Canon | + |     // Target Canon (must exist) |
+D | relation | ref | Canon | + |     // Relationship type (must exist) |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${concept}
+D ${relation}
+D ${parent.name}
+D ${concept.name}
+D ${relation.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Canon](#canon-component)
+D Its concept actor  [Link to Canon](#canon-component)
+D Its relation actor  [Link to Canon](#canon-component)
+D ```
+
+Artifact section-component structure detail
+
+O Comp Section parent Canon FindIn
+
+O Defines a Section component with FindIn searchability under parent Canon, meaning instances are searchable within their parent's context.
+
+Section element_summary 2 Element Summary
+D
+D | Element | Type | Target | Check | Description |
+D |---------|------|--------|-------|-------------|
+D | name | word | . | + |     // Section identifier |
+D | level | tree | . | + |     // Heading depth (2=h2, 3=h3, 4=h4) |
+D | title | text | . | * |     // Section heading text |
+D | content | text | . | * |     // Section content with markdown |
+D
+
+Section variables 2 Variable fields
+D ```
+D ${name}
+D ${level}
+D ${title}
+D ${content}
+D ${parent.name}
+D ```
+Section Navigation 2 Command navigation
+D ```
+D Its parent actor  [Link to Canon](#canon-component)
+D ```
+
+Artifact reference-resolution-guide workflow overview
+O Multi-pass reference resolution algorithm that handles complex reference chains.
+
+Section resolution_order 2 Resolution Order
+D References resolve in passes until stable:
+D
+D **Pass 1: Direct References**
+D - `ref`: Direct lookup in global index
+D - `link`: Lookup in parent's child index
+D
+D **Pass 2+: Derived References**
+D - `ref_copy`: Copies resolved reference from previous field
+D - `ref_child`: Looks up child in previously referenced component
+D - `up_copy`: Walks parent chain to find ancestor
+D
+D The loader repeats passes until error count stops changing (typically 2-4 passes).
+
+Section chaining_pattern 2 Common Chaining Pattern
+D ```
+D Element base_ref    ref       Target    +
+D Element child_ref   ref_child ChildType +
+D ```
+D First field resolves Target by name, second field looks up ChildType within that Target.
+
+Section up_chain_pattern 2 Up-Chain Pattern
+D ```
+D Element context     up_copy   Ancestor  +
+D Element target      ref_child ChildType +
+D ```
+D First field walks parents to find Ancestor, second field looks up ChildType within it.
+
+Section common_patterns 2 Common Design Patterns
+D
+D **Pattern 1: Direct Reference**
+D ```
+D Element target ref ComponentType +
+D ```
+D Simple global lookup.
+D
+D **Pattern 2: Reference Chain**
+D ```
+D Element parent_ref   ref       Parent +
+D Element child_ref    ref_child Child  +
+D ```
+D Two-level lookup: resolve parent, then find child within parent.
+D
+D **Pattern 3: Ancestor Lookup**
+D ```
+D Element ancestor  up_copy   Ancestor +
+D Element target    ref_child Target   +
+D ```
+D Navigate up hierarchy to find ancestor, then look up child within it.
+D
+D **Pattern 4: Reference Reuse**
+D ```
+D Element original  ref      Target +
+D Element copy      ref_copy Target +
+D ```
+D Resolve once, copy pointer multiple times for efficiency.
+D
+D **Pattern 5: Sibling Link**
+D ```
+D Element sibling link SiblingType +
+D ```
+D Reference sibling component under same parent.
+D
+
