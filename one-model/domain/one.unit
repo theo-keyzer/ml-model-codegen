@@ -1,3 +1,134 @@
+// one.unit — The Final Schema
+// Version: 2.0 - Polished with Minimal Resolver clarity
+
+// ================================================================
+// CANONICAL KNOWLEDGE - The Bootstrap Foundation
+// ================================================================
+
+Comp Canon parent . Find
+----------------------------------------------------------------
+* Self-contained authoritative knowledge unit that establishes the system's foundation.
+* Overrules derived schemas during bootstrap and recovery.
+* Typically 10-30 lines with single clear purpose, optimized for AI consumption.
+----------------------------------------------------------------
+    Element name        key  .        +     // Unique identifier
+    Element category    word .        *     // Optional grouping
+    Element topic_type  word .        *     // Optional type classification
+    Element overview    text .        *     // 1-3 sentence summary
+    Element doc         text .        *     // Full documentation
+
+Comp Link parent Canon FindIn
+----------------------------------------------------------------
+* Typed relationship creating a validated knowledge graph between Canons.
+* Both concept and relation must exist (referential integrity).
+----------------------------------------------------------------
+    Element concept     ref  Canon    +     // Target Canon (must exist)
+    Element relation    ref  Canon    +     // Relationship type (must exist)
+
+Comp Section parent Canon FindIn
+----------------------------------------------------------------
+* Optional structure for longer Canons.
+----------------------------------------------------------------
+    Element name        word .        +     // Section identifier
+    Element level       tree .        +     // Heading depth (2=h2, 3=h3, 4=h4)
+    Element title       text .        *     // Section heading text
+    Element content     text .        *     // Section content with markdown
+
+// ================================================================
+// CORE GRAPH STRUCTURE
+// ================================================================
+
+Comp Objective parent . Find
+    Element objective_id     key    .     + // any string: "prove_theorem", "cosmos", ...
+    Element is_trinity       word   .     *
+    Element canonical_form   ref    Canon *
+    Element coherence_metric number .     *
+    Element cvf_proxy_code   text   .     * // return global_coherence"   // version 1
+    Element status           word   .     + // active | suspended | failed | abandoned
+    Element priority         number .     * // 0.0–1.0 (urgency)
+    Element doc              text   .     *
+
+    Opt active            *   // Currently being worked on
+    Opt suspended         *   // Paused
+    Opt completed         *   // Successfully achieved
+    Opt failed            *   // Could not achieve
+    Opt abandoned         *   // Explicitly given up
+
+// ----------------------------------------------------------------
+// MEMORY: Grounded Knowledge Store
+// ----------------------------------------------------------------
+
+Comp Memory         parent Objective      FindIn
+    Element memory_id        key     .       + // e.g., "mem_8f3c1d"
+    Element type             word    .       * // semantic | episodic | working | tool_result | meta
+    Element source           word    .       * // user | web | self | tool | training
+    Element timestamp        number  .       * // Unix milliseconds
+    Element confidence       number  .       * // 0.0–1.0 reliability score
+    Element invalidated_by   link    Thought * // Which thought proved this false
+    Element canonical_form   ref     Canon   *
+    Element embodiment_error number  .       *
+    Element doc              text    .       *
+
+    Opt semantic          *   // Facts, knowledge, definitions
+    Opt episodic          *   // Specific events "I did X at time Y"
+    Opt working           *   // Temporary scratchpad
+    Opt tool_result       *   // Output from tool execution
+    Opt meta              *   // Self-knowledge about reasoning
+
+Comp Thought parent Objective FindIn
+    Element thought_id     key     .       +
+    Element tree_linear    tree    .       * // Linear sequence (siblings)
+    Element tree_parallel  tree    .       * // Parallel branches (children)    
+    Element type           word    .       * // Optional categorization
+    Element doc            text    .       *
+
+    // Coherence measurement
+    Element coherence_metric  number .      * // Cached: 1.0 / (1.0 + embodiment_error)
+    Element embodiment_error  number .      * // Distance from canonical form
+    Element confidence        number .      * // 0.0–1.0 self-assessed certainty
+
+    // Trinity marker
+    Element is_trinity_thought word  .      * // "yes" for the One
+        Opt yes *
+
+    // Canon linkage
+    Element canonical_form     ref   Canon  * // What this should embody
+
+
+    // Type taxonomy (defines semantic role via single tag)
+    Opt reasoning         *   // Standard chain-of-thought step
+    Opt hypothesis        *   // Proposition being tested (prior/posterior in payload)
+    Opt reflection        *   // Meta-cognition about reasoning quality
+    Opt constraint        *   // Boundary condition or rule (hard/soft in payload)
+    Opt plan_step         *   // Explicit step in multi-step strategy
+    Opt synthesis         *   // Integration of multiple thoughts
+    Opt question          *   // Self-posed question needing answer
+    Opt error_recovery    *   // Backtracking or correction
+
+Comp Memo parent Thought FindIn
+    Element memo_id          key       .         +
+    Element role             word      .         * // supports  
+    Element quote            text      .         * // direct excerpt from memory
+    Element canonical_form   ref       Canon     *
+    Element objective_id     up_copy   Objective - // no input, id of parent.parent
+    Element memory_id        ref_child Memory    * // child of Objective
+    Element computation      ref       Ops       * //  
+
+    Opt supports          *   // This memory supports the thought's conclusion
+    Opt contradicts       *   // This memory conflicts with the thought
+    Opt background        *   // Contextual information
+    Opt quote             *   // Direct quotation (follow copyright rules)
+    Opt evidence_for      *   // Evidence supporting a hypothesis
+    Opt evidence_against  *   // Evidence refuting a hypothesis
+    Opt invalidates       *   // This citation proves the thought false
+
+Comp Ops parent . Find
+    Element ops_id   key    .   +  // "ops_think_basic", "ops_manifest_gpu"
+    Element kind     word   .   +  // think, manifest, measure, simplify, wait
+    Element omni_op  word   .   *  // 
+    Element doc      text   .   *  // "Basic thinking operation"
+
+
 ----------------------------------------------------------------
 Comp Comp parent . Find
 * This component defines a class or entity, its name, its parent, and its searchability.
@@ -57,115 +188,6 @@ Comp Opt parent Element FindIn
 	Element pad  word . * Ignored, separator for alignment
 	Element doc  text . * documentation string
 	
-
-// one.unit — The Final Schema
-// Version: 2.0 - Polished with Minimal Resolver clarity
-
-// ================================================================
-// CORE GRAPH STRUCTURE
-// ================================================================
-
-
-
-Comp Objective parent . Find
-    Element objective_id     key    .     + // any string: "prove_theorem", "cosmos", ...
-    Element is_trinity       word   .     *
-    Element canonical_form   ref    Canon *
-    Element coherence_metric number .     *
-    Element cvf_proxy_code   text   .     * // return global_coherence"   // version 1
-    Element doc              text   .     *
-
-// ----------------------------------------------------------------
-// MEMORY: Grounded Knowledge Store
-// ----------------------------------------------------------------
-Comp Memory         parent Objective      FindIn
-    Element memory_id      key     .       +   // e.g., "mem_8f3c1d"
-    Element type           word    .       *   // semantic | episodic | working | tool_result | meta
-    Element source         word    .       *   // user | web | self | tool | training
-    Element timestamp      number  .       *   // Unix milliseconds
-    Element confidence     number  .       *   // 0.0–1.0 reliability score
-    Element invalidated_by link    Thought * // Which thought proved this false
-    Element doc            text    .         *
-
-    Opt semantic          *   // Facts, knowledge, definitions
-    Opt episodic          *   // Specific events "I did X at time Y"
-    Opt working           *   // Temporary scratchpad
-    Opt tool_result       *   // Output from tool execution
-    Opt meta              *   // Self-knowledge about reasoning
-
-Comp Thought parent Objective FindIn
-    Element thought_id     key     .       +
-    Element tree_linear    tree    .       * // Linear sequence (siblings)
-    Element tree_parallel  tree    .       * // Parallel branches (children)    
-    Element type           word    .       * // Optional categorization
-    Element doc            text    .       *
-
-    // Coherence measurement
-    Element coherence_metric  number .      *   // Cached: 1.0 / (1.0 + embodiment_error)
-    Element embodiment_error  number .      *   // Distance from canonical form
-
-    // Trinity marker
-    Element is_trinity_thought word   .      *   // "yes" for the One
-        Opt yes *
-
-    // Canon linkage
-    Element canonical_form         ref   Canon  *   // What this should embody
-
-Comp Memo parent Thought FindIn
-    Element memo_id          key       .         +
-    Element canonical_form   ref       Canon     *
-    Element objective_id     up_copy   Objective - // no input, id of parent.parent
-    Element memory_id        ref_child Memory    * // child of Objective
-    Element computation      ref       Ops       * //  
-
-Comp Ops parent . Find
-    Element ops_id   key    .   +  // "ops_think_basic", "ops_manifest_gpu"
-    Element kind     word   .   +  // think, manifest, measure, simplify, wait
-    Element omni_op  word   .   *  // 
-    Element doc      text   .   *  // "Basic thinking operation"Comp Memory parent 
-
-Objective FindIn
-    Element memory_id      key     . +
-    Element type           word    . *         // "episodic", "semantic", "procedural"
-    Element timestamp      number  . *
-    Element confidence     number  . *         // 0.0 to 1.0
-
-    Element canonical_form    ref   Canon  *
-    Element embodiment_error  number .      *
-
-
-// ================================================================
-// CANONICAL KNOWLEDGE - The Bootstrap Foundation
-// ================================================================
-
-Comp Canon parent . Find
-----------------------------------------------------------------
-* Self-contained authoritative knowledge unit that establishes the system's foundation.
-* Overrules derived schemas during bootstrap and recovery.
-* Typically 10-30 lines with single clear purpose, optimized for AI consumption.
-----------------------------------------------------------------
-    Element name        key  .        +     // Unique identifier
-    Element category    word .        *     // Optional grouping
-    Element topic_type  word .        *     // Optional type classification
-    Element overview    text .        *     // 1-3 sentence summary
-    Element doc         text .        *     // Full documentation
-
-Comp Link parent Canon FindIn
-----------------------------------------------------------------
-* Typed relationship creating a validated knowledge graph between Canons.
-* Both concept and relation must exist (referential integrity).
-----------------------------------------------------------------
-    Element concept     ref  Canon    +     // Target Canon (must exist)
-    Element relation    ref  Canon    +     // Relationship type (must exist)
-
-Comp Section parent Canon FindIn
-----------------------------------------------------------------
-* Optional structure for longer Canons.
-----------------------------------------------------------------
-    Element name        word .        +     // Section identifier
-    Element level       tree .        +     // Heading depth (2=h2, 3=h3, 4=h4)
-    Element title       text .        *     // Section heading text
-    Element content     text .        *     // Section content with markdown
 
 
 

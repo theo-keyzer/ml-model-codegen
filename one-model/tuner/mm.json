@@ -1,0 +1,1248 @@
+{
+ "Canon": [
+  {
+   "me": { "type": "Canon", "id": 0 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:17",
+     "category": "optimization",
+     "doc": "Probabilistic optimizers have hyperparameters that control exploration-exploitation tradeoff. Key dimensions include learning rates (exploitation), noise scales (exploration), momentum (smoothing), jump strategies (dramatic exploration), and hill-climb escape (local minimum detection). Optimal settings depend on problem landscape characteristics like modality, ruggedness, and basin size.",
+     "name": "config_space_theory",
+     "overview": "Understanding how optimizer configurations affect convergence and escape behavior",
+     "topic_type": "theory"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 1 },
+   "Link": [0],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:25",
+     "category": "hyperparameter",
+     "doc": "Learning rate controls how aggressively the optimizer moves in the direction indicated by gradients. Too high causes instability and overshooting. Too low causes slow convergence. Typical range 0.0001 to 0.01. Should be higher for smooth landscapes, lower for rugged ones.",
+     "name": "learning_rate_concept",
+     "overview": "Step size for parameter updates in gradient-based optimization",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 2 },
+   "Link": [1],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:38",
+     "category": "hyperparameter",
+     "doc": "Momentum accumulates velocity over time, helping optimizer maintain direction through noisy gradients and accelerate through consistent directions. Beta values typically 0.8-0.99. Higher momentum smooths more but responds slower to landscape changes.",
+     "name": "momentum_concept",
+     "overview": "Exponential moving average of parameter deltas to smooth updates",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 3 },
+   "Link": [2],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:51",
+     "category": "hyperparameter",
+     "doc": "Noise enables escape from local minima by adding randomness to deterministic updates. Higher noise increases exploration but reduces convergence precision. Typical range 0.05-0.5. Should be higher early in optimization, can decay over time.",
+     "name": "noise_scale_concept",
+     "overview": "Stochastic noise amplitude for exploration",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 4 },
+   "Link": [3],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:64",
+     "category": "strategy",
+     "doc": "Jumps teleport parameters to distant regions when stuck. Quantum jumps use uniform random or opposite-vector displacement. Nuclear jumps are extreme randomization. Enable dramatic exploration but risk abandoning good regions. Frequency controlled by severity thresholds.",
+     "name": "jump_strategy_concept",
+     "overview": "Discrete large-displacement moves to escape attraction basins",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 5 },
+   "Link": [4],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:77",
+     "category": "strategy",
+     "doc": "Hill-climb mode inverts optimization direction when stuck, climbing upward to escape local minima. Triggers after consecutive stuck steps. Continues until timeout or significant improvement. More aggressive than gradual noise scaling.",
+     "name": "hill_climb_concept",
+     "overview": "Temporarily reward worse objectives to climb out of local minima",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 6 },
+   "Link": [5],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:90",
+     "category": "problem",
+     "doc": "Key characteristics include modality (number of minima), ruggedness (gradient noise), basin size (width of attraction regions), separability (axis-alignment), and conditioning (eigenvalue spread). Different landscapes require different optimizer configurations.",
+     "name": "landscape_characteristics",
+     "overview": "Properties of objective function topology that determine optimization difficulty",
+     "topic_type": "concept"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 7 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:346",
+     "category": "config_value",
+     "description": "Ultra-safe for sensitive landscapes",
+     "doc": "Ultra-safe for sensitive landscapes",
+     "learning_rate": 0.0001,
+     "name": "config_lr_low",
+     "overview": "Learning rate 0.0001 - very conservative",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 8 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:356",
+     "category": "config_value",
+     "description": "General purpose default",
+     "doc": "General purpose default",
+     "learning_rate": 0.002,
+     "name": "config_lr_medium",
+     "overview": "Learning rate 0.002 - balanced default",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 9 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:366",
+     "category": "config_value",
+     "description": "Fast convergence on smooth landscapes",
+     "doc": "Fast convergence on smooth landscapes",
+     "learning_rate": 0.01,
+     "name": "config_lr_high",
+     "overview": "Learning rate 0.01 - aggressive",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 10 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:376",
+     "category": "config_value",
+     "description": "Quick direction changes, less smoothing",
+     "doc": "Quick direction changes, less smoothing",
+     "momentum_beta": 0.5,
+     "name": "config_momentum_low",
+     "overview": "Momentum beta 0.5 - highly responsive",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 11 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:386",
+     "category": "config_value",
+     "description": "Strong inertia, stable trajectories",
+     "doc": "Strong inertia, stable trajectories",
+     "momentum_beta": 0.95,
+     "name": "config_momentum_high",
+     "overview": "Momentum beta 0.95 - heavy smoothing",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 12 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:396",
+     "category": "config_value",
+     "description": "Minimal exploration, precise convergence",
+     "doc": "Minimal exploration, precise convergence",
+     "name": "config_noise_minimal",
+     "noise_scale": 0.05,
+     "overview": "Noise scale 0.05 - exploitation focus",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 13 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:406",
+     "category": "config_value",
+     "description": "Standard exploration level",
+     "doc": "Standard exploration level",
+     "name": "config_noise_moderate",
+     "noise_scale": 0.12,
+     "overview": "Noise scale 0.12 - balanced",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 14 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:416",
+     "category": "config_value",
+     "description": "Aggressive exploration, escape emphasis",
+     "doc": "Aggressive exploration, escape emphasis",
+     "name": "config_noise_high",
+     "noise_scale": 0.4,
+     "overview": "Noise scale 0.4 - exploration focus",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 15 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:426",
+     "category": "config_value",
+     "description": "No dramatic jumps, gradual exploration only",
+     "doc": "No dramatic jumps, gradual exploration only",
+     "enable_quantum_jumps": false,
+     "name": "config_jumps_disabled",
+     "overview": "Quantum jumps disabled",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 16 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:436",
+     "category": "config_value",
+     "description": "Moderate jump frequency",
+     "doc": "Moderate jump frequency",
+     "enable_quantum_jumps": true,
+     "jump_severity_threshold": 0.3,
+     "name": "config_jumps_quantum",
+     "overview": "Quantum jumps enabled, severity 0.3",
+     "quantum_jump_range": 10,
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 17 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:448",
+     "category": "config_value",
+     "description": "Frequent dramatic escapes",
+     "doc": "Frequent dramatic escapes",
+     "enable_quantum_jumps": true,
+     "jump_severity_threshold": 0.2,
+     "name": "config_jumps_aggressive",
+     "nuclear_reset_strength": 8,
+     "overview": "Quantum + nuclear jumps, early trigger",
+     "quantum_jump_range": 20,
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 18 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:461",
+     "category": "config_value",
+     "description": "No hill-climb state machine",
+     "doc": "No hill-climb state machine",
+     "enable_hill_climb": false,
+     "name": "config_climb_disabled",
+     "overview": "Hill-climb escape disabled",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 19 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:471",
+     "category": "config_value",
+     "description": "Rare, brief climbs",
+     "doc": "Rare, brief climbs",
+     "enable_hill_climb": true,
+     "hill_climb_max_steps": 15,
+     "hill_climb_trigger_stuck": 50,
+     "name": "config_climb_conservative",
+     "overview": "Hill-climb trigger 50 steps, max 15 steps",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 20 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:483",
+     "category": "config_value",
+     "description": "Frequent, sustained climbs",
+     "doc": "Frequent, sustained climbs",
+     "enable_hill_climb": true,
+     "hill_climb_max_steps": 30,
+     "hill_climb_reward_scale": 2,
+     "hill_climb_trigger_stuck": 20,
+     "name": "config_climb_aggressive",
+     "overview": "Hill-climb trigger 20 steps, max 30 steps",
+     "topic_type": "parameter"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 21 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:500",
+     "category": "benchmark",
+     "dimension": 10,
+     "doc": "Sphere function: sum(x_i^2)",
+     "formula": "sum(x_i^2)",
+     "function": "sphere",
+     "landscape": "unimodal_smooth",
+     "name": "problem_sphere",
+     "optimum": 0,
+     "overview": "Unimodal convex quadratic - simplest test",
+     "topic_type": "problem"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 22 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:526",
+     "category": "benchmark",
+     "dimension": 10,
+     "doc": "Rastrigin function: 10n + sum(x_i^2 - 10*cos(2*pi*x_i))",
+     "formula": "10n + sum(x_i^2 - 10*cos(2*pi*x_i))",
+     "function": "rastrigin",
+     "landscape": "multimodal_regular",
+     "name": "problem_rastrigin",
+     "optimum": 0,
+     "overview": "Highly multimodal with regular structure",
+     "topic_type": "problem"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 23 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:539",
+     "category": "benchmark",
+     "dimension": 10,
+     "doc": "Ackley function: complex multimodal landscape",
+     "formula": "-20*exp(-0.2*sqrt(sum(x_i^2)/n)) - exp(sum(cos(2*pi*x_i))/n) + 20 + e",
+     "function": "ackley",
+     "landscape": "multimodal_single_global",
+     "name": "problem_ackley",
+     "optimum": 0,
+     "overview": "Multimodal with single global minimum",
+     "topic_type": "problem"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 24 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:552",
+     "category": "benchmark",
+     "dimension": 10,
+     "doc": "Schwefel function: 418.9829*n - sum(x_i*sin(sqrt(|x_i|)))",
+     "formula": "418.9829*n - sum(x_i*sin(sqrt(|x_i|)))",
+     "function": "schwefel",
+     "landscape": "rugged_deceptive",
+     "name": "problem_schwefel",
+     "optimum": 0,
+     "overview": "Highly rugged, deceptive global optimum",
+     "topic_type": "problem"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 25 },
+   "Link": [6, 7],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:569",
+     "category": "experiment",
+     "description": "Reference baseline",
+     "doc": "Reference baseline configuration",
+     "enable_hill_climb": true,
+     "enable_quantum_jumps": false,
+     "hill_climb_trigger_stuck": 30,
+     "learning_rate": 0.002,
+     "momentum_beta": 0.9,
+     "name": "experiment_baseline",
+     "noise_scale": 0.12,
+     "overview": "Default balanced configuration",
+     "topic_type": "configuration"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 26 },
+   "Link": [8, 9],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:594",
+     "category": "experiment",
+     "description": "Pure exploitation",
+     "doc": "Pure exploitation strategy",
+     "enable_hill_climb": false,
+     "enable_quantum_jumps": false,
+     "learning_rate": 0.01,
+     "momentum_beta": 0.95,
+     "name": "experiment_exploitation",
+     "noise_scale": 0.05,
+     "overview": "High learning rate, low noise - for smooth landscapes",
+     "topic_type": "configuration"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 27 },
+   "Link": [10, 11],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:618",
+     "category": "experiment",
+     "description": "Aggressive exploration",
+     "doc": "Aggressive exploration strategy",
+     "enable_hill_climb": true,
+     "enable_quantum_jumps": true,
+     "hill_climb_trigger_stuck": 20,
+     "jump_severity_threshold": 0.2,
+     "learning_rate": 0.002,
+     "momentum_beta": 0.5,
+     "name": "experiment_exploration",
+     "noise_scale": 0.4,
+     "overview": "High noise, aggressive jumps - for rugged landscapes",
+     "topic_type": "configuration"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 28 },
+   "Link": [12, 13],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:644",
+     "category": "experiment",
+     "description": "Balanced exploration-exploitation",
+     "doc": "Balanced exploration-exploitation",
+     "enable_hill_climb": true,
+     "enable_quantum_jumps": true,
+     "hill_climb_trigger_stuck": 30,
+     "jump_severity_threshold": 0.3,
+     "learning_rate": 0.002,
+     "momentum_beta": 0.9,
+     "name": "experiment_balanced",
+     "noise_scale": 0.12,
+     "overview": "Moderate all parameters - general purpose",
+     "topic_type": "configuration"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 29 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:674",
+     "category": "metric",
+     "doc": "Primary success metric - lower is better",
+     "name": "metric_final_objective",
+     "overview": "Final objective value achieved",
+     "topic_type": "measurement"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 30 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:682",
+     "category": "metric",
+     "doc": "Efficiency metric - fewer steps better",
+     "name": "metric_convergence_speed",
+     "overview": "Steps to reach within 1% of optimum",
+     "topic_type": "measurement"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 31 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:690",
+     "category": "metric",
+     "doc": "Counts jumps and hill-climbs that led to improvement",
+     "name": "metric_escape_frequency",
+     "overview": "Number of successful escapes from local minima",
+     "topic_type": "measurement"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 32 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:698",
+     "category": "metric",
+     "doc": "Convergence quality - lower variance better",
+     "name": "metric_stability",
+     "overview": "Standard deviation of last 100 objectives",
+     "topic_type": "measurement"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 33 },
+   "Link": [],
+   "Section": [],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:706",
+     "category": "metric",
+     "doc": "Resource usage - lower better for same quality",
+     "name": "metric_computational_cost",
+     "overview": "Total function evaluations and reset operations",
+     "topic_type": "measurement"
+   }
+  },
+  {
+   "me": { "type": "Canon", "id": 34 },
+   "Link": [],
+   "Section": [0, 1, 2, 3, 4],
+   "payload": {
+     "_key": "name",
+     "_lno": "mm.rio:718",
+     "category": "meta",
+     "doc": "Engine loads this file and executes: (1) Parse all Canon configs and problems, (2) Generate grid from experiment_* Canons, (3) For each config+problem pair, instantiate optimizer and run 5000 steps, (4) Collect all metrics into Memory nodes, (5) Aggregate results using Ops aggregate_results, (6) Compare strategies using Ops compare_strategies, (7) Identify best configs per landscape type, (8) Store in best_config_* Memory nodes, (9) Export via Ops export_best_configs.",
+     "name": "engine_execution_plan",
+     "overview": "How the configuration exploration engine uses this Rio file",
+     "topic_type": "procedure"
+   }
+  }
+ ],
+ "Link": [
+  {
+   "me": { "type": "Link", "id": 0 },
+   "parent": { "type": "Canon", "id": 1 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 1 },
+   "payload": {
+     "_lno": "mm.rio:33",
+     "concept": "config_space_theory",
+     "kParentp": "1",
+     "relation": "learning_rate_concept"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 1 },
+   "parent": { "type": "Canon", "id": 2 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 2 },
+   "payload": {
+     "_lno": "mm.rio:46",
+     "concept": "config_space_theory",
+     "kParentp": "2",
+     "relation": "momentum_concept"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 2 },
+   "parent": { "type": "Canon", "id": 3 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 3 },
+   "payload": {
+     "_lno": "mm.rio:59",
+     "concept": "config_space_theory",
+     "kParentp": "3",
+     "relation": "noise_scale_concept"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 3 },
+   "parent": { "type": "Canon", "id": 4 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 4 },
+   "payload": {
+     "_lno": "mm.rio:72",
+     "concept": "config_space_theory",
+     "kParentp": "4",
+     "relation": "jump_strategy_concept"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 4 },
+   "parent": { "type": "Canon", "id": 5 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 5 },
+   "payload": {
+     "_lno": "mm.rio:85",
+     "concept": "config_space_theory",
+     "kParentp": "5",
+     "relation": "hill_climb_concept"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 5 },
+   "parent": { "type": "Canon", "id": 6 },
+   "concept": { "type": "Canon", "id": 0 },
+   "relation": { "type": "Canon", "id": 6 },
+   "payload": {
+     "_lno": "mm.rio:98",
+     "concept": "config_space_theory",
+     "kParentp": "6",
+     "relation": "landscape_characteristics"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 6 },
+   "parent": { "type": "Canon", "id": 25 },
+   "concept": { "type": "Canon", "id": 8 },
+   "relation": { "type": "Canon", "id": 25 },
+   "payload": {
+     "_lno": "mm.rio:584",
+     "concept": "config_lr_medium",
+     "kParentp": "25",
+     "relation": "experiment_baseline"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 7 },
+   "parent": { "type": "Canon", "id": 25 },
+   "concept": { "type": "Canon", "id": 11 },
+   "relation": { "type": "Canon", "id": 25 },
+   "payload": {
+     "_lno": "mm.rio:589",
+     "concept": "config_momentum_high",
+     "kParentp": "25",
+     "relation": "experiment_baseline"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 8 },
+   "parent": { "type": "Canon", "id": 26 },
+   "concept": { "type": "Canon", "id": 9 },
+   "relation": { "type": "Canon", "id": 26 },
+   "payload": {
+     "_lno": "mm.rio:608",
+     "concept": "config_lr_high",
+     "kParentp": "26",
+     "relation": "experiment_exploitation"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 9 },
+   "parent": { "type": "Canon", "id": 26 },
+   "concept": { "type": "Canon", "id": 12 },
+   "relation": { "type": "Canon", "id": 26 },
+   "payload": {
+     "_lno": "mm.rio:613",
+     "concept": "config_noise_minimal",
+     "kParentp": "26",
+     "relation": "experiment_exploitation"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 10 },
+   "parent": { "type": "Canon", "id": 27 },
+   "concept": { "type": "Canon", "id": 14 },
+   "relation": { "type": "Canon", "id": 27 },
+   "payload": {
+     "_lno": "mm.rio:634",
+     "concept": "config_noise_high",
+     "kParentp": "27",
+     "relation": "experiment_exploration"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 11 },
+   "parent": { "type": "Canon", "id": 27 },
+   "concept": { "type": "Canon", "id": 17 },
+   "relation": { "type": "Canon", "id": 27 },
+   "payload": {
+     "_lno": "mm.rio:639",
+     "concept": "config_jumps_aggressive",
+     "kParentp": "27",
+     "relation": "experiment_exploration"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 12 },
+   "parent": { "type": "Canon", "id": 28 },
+   "concept": { "type": "Canon", "id": 8 },
+   "relation": { "type": "Canon", "id": 28 },
+   "payload": {
+     "_lno": "mm.rio:660",
+     "concept": "config_lr_medium",
+     "kParentp": "28",
+     "relation": "experiment_balanced"
+   }
+  },
+  {
+   "me": { "type": "Link", "id": 13 },
+   "parent": { "type": "Canon", "id": 28 },
+   "concept": { "type": "Canon", "id": 16 },
+   "relation": { "type": "Canon", "id": 28 },
+   "payload": {
+     "_lno": "mm.rio:665",
+     "concept": "config_jumps_quantum",
+     "kParentp": "28",
+     "relation": "experiment_balanced"
+   }
+  }
+ ],
+ "Section": [
+  {
+   "me": { "type": "Section", "id": 0 },
+   "parent": { "type": "Canon", "id": 34 },
+   "payload": {
+     "_lno": "mm.rio:726",
+     "content": "Read all Canon nodes with category=config_value or category=experiment. Expand into full parameter dictionaries. Create Cartesian product if doing grid search, or sample if doing random search. Target: 50-200 configs total.",
+     "kParentp": "34",
+     "level": 2,
+     "name": "phase1",
+     "title": "Configuration Space Generation"
+   }
+  },
+  {
+   "me": { "type": "Section", "id": 1 },
+   "parent": { "type": "Canon", "id": 34 },
+   "payload": {
+     "_lno": "mm.rio:733",
+     "content": "Read all Canon nodes with category=benchmark. Parse formula strings, set up objective and gradient functions. Validate dimension and bounds. Load 5-10 standard test problems.",
+     "kParentp": "34",
+     "level": 2,
+     "name": "phase2",
+     "title": "Benchmark Problem Loading"
+   }
+  },
+  {
+   "me": { "type": "Section", "id": 2 },
+   "parent": { "type": "Canon", "id": 34 },
+   "payload": {
+     "_lno": "mm.rio:740",
+     "content": "For each (config, problem) pair: Initialize optimizer with config parameters. Run for fixed budget (5000 steps or 1 minute). Every 100 steps, record objective, gradient norm, jump counts, climb state. Compute final metrics. Store raw traces and aggregated metrics in corresponding Memory nodes.",
+     "kParentp": "34",
+     "level": 2,
+     "name": "phase3",
+     "title": "Experimental Execution"
+   }
+  },
+  {
+   "me": { "type": "Section", "id": 3 },
+   "parent": { "type": "Canon", "id": 34 },
+   "payload": {
+     "_lno": "mm.rio:747",
+     "content": "Group results by problem landscape type (unimodal/multimodal/rugged). For each group, rank configs by primary metric (final objective). Compute statistical significance (t-test or bootstrap). Identify Pareto frontier (best trade-offs between convergence speed and quality). Store top-3 configs per landscape type.",
+     "kParentp": "34",
+     "level": 2,
+     "name": "phase4",
+     "title": "Analysis and Ranking"
+   }
+  },
+  {
+   "me": { "type": "Section", "id": 4 },
+   "parent": { "type": "Canon", "id": 34 },
+   "payload": {
+     "_lno": "mm.rio:754",
+     "content": "Generate heatmaps showing config performance across problems. Plot convergence curves for top configs. Create radar charts comparing strategy dimensions. Export best_config_* as JSON/YAML files for direct import into production systems. Optionally retrain meta-optimizer to predict good configs from landscape features.",
+     "kParentp": "34",
+     "level": 2,
+     "name": "phase5",
+     "title": "Visualization and Export"
+   }
+  }
+ ],
+ "Objective": [
+  {
+   "me": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 0 },
+   "Memory": [0, 1, 2, 3, 4, 5, 6, 7],
+   "Thought": [0, 1, 2, 3, 4, 5, 6, 7],
+   "payload": {
+     "_key": "objective_id",
+     "_lno": "mm.rio:107",
+     "canonical_form": "config_space_theory",
+     "doc": "Root objective: systematically explore configuration space to identify what works better for different problem types",
+     "is_trinity": "yes",
+     "objective_id": "find_best_configs",
+     "tree_linear": 1
+   }
+  }
+ ],
+ "Memory": [
+  {
+   "me": { "type": "Memory", "id": 0 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 1 },
+   "payload": {
+     "_lno": "mm.rio:241",
+     "canonical_form": "learning_rate_concept",
+     "doc": "Stores convergence metrics for each learning rate tested",
+     "kParentp": "0",
+     "memory_id": "lr_sweep_results",
+     "type": "episodic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 1 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 2 },
+   "payload": {
+     "_lno": "mm.rio:248",
+     "canonical_form": "momentum_concept",
+     "doc": "Stores final objective and step counts for momentum sweep",
+     "kParentp": "0",
+     "memory_id": "momentum_sweep_results",
+     "type": "episodic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 2 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 3 },
+   "payload": {
+     "_lno": "mm.rio:255",
+     "canonical_form": "noise_scale_concept",
+     "doc": "Stores escape frequency and convergence quality for noise sweep",
+     "kParentp": "0",
+     "memory_id": "noise_sweep_results",
+     "type": "episodic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 3 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 4 },
+   "payload": {
+     "_lno": "mm.rio:262",
+     "canonical_form": "jump_strategy_concept",
+     "doc": "Stores jump counts, success rates, and final objectives for jump strategy tests",
+     "kParentp": "0",
+     "memory_id": "jump_strategy_results",
+     "type": "episodic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 4 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 5 },
+   "payload": {
+     "_lno": "mm.rio:269",
+     "canonical_form": "hill_climb_concept",
+     "doc": "Stores climb trigger frequency, escape success rate, and overhead cost",
+     "kParentp": "0",
+     "memory_id": "hill_climb_results",
+     "type": "episodic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 5 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "payload": {
+     "_lno": "mm.rio:276",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Best discovered configuration for unimodal problems",
+     "kParentp": "0",
+     "memory_id": "best_config_unimodal",
+     "type": "semantic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 6 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "payload": {
+     "_lno": "mm.rio:283",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Best discovered configuration for multimodal problems",
+     "kParentp": "0",
+     "memory_id": "best_config_multimodal",
+     "type": "semantic"
+   }
+  },
+  {
+   "me": { "type": "Memory", "id": 7 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "payload": {
+     "_lno": "mm.rio:290",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Best discovered configuration for rugged problems",
+     "kParentp": "0",
+     "memory_id": "best_config_rugged",
+     "type": "semantic"
+   }
+  }
+ ],
+ "Thought": [
+  {
+   "me": { "type": "Thought", "id": 0 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 1 },
+   "Memo": [0],
+   "payload": {
+     "_lno": "mm.rio:116",
+     "canonical_form": "learning_rate_concept",
+     "doc": "Vary learning rate from 0.0001 to 0.02 to observe convergence speed vs stability tradeoff",
+     "kParentp": "0",
+     "thought_id": "explore_learning_rates",
+     "tree_linear": 1,
+     "type": "exploration"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 1 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 2 },
+   "Memo": [1],
+   "payload": {
+     "_lno": "mm.rio:131",
+     "canonical_form": "momentum_concept",
+     "doc": "Test momentum beta from 0.5 to 0.99 to balance responsiveness vs smoothing",
+     "kParentp": "0",
+     "thought_id": "explore_momentum",
+     "tree_linear": 2,
+     "type": "exploration"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 2 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 3 },
+   "Memo": [2],
+   "payload": {
+     "_lno": "mm.rio:146",
+     "canonical_form": "noise_scale_concept",
+     "doc": "Sweep noise scale from 0.01 to 0.5 to find exploration-exploitation sweet spot",
+     "kParentp": "0",
+     "thought_id": "explore_noise",
+     "tree_linear": 3,
+     "type": "exploration"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 3 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 4 },
+   "Memo": [3],
+   "payload": {
+     "_lno": "mm.rio:161",
+     "canonical_form": "jump_strategy_concept",
+     "doc": "Test jump strategies (disabled, quantum only, nuclear only, both) and severity thresholds",
+     "kParentp": "0",
+     "thought_id": "explore_jumps",
+     "tree_linear": 4,
+     "type": "exploration"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 4 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 5 },
+   "Memo": [4],
+   "payload": {
+     "_lno": "mm.rio:176",
+     "canonical_form": "hill_climb_concept",
+     "doc": "Vary hill-climb trigger threshold (10-50 steps) and max duration (10-40 steps)",
+     "kParentp": "0",
+     "thought_id": "explore_hill_climb",
+     "tree_linear": 5,
+     "type": "exploration"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 5 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "Memo": [5],
+   "payload": {
+     "_lno": "mm.rio:192",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Test configs on unimodal smooth functions (sphere, ellipsoid) - expect high LR, low noise optimal",
+     "kParentp": "0",
+     "thought_id": "test_unimodal",
+     "tree_parallel": 1,
+     "type": "evaluation"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 6 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "Memo": [6],
+   "payload": {
+     "_lno": "mm.rio:207",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Test configs on multimodal functions (Rastrigin, Ackley) - expect jumps and hill-climb critical",
+     "kParentp": "0",
+     "thought_id": "test_multimodal",
+     "tree_parallel": 2,
+     "type": "evaluation"
+   }
+  },
+  {
+   "me": { "type": "Thought", "id": 7 },
+   "parent": { "type": "Objective", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "Memo": [7],
+   "payload": {
+     "_lno": "mm.rio:222",
+     "canonical_form": "landscape_characteristics",
+     "doc": "Test configs on rugged landscapes (Schwefel) - expect high noise and frequent resets optimal",
+     "kParentp": "0",
+     "thought_id": "test_rugged",
+     "tree_parallel": 3,
+     "type": "evaluation"
+   }
+  }
+ ],
+ "Memo": [
+  {
+   "me": { "type": "Memo", "id": 0 },
+   "parent": { "type": "Thought", "id": 0 },
+   "canonical_form": { "type": "Canon", "id": 1 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 0 },
+   "payload": {
+     "_lno": "mm.rio:124",
+     "canonical_form": "learning_rate_concept",
+     "kParentp": "0",
+     "memo_id": "sweep_lr",
+     "memory_id": "lr_sweep_results",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 1 },
+   "parent": { "type": "Thought", "id": 1 },
+   "canonical_form": { "type": "Canon", "id": 2 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 1 },
+   "payload": {
+     "_lno": "mm.rio:139",
+     "canonical_form": "momentum_concept",
+     "kParentp": "1",
+     "memo_id": "sweep_momentum",
+     "memory_id": "momentum_sweep_results",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 2 },
+   "parent": { "type": "Thought", "id": 2 },
+   "canonical_form": { "type": "Canon", "id": 3 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 2 },
+   "payload": {
+     "_lno": "mm.rio:154",
+     "canonical_form": "noise_scale_concept",
+     "kParentp": "2",
+     "memo_id": "sweep_noise",
+     "memory_id": "noise_sweep_results",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 3 },
+   "parent": { "type": "Thought", "id": 3 },
+   "canonical_form": { "type": "Canon", "id": 4 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 3 },
+   "payload": {
+     "_lno": "mm.rio:169",
+     "canonical_form": "jump_strategy_concept",
+     "kParentp": "3",
+     "memo_id": "test_jumps",
+     "memory_id": "jump_strategy_results",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 4 },
+   "parent": { "type": "Thought", "id": 4 },
+   "canonical_form": { "type": "Canon", "id": 5 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 4 },
+   "payload": {
+     "_lno": "mm.rio:184",
+     "canonical_form": "hill_climb_concept",
+     "kParentp": "4",
+     "memo_id": "test_climb",
+     "memory_id": "hill_climb_results",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 5 },
+   "parent": { "type": "Thought", "id": 5 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 5 },
+   "payload": {
+     "_lno": "mm.rio:200",
+     "canonical_form": "landscape_characteristics",
+     "kParentp": "5",
+     "memo_id": "eval_unimodal",
+     "memory_id": "best_config_unimodal",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 6 },
+   "parent": { "type": "Thought", "id": 6 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 6 },
+   "payload": {
+     "_lno": "mm.rio:215",
+     "canonical_form": "landscape_characteristics",
+     "kParentp": "6",
+     "memo_id": "eval_multimodal",
+     "memory_id": "best_config_multimodal",
+     "objective_id": "find_best_configs"
+   }
+  },
+  {
+   "me": { "type": "Memo", "id": 7 },
+   "parent": { "type": "Thought", "id": 7 },
+   "canonical_form": { "type": "Canon", "id": 6 },
+   "objective_id": { "type": "Objective", "id": 0 },
+   "memory_id": { "type": "Memory", "id": 7 },
+   "payload": {
+     "_lno": "mm.rio:230",
+     "canonical_form": "landscape_characteristics",
+     "kParentp": "7",
+     "memo_id": "eval_rugged",
+     "memory_id": "best_config_rugged",
+     "objective_id": "find_best_configs"
+   }
+  }
+ ],
+ "Ops": [
+  {
+   "me": { "type": "Ops", "id": 0 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:301",
+     "doc": "Generate full grid of configuration combinations for systematic exploration",
+     "kind": "manifest",
+     "ops_id": "generate_config_grid"
+   }
+  },
+  {
+   "me": { "type": "Ops", "id": 1 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:307",
+     "doc": "Execute optimizer with specific config on specific problem, collect metrics",
+     "kind": "manifest",
+     "ops_id": "run_single_experiment"
+   }
+  },
+  {
+   "me": { "type": "Ops", "id": 2 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:313",
+     "doc": "Analyze experimental results to identify patterns and best configurations",
+     "kind": "think",
+     "ops_id": "aggregate_results"
+   }
+  },
+  {
+   "me": { "type": "Ops", "id": 3 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:319",
+     "doc": "Statistical comparison of different strategy combinations",
+     "kind": "think",
+     "ops_id": "compare_strategies"
+   }
+  },
+  {
+   "me": { "type": "Ops", "id": 4 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:325",
+     "doc": "Generate heatmaps and curves showing config performance across problem types",
+     "kind": "manifest",
+     "ops_id": "visualize_landscape"
+   }
+  },
+  {
+   "me": { "type": "Ops", "id": 5 },
+   "payload": {
+     "_key": "ops_id",
+     "_lno": "mm.rio:331",
+     "doc": "Export discovered optimal configurations as reusable presets",
+     "kind": "manifest",
+     "ops_id": "export_best_configs"
+   }
+  }
+ ],
+ "Comp": [
+ ],
+ "Element": [
+ ],
+ "Opt": [
+ ]
+}

@@ -3,18 +3,18 @@ Actor main
 ----------------------
 Cs {
 C 
-Cs  "Comp": [
-All Comp gen_Comp
+Cs  "Canon": [
+All Canon gen_Canon
 C
 Cs  ]
 C ,
-Cs  "Element": [
-All Element gen_Element
+Cs  "Link": [
+All Link gen_Link
 C
 Cs  ]
 C ,
-Cs  "Opt": [
-All Opt gen_Opt
+Cs  "Section": [
+All Section gen_Section
 C
 Cs  ]
 C ,
@@ -43,18 +43,18 @@ All Ops gen_Ops
 C
 Cs  ]
 C ,
-Cs  "Canon": [
-All Canon gen_Canon
+Cs  "Comp": [
+All Comp gen_Comp
 C
 Cs  ]
 C ,
-Cs  "Link": [
-All Link gen_Link
+Cs  "Element": [
+All Element gen_Element
 C
 Cs  ]
 C ,
-Cs  "Section": [
-All Section gen_Section
+Cs  "Opt": [
+All Opt gen_Opt
 C
 Cs  ]
 C
@@ -69,30 +69,30 @@ Actor childs
 ----------------------
 Cs ${.1., }${kMe}
 ----------------------
-Actor gen_Comp
+Actor gen_Canon
 C ${.1.,}
 C   {
 Du refs me
-Its parent refs parent
-Cs    "Element": [
-Its Element childs
+Cs    "Link": [
+Its Link childs
+C ],
+Cs    "Section": [
+Its Section childs
 C ],
 C    "payload": ${payload}
 Cs   }
 ----------------------
-Actor gen_Element
+Actor gen_Link
 C ${.1.,}
 C   {
 Du refs me
 Its parent refs parent
-Its comp refs comp
-Cs    "Opt": [
-Its Opt childs
-C ],
+Its concept refs concept
+Its relation refs relation
 C    "payload": ${payload}
 Cs   }
 ----------------------
-Actor gen_Opt
+Actor gen_Section
 C ${.1.,}
 C   {
 Du refs me
@@ -120,6 +120,7 @@ C   {
 Du refs me
 Its parent refs parent
 Its invalidated_by refs invalidated_by
+Its canonical_form refs canonical_form
 C    "payload": ${payload}
 Cs   }
 ----------------------
@@ -151,34 +152,33 @@ Actor gen_Ops
 C ${.1.,}
 C   {
 Du refs me
-Its canonical_form refs canonical_form
 C    "payload": ${payload}
 Cs   }
 ----------------------
-Actor gen_Canon
-C ${.1.,}
-C   {
-Du refs me
-Cs    "Link": [
-Its Link childs
-C ],
-Cs    "Section": [
-Its Section childs
-C ],
-C    "payload": ${payload}
-Cs   }
-----------------------
-Actor gen_Link
+Actor gen_Comp
 C ${.1.,}
 C   {
 Du refs me
 Its parent refs parent
-Its concept refs concept
-Its relation refs relation
+Cs    "Element": [
+Its Element childs
+C ],
 C    "payload": ${payload}
 Cs   }
 ----------------------
-Actor gen_Section
+Actor gen_Element
+C ${.1.,}
+C   {
+Du refs me
+Its parent refs parent
+Its comp refs comp
+Cs    "Opt": [
+Its Opt childs
+C ],
+C    "payload": ${payload}
+Cs   }
+----------------------
+Actor gen_Opt
 C ${.1.,}
 C   {
 Du refs me
